@@ -13,6 +13,9 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Hash::setRounds(4);
+        config(['cache.default' => 'array', 'session.driver' => 'array']);
+        $this->withoutVite();
         $this->seed(RoleAndPermissionSeeder::class);
     }
 }

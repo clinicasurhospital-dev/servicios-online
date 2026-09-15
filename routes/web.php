@@ -28,9 +28,9 @@ Route::get('/agendar', [HomeController::class, 'booking'])->name('booking');
 */
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/registro', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/registro', [AuthController::class, 'register']);
+    Route::post('/registro', [AuthController::class, 'register'])->middleware('throttle:10,1');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -40,7 +40,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 | Patient Portal Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('paciente')->name('patient.')->group(function () {
+Route::middleware(['auth', 'role:PATIENT|SUPER_ADMIN|ADMIN'])->prefix('paciente')->name('patient.')->group(function () {
     Route::get('/', [PatientPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/citas', [PatientPortalController::class, 'appointments'])->name('appointments');
     Route::get('/citas/{appointment}', [PatientPortalController::class, 'showAppointment'])->name('appointment.show');
@@ -54,7 +54,7 @@ Route::middleware(['auth'])->prefix('paciente')->name('patient.')->group(functio
 | Admin / Reception / Doctor Backoffice Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/agenda', [AdminAgendaController::class, 'index'])->name('agenda');
     Route::get('/citas', [AdminAppointmentController::class, 'index'])->name('appointments');

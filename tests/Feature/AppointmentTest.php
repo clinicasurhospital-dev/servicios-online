@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Appointments\DTOs\CreateAppointmentDTO;
 use App\Domain\Appointments\Enums\AppointmentStatus;
 use App\Domain\Appointments\Services\AppointmentBookingService;
 use App\Domain\Patients\Enums\Gender;
 use App\Domain\Patients\Enums\IdentificationType;
-use App\Domain\Payments\Enums\PaymentMethod;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
@@ -32,13 +32,14 @@ class AppointmentTest extends TestCase
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
             'license_number' => 'DOC-123',
-            'consultation_duration_minutes' => 30,
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
             'name' => 'Dermatologia',
-            'base_price' => 120000,
+            'slug' => 'dermatologia',
+            'base_price' => 120.00,
             'default_duration_minutes' => 30,
             'is_active' => true,
         ]);
@@ -48,34 +49,48 @@ class AppointmentTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Laura',
             'last_name' => 'Restrepo',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '1030507090',
-            'phone' => '3105554433',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0930507090',
+            'phone' => '0995554433',
             'gender' => Gender::FEMALE,
         ]);
 
-        $startAt = Carbon::parse('next monday 10:00:00');
+        $startAt = Carbon::now()->next(Carbon::MONDAY)->setTime(10, 0);
         $endAt = $startAt->copy()->addMinutes(30);
 
-        $appointment = $this->bookingService->book(
-            patient: $patient,
-            doctor: $doctor,
-            specialty: $specialty,
+        // Active doctor schedule on Monday (Day 1)
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => 1,
+            'start_time' => '08:00',
+            'end_time' => '14:00',
+            'slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $dto = new CreateAppointmentDTO(
+            patientId: $patient->id,
+            doctorId: $doctor->id,
+            specialtyId: $specialty->id,
+            procedureId: null,
             startAt: $startAt,
             endAt: $endAt,
-            reason: 'Revision de lunares',
-            paymentMethod: PaymentMethod::ONLINE,
-            bookedByUserId: $pUser->id
+            price: 120.00,
+            patientNotes: 'Revision de lunares',
+            createdByUserId: $pUser->id,
+            paymentMethod: 'ONLINE'
         );
 
+        $appointment = $this->bookingService->book($dto);
+
         $this->assertInstanceOf(Appointment::class, $appointment);
-        $this->assertEquals(AppointmentStatus::CONFIRMED, $appointment->status);
-        $this->assertEquals(120000, $appointment->total_amount);
+        $this->assertEquals(AppointmentStatus::PENDING_PAYMENT, $appointment->status);
+        $this->assertEquals(120.00, $appointment->price);
 
         // Verify status history
         $this->assertDatabaseHas('appointment_status_histories', [
             'appointment_id' => $appointment->id,
-            'new_status' => 'CONFIRMED',
+            'new_status' => 'PENDING_PAYMENT',
         ]);
 
         // Verify audit log
@@ -90,14 +105,15 @@ class AppointmentTest extends TestCase
         $dUser = User::factory()->create();
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
-            'license_number' => 'DOC-123',
-            'consultation_duration_minutes' => 30,
+            'license_number' => 'DOC-123-2',
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
             'name' => 'Medicina General',
-            'base_price' => 80000,
+            'slug' => 'medicina-general',
+            'base_price' => 80.00,
             'default_duration_minutes' => 30,
             'is_active' => true,
         ]);
@@ -107,30 +123,44 @@ class AppointmentTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Andres',
             'last_name' => 'Castro',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '80123456',
-            'phone' => '3151234567',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0980123456',
+            'phone' => '0995123456',
             'gender' => Gender::MALE,
         ]);
 
-        $startAt = Carbon::parse('next tuesday 14:00:00');
+        $startAt = Carbon::now()->next(Carbon::TUESDAY)->setTime(14, 0);
         $endAt = $startAt->copy()->addMinutes(30);
 
-        $appointment = $this->bookingService->book(
-            patient: $patient,
-            doctor: $doctor,
-            specialty: $specialty,
+        // Active doctor schedule on Tuesday (Day 2)
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => 2,
+            'start_time' => '13:00',
+            'end_time' => '18:00',
+            'slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $dto = new CreateAppointmentDTO(
+            patientId: $patient->id,
+            doctorId: $doctor->id,
+            specialtyId: $specialty->id,
+            procedureId: null,
             startAt: $startAt,
             endAt: $endAt,
-            reason: 'Chequeo general',
-            paymentMethod: PaymentMethod::BANK_TRANSFER,
-            bookedByUserId: $pUser->id
+            price: 80.00,
+            patientNotes: 'Chequeo general',
+            createdByUserId: $pUser->id,
+            paymentMethod: 'BANK_TRANSFER'
         );
+
+        $appointment = $this->bookingService->book($dto);
 
         $this->assertEquals(AppointmentStatus::PENDING_PAYMENT, $appointment->status);
         $this->assertDatabaseHas('payments', [
             'appointment_id' => $appointment->id,
-            'method' => 'BANK_TRANSFER',
+            'payment_method' => 'BANK_TRANSFER',
             'status' => 'PENDING',
         ]);
     }

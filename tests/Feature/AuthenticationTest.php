@@ -20,10 +20,11 @@ class AuthenticationTest extends TestCase
             'password' => bcrypt('password123'),
         ]);
 
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password123',
-        ]);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password123',
+            ]);
 
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect();
@@ -35,28 +36,31 @@ class AuthenticationTest extends TestCase
             'password' => bcrypt('password123'),
         ]);
 
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'wrong-password',
-        ]);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ]);
 
         $this->assertGuest();
     }
 
     public function test_patient_can_register(): void
     {
-        $response = $this->post('/registro', [
-            'first_name' => 'Maria',
-            'last_name' => 'Gomez',
-            'identification_type' => 'CC',
-            'identification_number' => '1020304050',
-            'email' => 'maria.gomez@test.com',
-            'phone' => '3009876543',
-            'birth_date' => '1995-05-15',
-            'gender' => 'FEMALE',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/registro', [
+                'name' => 'Maria Gomez',
+                'first_name' => 'Maria',
+                'last_name' => 'Gomez',
+                'identification_type' => 'CC',
+                'identification_number' => '1020304050',
+                'email' => 'maria.gomez@test.com',
+                'phone' => '3009876543',
+                'birth_date' => '1995-05-15',
+                'gender' => 'FEMALE',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+            ]);
 
         $response->assertRedirect(route('patient.dashboard'));
         $this->assertDatabaseHas('users', ['email' => 'maria.gomez@test.com']);
@@ -70,7 +74,9 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/logout');
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->actingAs($user)
+            ->post('/logout');
 
         $this->assertGuest();
         $response->assertRedirect('/');

@@ -17,9 +17,12 @@ class DoctorAccessTest extends TestCase
 {
     public function test_doctor_sees_only_own_appointments_in_agenda(): void
     {
+        $this->withoutExceptionHandling();
+
         $specialty = Specialty::create([
             'name' => 'Psicologia',
-            'base_price' => 90000,
+            'slug' => 'psicologia',
+            'base_price' => 90.00,
             'default_duration_minutes' => 45,
             'is_active' => true,
         ]);
@@ -30,7 +33,7 @@ class DoctorAccessTest extends TestCase
         $doctor1 = Doctor::create([
             'user_id' => $userDoc1->id,
             'license_number' => 'DOC-001',
-            'consultation_duration_minutes' => 45,
+            'default_slot_duration_minutes' => 45,
             'is_active' => true,
         ]);
 
@@ -40,7 +43,7 @@ class DoctorAccessTest extends TestCase
         $doctor2 = Doctor::create([
             'user_id' => $userDoc2->id,
             'license_number' => 'DOC-002',
-            'consultation_duration_minutes' => 45,
+            'default_slot_duration_minutes' => 45,
             'is_active' => true,
         ]);
 
@@ -50,9 +53,9 @@ class DoctorAccessTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Paciente',
             'last_name' => 'General',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '555444',
-            'phone' => '3000001111',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0955544433',
+            'phone' => '0990001111',
             'gender' => Gender::MALE,
         ]);
 
@@ -66,9 +69,8 @@ class DoctorAccessTest extends TestCase
             'specialty_id' => $specialty->id,
             'start_at' => $testDate->copy()->setTime(9, 0),
             'end_at' => $testDate->copy()->setTime(9, 45),
-            'duration_minutes' => 45,
             'status' => AppointmentStatus::CONFIRMED,
-            'total_amount' => 90000,
+            'price' => 90.00,
         ]);
 
         // Appointment for Doctor 2
@@ -79,9 +81,8 @@ class DoctorAccessTest extends TestCase
             'specialty_id' => $specialty->id,
             'start_at' => $testDate->copy()->setTime(11, 0),
             'end_at' => $testDate->copy()->setTime(11, 45),
-            'duration_minutes' => 45,
             'status' => AppointmentStatus::CONFIRMED,
-            'total_amount' => 90000,
+            'price' => 90.00,
         ]);
 
         // Doctor 1 accesses admin agenda

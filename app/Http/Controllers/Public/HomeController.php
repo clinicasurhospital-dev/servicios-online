@@ -19,7 +19,6 @@ class HomeController extends Controller
 
         $doctors = Doctor::where('is_active', true)
             ->with(['user', 'specialties'])
-            ->take(6)
             ->get();
 
         return view('public.home', compact('specialties', 'doctors'));

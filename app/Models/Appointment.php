@@ -40,6 +40,11 @@ class Appointment extends Model
         'price' => 'decimal:2',
     ];
 
+    public function getTotalAmountAttribute(): float
+    {
+        return (float) ($this->price ?? 0);
+    }
+
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);

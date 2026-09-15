@@ -22,9 +22,9 @@ class AuthorizationTest extends TestCase
             'user_id' => $user->id,
             'first_name' => 'Test',
             'last_name' => 'Patient',
-            'identification_type' => 'CC',
-            'identification_number' => '123456',
-            'phone' => '300000000',
+            'identification_type' => 'CEDULA',
+            'identification_number' => '0912345678',
+            'phone' => '0990000000',
             'birth_date' => '1990-01-01',
             'gender' => 'OTHER',
         ]);

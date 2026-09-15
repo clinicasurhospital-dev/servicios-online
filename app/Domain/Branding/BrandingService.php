@@ -95,4 +95,12 @@ class BrandingService
     {
         return (int) config('branding.display.minimum_reschedule_hours', 24);
     }
+
+    /**
+     * Get any config value under branding.
+     */
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return config("branding.{$key}", $default);
+    }
 }

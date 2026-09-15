@@ -11,10 +11,10 @@ return [
     |
     */
 
-    'client_name' => env('BRAND_NAME', 'SurHospital'),
-    'platform_name' => env('BRAND_APP_NAME', 'Nexaris Link'),
-    'tagline' => 'Plataforma de Gestión y Agendamiento Médico',
-    'slogan' => 'Cuidamos de ti y de tu familia con excelencia médica y calidez humana.',
+    'client_name' => env('BRAND_NAME', 'Clínica Sur Hospital'),
+    'platform_name' => env('BRAND_APP_NAME', 'SurHospital Citas'),
+    'tagline' => 'Centro Hospitalario de Alta Especialidad y Agendamiento en Línea',
+    'slogan' => 'Proporcionando atención oportuna en salud integral con estándares de calidad, ética profesional y calidez humana.',
 
     /*
     |--------------------------------------------------------------------------
@@ -41,16 +41,19 @@ return [
     |--------------------------------------------------------------------------
     */
     'contact' => [
-        'phone' => env('BRAND_PHONE', '+593 4 212 3456'),
+        'phone' => env('BRAND_PHONE', '042590670'),
+        'phone_display' => '042 590670 Ext. 100 / Ext. 0',
+        'phone_ext' => 'Ext. 100 / Ext. 0',
         'whatsapp' => env('BRAND_WHATSAPP', '+593 99 999 9999'),
-        'email' => env('BRAND_EMAIL', 'contacto@surhospital.com'),
-        'appointments_email' => env('BRAND_APPOINTMENTS_EMAIL', 'citas@surhospital.com'),
-        'emergency_phone' => '1800-SURHOSPITAL (787-467)',
-        'address' => env('BRAND_ADDRESS', 'Av. Carlos Julio Arosemena Km 2.5, Guayaquil, Ecuador'),
+        'email' => env('BRAND_EMAIL', 'info@surhospital.net'),
+        'careers_email' => 'postulaciones@surhospital.net',
+        'appointments_email' => env('BRAND_APPOINTMENTS_EMAIL', 'citas@surhospital.net'),
+        'emergency_phone' => '042590670 (Emergencias 24/7)',
+        'address' => env('BRAND_ADDRESS', 'Centro de la ciudad de Guayaquil, Ecuador'),
         'city' => 'Guayaquil',
         'country' => 'Ecuador',
-        'working_hours_display' => 'Lunes a Sábado: 07:00 a 19:00 | Emergencias 24/7',
-        'google_maps_url' => 'https://maps.google.com',
+        'working_hours_display' => 'Consulta Externa: Lun - Sáb | Emergencias, Laboratorio e Imágenes: 24/7 (365 días)',
+        'google_maps_url' => 'https://maps.google.com/?q=SurHospital+Guayaquil',
     ],
 
     /*
@@ -62,9 +65,9 @@ return [
         'bank_name' => 'Banco Bolivariano / Banco Pichincha',
         'account_type' => 'Cuenta Corriente',
         'account_number' => '00192837465',
-        'account_holder' => 'SurHospital Clínica y Salud S.A.',
+        'account_holder' => 'Clínica Sur Hospital S.A.',
         'identification' => 'RUC: 0992345678001',
-        'email_receipts' => 'pagos@surhospital.com',
+        'email_receipts' => 'pagos@surhospital.net',
         'instructions' => 'Por favor realiza la transferencia bancaria por el monto exacto y adjunta tu comprobante. Nuestro equipo validará el pago en un plazo máximo de 2 horas hábiles.',
     ],
 
@@ -75,11 +78,11 @@ return [
     */
     'display' => [
         'public_title' => 'SurHospital — Tu Salud en Manos de Especialistas',
-        'patient_title' => 'SurHospital — Portal de Pacientes',
-        'admin_title' => 'Nexaris Link | SurHospital',
+        'patient_title' => 'SurHospital — Portal del Paciente',
+        'admin_title' => 'SurHospital | Nexaris Link',
         'powered_by_text' => 'Powered by Nexaris Link',
         'show_powered_by' => true,
-        'minimum_reschedule_hours' => 24, // Regla de negocio para reprogramar
+        'minimum_reschedule_hours' => 24,
         'appointment_code_prefix' => 'SUR',
     ],
 ];

@@ -23,8 +23,11 @@
 *.log
 composer_debug.log
 test.php
+/storage/framework/testing/*
+/scratch
 NUL
 .phpunit.result.cache
 .vite
 .DS_Store
 Thumbs.db
+

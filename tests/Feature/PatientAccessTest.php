@@ -22,13 +22,14 @@ class PatientAccessTest extends TestCase
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
             'license_number' => 'DOC-SEC',
-            'consultation_duration_minutes' => 30,
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
             'name' => 'Urologia',
-            'base_price' => 140000,
+            'slug' => 'urologia',
+            'base_price' => 140.00,
             'default_duration_minutes' => 30,
             'is_active' => true,
         ]);
@@ -40,9 +41,9 @@ class PatientAccessTest extends TestCase
             'user_id' => $user1->id,
             'first_name' => 'Paciente',
             'last_name' => 'Uno',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '1001',
-            'phone' => '3001001001',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0910010011',
+            'phone' => '0991001001',
             'gender' => Gender::MALE,
         ]);
 
@@ -53,9 +54,9 @@ class PatientAccessTest extends TestCase
             'user_id' => $user2->id,
             'first_name' => 'Paciente',
             'last_name' => 'Dos',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '2002',
-            'phone' => '3002002002',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0920020022',
+            'phone' => '0992002002',
             'gender' => Gender::FEMALE,
         ]);
 
@@ -67,9 +68,8 @@ class PatientAccessTest extends TestCase
             'specialty_id' => $specialty->id,
             'start_at' => Carbon::now()->addDays(2)->setTime(10, 0),
             'end_at' => Carbon::now()->addDays(2)->setTime(10, 30),
-            'duration_minutes' => 30,
             'status' => AppointmentStatus::CONFIRMED,
-            'total_amount' => 140000,
+            'price' => 140.00,
         ]);
 
         // Patient 2 attempts to access Patient 1's appointment
@@ -77,9 +77,10 @@ class PatientAccessTest extends TestCase
         $response->assertStatus(403);
 
         // Patient 2 attempts to cancel Patient 1's appointment
-        $cancelResponse = $this->actingAs($user2)->post(route('patient.appointment.cancel', $app1), [
-            'reason' => 'Intento malicioso de cancelación',
-        ]);
+        $cancelResponse = $this->actingAs($user2)
+            ->post(route('patient.appointment.cancel', $app1), [
+                'reason' => 'Intento malicioso de cancelación',
+            ]);
         $cancelResponse->assertStatus(403);
 
         // Verify appointment was NOT cancelled

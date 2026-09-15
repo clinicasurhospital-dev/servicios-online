@@ -2,12 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Appointments\DTOs\CreateAppointmentDTO;
 use App\Domain\Appointments\Enums\AppointmentStatus;
+use App\Domain\Appointments\Exceptions\InvalidReschedulePolicyException;
 use App\Domain\Appointments\Services\AppointmentBookingService;
 use App\Domain\Appointments\Services\AppointmentRescheduleService;
 use App\Domain\Patients\Enums\Gender;
 use App\Domain\Patients\Enums\IdentificationType;
-use App\Domain\Payments\Enums\PaymentMethod;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\Patient;
@@ -34,14 +35,33 @@ class ReschedulingTest extends TestCase
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
             'license_number' => 'DOC-RESCHEDULE',
-            'consultation_duration_minutes' => 30,
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
             'name' => 'Pediatria',
-            'base_price' => 100000,
+            'slug' => 'pediatria',
+            'base_price' => 100.00,
             'default_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        // Schedules for Monday and Tuesday
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => 1,
+            'start_time' => '08:00',
+            'end_time' => '16:00',
+            'slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => 2,
+            'start_time' => '08:00',
+            'end_time' => '16:00',
+            'slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
@@ -50,38 +70,45 @@ class ReschedulingTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Felipe',
             'last_name' => 'Mora',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '55667788',
-            'phone' => '3209998877',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0955667788',
+            'phone' => '0990998877',
             'gender' => Gender::MALE,
         ]);
 
-        // Cita programada para dentro de 4 días (cumple con holgura la política de >24h)
-        $initialStartAt = Carbon::now()->addDays(4)->setTime(9, 0);
+        // Initial appointment on next Monday 09:00 (> 24h away)
+        $initialStartAt = Carbon::now()->next(Carbon::MONDAY)->setTime(9, 0);
         $initialEndAt = $initialStartAt->copy()->addMinutes(30);
 
-        $appointment = $this->bookingService->book(
-            patient: $patient,
-            doctor: $doctor,
-            specialty: $specialty,
+        $dto = new CreateAppointmentDTO(
+            patientId: $patient->id,
+            doctorId: $doctor->id,
+            specialtyId: $specialty->id,
+            procedureId: null,
             startAt: $initialStartAt,
             endAt: $initialEndAt,
-            paymentMethod: PaymentMethod::ONLINE,
-            bookedByUserId: $pUser->id
+            price: 100.00,
+            patientNotes: null,
+            createdByUserId: $pUser->id,
+            paymentMethod: 'ONLINE'
         );
 
-        $newStartAt = Carbon::now()->addDays(5)->setTime(10, 0);
+        $appointment = $this->bookingService->book($dto);
+
+        // Reschedule to next Tuesday 10:00
+        $newStartAt = Carbon::now()->next(Carbon::TUESDAY)->setTime(10, 0);
         $newEndAt = $newStartAt->copy()->addMinutes(30);
 
         $rescheduled = $this->rescheduleService->reschedule(
             appointment: $appointment,
             newStartAt: $newStartAt,
             newEndAt: $newEndAt,
-            reason: 'Viaje imprevisto de trabajo',
-            rescheduledByUserId: $pUser->id
+            userId: $pUser->id,
+            reason: 'Viaje imprevisto de trabajo'
         );
 
         $this->assertEquals($newStartAt->toDateTimeString(), $rescheduled->start_at->toDateTimeString());
+        $this->assertEquals(AppointmentStatus::RESCHEDULED, $rescheduled->status);
         $this->assertDatabaseHas('appointment_status_histories', [
             'appointment_id' => $appointment->id,
             'new_status' => 'RESCHEDULED',
@@ -94,14 +121,37 @@ class ReschedulingTest extends TestCase
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
             'license_number' => 'DOC-RESCHEDULE-2',
-            'consultation_duration_minutes' => 30,
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
-            'name' => 'Pediatria',
-            'base_price' => 100000,
+            'name' => 'Pediatria General',
+            'slug' => 'pediatria-general',
+            'base_price' => 100.00,
             'default_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        // Schedule for today and tomorrow
+        $todayDayOfWeek = Carbon::now()->dayOfWeek;
+        $tomorrowDayOfWeek = Carbon::now()->addDay()->dayOfWeek;
+
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => $todayDayOfWeek,
+            'start_time' => '00:00',
+            'end_time' => '23:59',
+            'slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => $tomorrowDayOfWeek,
+            'start_time' => '00:00',
+            'end_time' => '23:59',
+            'slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
@@ -110,9 +160,9 @@ class ReschedulingTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Felipe',
             'last_name' => 'Mora',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '55667788',
-            'phone' => '3209998877',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0955667788',
+            'phone' => '0990998877',
             'gender' => Gender::MALE,
         ]);
 
@@ -120,28 +170,32 @@ class ReschedulingTest extends TestCase
         $initialStartAt = Carbon::now()->addHours(2);
         $initialEndAt = $initialStartAt->copy()->addMinutes(30);
 
-        $appointment = $this->bookingService->book(
-            patient: $patient,
-            doctor: $doctor,
-            specialty: $specialty,
+        $dto = new CreateAppointmentDTO(
+            patientId: $patient->id,
+            doctorId: $doctor->id,
+            specialtyId: $specialty->id,
+            procedureId: null,
             startAt: $initialStartAt,
             endAt: $initialEndAt,
-            paymentMethod: PaymentMethod::ONLINE,
-            bookedByUserId: $pUser->id
+            price: 100.00,
+            patientNotes: null,
+            createdByUserId: $pUser->id,
+            paymentMethod: 'ONLINE'
         );
+
+        $appointment = $this->bookingService->book($dto);
 
         $newStartAt = Carbon::now()->addDays(5)->setTime(10, 0);
         $newEndAt = $newStartAt->copy()->addMinutes(30);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('No es posible reprogramar con menos de 24 horas de antelación.');
+        $this->expectException(InvalidReschedulePolicyException::class);
 
         $this->rescheduleService->reschedule(
             appointment: $appointment,
             newStartAt: $newStartAt,
             newEndAt: $newEndAt,
-            reason: 'Tarde para avisar',
-            rescheduledByUserId: $pUser->id
+            userId: $pUser->id,
+            reason: 'Tarde para avisar'
         );
     }
 }

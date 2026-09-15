@@ -2,20 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Appointments\DTOs\CreateAppointmentDTO;
 use App\Domain\Appointments\Enums\AppointmentStatus;
 use App\Domain\Appointments\Services\AppointmentBookingService;
 use App\Domain\Patients\Enums\Gender;
 use App\Domain\Patients\Enums\IdentificationType;
 use App\Domain\Payments\Contracts\PaymentGatewayInterface;
+use App\Domain\Payments\DTOs\PaymentCreationDTO;
 use App\Domain\Payments\Enums\BankTransferStatus;
-use App\Domain\Payments\Enums\PaymentMethod;
 use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Services\BankTransferService;
+use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Models\DoctorSchedule;
 use App\Models\Patient;
+use App\Models\Payment;
 use App\Models\Specialty;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -37,37 +42,84 @@ class PaymentTest extends TestCase
     {
         $gateway = app(PaymentGatewayInterface::class);
 
-        $result = $gateway->createPayment(
-            amount: 150000,
-            currency: 'COP',
-            description: 'Consulta Cardiologia',
-            payerEmail: 'paciente@test.com',
-            metadata: ['test_key' => 'test_val']
+        $dto = new PaymentCreationDTO(
+            appointmentId: 1,
+            amount: 150.00,
+            currency: 'USD',
+            patientEmail: 'paciente@test.com',
+            patientName: 'Juan Perez',
+            description: 'Consulta Cardiologia'
         );
 
-        $this->assertTrue($result['success']);
-        $this->assertNotEmpty($result['transaction_id']);
-        $this->assertEquals(PaymentStatus::PAID, $result['status']);
+        $result = $gateway->createPayment($dto);
+
+        $this->assertTrue($result->isSuccessful);
+        $this->assertNotEmpty($result->gatewayTransactionId);
+        $this->assertNotEmpty($result->redirectUrl);
     }
 
     public function test_payment_webhook_is_idempotent(): void
     {
         $gateway = app(PaymentGatewayInterface::class);
 
-        $payload = [
+        $user = User::factory()->create();
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'first_name' => 'Idem',
+            'last_name' => 'Potent',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0998811223',
+            'phone' => '0991234567',
+            'gender' => Gender::MALE,
+        ]);
+        $doctor = Doctor::create([
+            'user_id' => $user->id,
+            'license_number' => 'DOC-IDEM',
+            'default_slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+        $specialty = Specialty::create([
+            'name' => 'Cardiologia',
+            'slug' => 'cardiologia-idem',
+            'base_price' => 120.00,
+            'default_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $appointment = Appointment::create([
+            'code' => 'SUR-TEST-IDEM-01',
+            'patient_id' => $patient->id,
+            'doctor_id' => $doctor->id,
+            'specialty_id' => $specialty->id,
+            'start_at' => now()->addDays(2),
+            'end_at' => now()->addDays(2)->addMinutes(30),
+            'status' => AppointmentStatus::PENDING_PAYMENT,
+            'price' => 120.00,
+        ]);
+
+        Payment::create([
+            'appointment_id' => $appointment->id,
+            'payment_method' => 'ONLINE',
+            'amount' => 120.00,
+            'currency' => 'USD',
+            'status' => PaymentStatus::PENDING,
+            'gateway_transaction_id' => 'TX-IDEMPOTENT-001',
+        ]);
+
+        $request = Request::create('/api/webhooks/payment', 'POST', [
             'transaction_id' => 'TX-IDEMPOTENT-001',
-            'status' => 'APPROVED',
-            'amount' => 120000,
-        ];
+            'status' => 'PAID',
+            'amount' => 120.00,
+        ]);
 
-        $firstCall = $gateway->handleWebhook($payload);
-        $this->assertTrue($firstCall['success']);
-        $this->assertFalse($firstCall['is_duplicate'] ?? false);
+        $firstCall = $gateway->handleWebhook($request);
+        $this->assertTrue($firstCall->isValid);
+        $this->assertEquals(PaymentStatus::PAID, $firstCall->paymentStatus);
 
-        // Second call with same transaction_id is detected as idempotent duplicate
-        $secondCall = $gateway->handleWebhook($payload);
-        $this->assertTrue($secondCall['success']);
-        $this->assertTrue($secondCall['is_duplicate'] ?? true);
+        // Second call with same transaction_id is handled idempotently
+        $secondCall = $gateway->handleWebhook($request);
+        $this->assertTrue($secondCall->isValid);
+        $this->assertEquals(PaymentStatus::PAID, $secondCall->paymentStatus);
     }
 
     public function test_bank_transfer_submission_and_admin_validation_flow(): void
@@ -76,14 +128,24 @@ class PaymentTest extends TestCase
         $doctor = Doctor::create([
             'user_id' => $dUser->id,
             'license_number' => 'DOC-PAY',
-            'consultation_duration_minutes' => 30,
+            'default_slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
         $specialty = Specialty::create([
             'name' => 'Ortopedia',
-            'base_price' => 130000,
+            'slug' => 'ortopedia',
+            'base_price' => 130.00,
             'default_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => 1,
+            'start_time' => '08:00',
+            'end_time' => '16:00',
+            'slot_duration_minutes' => 30,
             'is_active' => true,
         ]);
 
@@ -92,34 +154,39 @@ class PaymentTest extends TestCase
             'user_id' => $pUser->id,
             'first_name' => 'Diego',
             'last_name' => 'Torres',
-            'identification_type' => IdentificationType::CC,
-            'identification_number' => '77889900',
-            'phone' => '3004445566',
+            'identification_type' => IdentificationType::CEDULA,
+            'identification_number' => '0977889900',
+            'phone' => '0994445566',
             'gender' => Gender::MALE,
         ]);
 
-        $startAt = Carbon::now()->addDays(3)->setTime(11, 0);
+        $startAt = Carbon::now()->next(Carbon::MONDAY)->setTime(11, 0);
         $endAt = $startAt->copy()->addMinutes(30);
 
-        $appointment = $this->bookingService->book(
-            patient: $patient,
-            doctor: $doctor,
-            specialty: $specialty,
+        $dto = new CreateAppointmentDTO(
+            patientId: $patient->id,
+            doctorId: $doctor->id,
+            specialtyId: $specialty->id,
+            procedureId: null,
             startAt: $startAt,
             endAt: $endAt,
-            paymentMethod: PaymentMethod::BANK_TRANSFER,
-            bookedByUserId: $pUser->id
+            price: 130.00,
+            patientNotes: null,
+            createdByUserId: $pUser->id,
+            paymentMethod: 'BANK_TRANSFER'
         );
+
+        $appointment = $this->bookingService->book($dto);
 
         $this->assertEquals(AppointmentStatus::PENDING_PAYMENT, $appointment->status);
 
         // Submit bank transfer with fake receipt file
-        $receiptFile = UploadedFile::fake()->image('comprobante_bancolombia.jpg');
+        $receiptFile = UploadedFile::fake()->image('comprobante_bolivariano.jpg');
 
         $transfer = $this->transferService->submitTransfer(
             appointment: $appointment,
             data: [
-                'bank_name' => 'Bancolombia',
+                'bank_name' => 'Banco Bolivariano',
                 'reference_number' => 'REF-987654321',
                 'transfer_date' => now()->format('Y-m-d'),
                 'notes' => 'Transferencia desde cuenta de ahorros',
@@ -137,8 +204,8 @@ class PaymentTest extends TestCase
 
         $this->transferService->validateTransfer(
             transfer: $transfer,
-            status: BankTransferStatus::APPROVED,
             validator: $adminUser,
+            isApproved: true,
             rejectionReason: null
         );
 

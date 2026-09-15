@@ -213,7 +213,7 @@
                                             {{ $slot->startTime }}
                                         </button>
                                     @endif
-                                endforeach
+                                @endforeach
                             </div>
                         @else
                             <div class="text-center py-12 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200">

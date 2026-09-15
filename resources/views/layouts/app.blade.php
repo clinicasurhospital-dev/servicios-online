@@ -28,16 +28,24 @@
                 </a>
 
                 <!-- Desktop Nav Navigation -->
-                <nav class="hidden md:flex items-center gap-8">
-                    <a href="{{ route('home') }}" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Inicio</a>
-                    <a href="{{ route('home') }}#nosotros" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">SurHospital</a>
-                    <a href="{{ route('home') }}#especialidades" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Especialidades</a>
-                    <a href="{{ route('home') }}#medicos" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Médicos</a>
-                    <a href="{{ route('home') }}#contacto" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Contacto</a>
+                <nav class="hidden lg:flex items-center gap-6">
+                    <a href="{{ route('home') }}" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Inicio</a>
+                    <a href="{{ route('home') }}#servicios" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Servicios</a>
+                    <a href="{{ route('home') }}#paquetes" class="text-xs xl:text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors font-bold">Paquetes Quirúrgicos</a>
+                    <a href="{{ route('home') }}#especialidades" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Especialidades</a>
+                    <a href="{{ route('home') }}#medicos" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Staff Médico</a>
+                    <a href="{{ route('home') }}#nosotros" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Nosotros</a>
+                    <a href="{{ route('home') }}#aliados" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Convenios</a>
+                    <a href="{{ route('home') }}#contacto" class="text-xs xl:text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors">Contacto</a>
                 </nav>
 
                 <!-- Actions / Auth CTA -->
                 <div class="flex items-center gap-3">
+                    <a href="tel:042590670" class="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all">
+                        <svg class="h-3.5 w-3.5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        <span>042 590670</span>
+                    </a>
+
                     @auth
                         @if(auth()->user()->isAdmin() || auth()->user()->isReception() || auth()->user()->isDoctor())
                             <x-button href="{{ route('admin.dashboard') }}" variant="secondary" size="sm">
@@ -58,7 +66,7 @@
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-sm font-bold text-slate-700 hover:text-brand-600 px-3.5 py-2 transition-colors">
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-sm font-bold text-slate-700 hover:text-brand-600 px-3 py-2 transition-colors">
                             Iniciar Sesión
                         </a>
                         <x-button href="{{ route('booking') }}" variant="primary" size="sm" class="shadow-md shadow-brand-500/20">
@@ -87,30 +95,31 @@
                 <div class="space-y-4">
                     <x-brand.logo variant="white" />
                     <p class="text-sm text-slate-400 leading-relaxed">
-                        Comprometidos con la salud y bienestar de nuestra comunidad mediante tecnología avanzada y calidez humana.
+                        Somos Clínica Sur Hospital, institución de salud privada en Guayaquil proporcionando atención oportuna e integral con estándares de calidad, ética profesional y tecnología de vanguardia.
                     </p>
                     <div class="pt-2 text-xs text-slate-400 flex items-center gap-2">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Emergencias y Atención Médica 24/7</span>
+                        <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="font-semibold text-emerald-400">Emergencias, Laboratorio e Imágenes 24/7</span>
                     </div>
                 </div>
 
                 <!-- Navigation -->
                 <div>
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Enlaces Rápidos</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Enlaces y Áreas</h4>
                     <ul class="space-y-2.5 text-sm text-slate-400">
-                        <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">Inicio</a></li>
-                        <li><a href="{{ route('home') }}#nosotros" class="hover:text-white transition-colors">Sobre SurHospital</a></li>
+                        <li><a href="{{ route('home') }}#servicios" class="hover:text-white transition-colors">Servicios y Hospitalización</a></li>
+                        <li><a href="{{ route('home') }}#paquetes" class="hover:text-white transition-colors">Paquetes Quirúrgicos</a></li>
                         <li><a href="{{ route('home') }}#especialidades" class="hover:text-white transition-colors">Especialidades Médicas</a></li>
-                        <li><a href="{{ route('home') }}#medicos" class="hover:text-white transition-colors">Directorio Médico</a></li>
-                        <li><a href="{{ route('booking') }}" class="text-brand-300 font-semibold hover:text-white transition-colors">Agendar Cita Médica</a></li>
+                        <li><a href="{{ route('home') }}#medicos" class="hover:text-white transition-colors">Directorio de Médicos</a></li>
+                        <li><a href="{{ route('home') }}#aliados" class="hover:text-white transition-colors">Aseguradoras y Convenios</a></li>
+                        <li><a href="{{ route('booking') }}" class="text-brand-300 font-semibold hover:text-white transition-colors">Agendamiento en Línea</a></li>
                     </ul>
                 </div>
 
                 <!-- Contact Info -->
                 <div>
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto & Ubicación</h4>
-                    <ul class="space-y-2.5 text-sm text-slate-400">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto Directo</h4>
+                    <ul class="space-y-3 text-sm text-slate-400">
                         <li class="flex items-start gap-2.5">
                             <svg class="h-5 w-5 text-brand-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -122,7 +131,7 @@
                             <svg class="h-5 w-5 text-brand-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            <span>{{ $branding->contact('phone') }}</span>
+                            <span>PBX: {{ $branding->contact('phone') }} (Ext. 100 / Ext. 0)</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <svg class="h-5 w-5 text-brand-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,17 +139,24 @@
                             </svg>
                             <span>{{ $branding->contact('email') }}</span>
                         </li>
+                        <li class="flex items-center gap-2.5">
+                            <svg class="h-5 w-5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span>{{ $branding->get('contact.careers_email', 'postulaciones@surhospital.net') }}</span>
+                        </li>
                     </ul>
                 </div>
 
                 <!-- Legal / Hours -->
                 <div>
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Horarios de Consulta</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Horarios & Cobertura</h4>
                     <p class="text-sm text-slate-400 mb-3 leading-relaxed">
                         {{ $branding->contact('working_hours_display') }}
                     </p>
-                    <div class="mt-4 pt-4 border-t border-slate-800">
-                        <span class="text-xs text-slate-500">Centro Médico Acreditado MSP Ecuador</span>
+                    <div class="mt-4 pt-4 border-t border-slate-800 space-y-1">
+                        <span class="block text-xs font-semibold text-slate-400">Atención Particular y Aseguradoras</span>
+                        <span class="block text-xs text-slate-500">Centro Quirúrgico y Hospitalario de Guayaquil</span>
                     </div>
                 </div>
             </div>
