@@ -75,7 +75,8 @@
 
     <!-- Main Content -->
     <main class="flex-1">
-        {{ $slot }}
+        {{ $slot ?? '' }}
+        @yield('content')
     </main>
 
     <!-- Footer -->
