@@ -7,14 +7,14 @@
     <div class="max-w-md w-full space-y-8 bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100">
         <div class="text-center">
             <a href="{{ route('home') }}" class="inline-block mb-4">
-                <x-brand.logo height="38" />
+                <x-brand.logo />
             </a>
             <h2 class="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión</h2>
             <p class="mt-1 text-xs text-slate-500">Ingresa a tu portal de paciente o panel administrativo</p>
         </div>
 
         @if($errors->any())
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium space-y-1">
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1">
                 @foreach($errors->all() as $error)
                     <p>{{ $error }}</p>
                 @endforeach
@@ -27,33 +27,46 @@
             </div>
         @endif
 
-        <form class="mt-6 space-y-4" action="{{ route('login') }}" method="POST">
+        <form class="mt-6 space-y-5" action="{{ route('login') }}" method="POST" x-data="{ showPassword: false }">
             @csrf
             <div>
-                <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Correo Electrónico</label>
-                <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary font-medium" placeholder="tu@correo.com">
+                <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
+                <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="w-full rounded-xl border-slate-200 text-sm p-3.5 focus:border-brand-500 focus:ring-brand-500 font-medium bg-white shadow-xs" placeholder="admin@surhospital.com">
             </div>
 
             <div>
-                <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Contraseña</label>
-                <input id="password" name="password" type="password" autocomplete="current-password" required class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary font-medium" placeholder="••••••••">
+                <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Contraseña</label>
+                <div class="relative">
+                    <input id="password" name="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required class="w-full rounded-xl border-slate-200 text-sm p-3.5 pr-11 focus:border-brand-500 focus:ring-brand-500 font-medium bg-white shadow-xs" placeholder="••••••••">
+                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none" tabindex="-1">
+                        <!-- Eye Icon (Show) -->
+                        <svg x-show="!showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <!-- Eye Slash Icon (Hide) -->
+                        <svg x-show="showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between text-xs">
                 <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-primary focus:ring-brand-primary">
+                    <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
                     <span class="text-slate-600 font-medium">Recordarme</span>
                 </label>
             </div>
 
-            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-sm shadow-md shadow-brand-primary/25 transition-all">
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0700FF] hover:bg-[#0500C9] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer block text-center" style="background-color: #0700FF; color: #FFFFFF;">
                 Ingresar a la Plataforma
             </button>
         </form>
 
         <div class="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
             ¿Aún no tienes cuenta?
-            <a href="{{ route('register') }}" class="font-bold text-brand-primary hover:underline">Regístrate aquí</a>
+            <a href="{{ route('register') }}" class="font-bold text-[#0700FF] hover:underline" style="color: #0700FF;">Regístrate aquí</a>
         </div>
     </div>
 </div>
