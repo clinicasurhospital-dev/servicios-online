@@ -28,8 +28,8 @@
         <h1>Sesión Expirada</h1>
         <p>Tu sesión o el formulario ha caducado por inactividad o seguridad. Por favor recarga la página para continuar con tu proceso.</p>
         <div class="actions">
-            <button onclick="window.location.reload();" class="btn btn-primary">Recargar Página</button>
-            <a href="/" class="btn btn-secondary">Ir al Inicio</a>
+            <a href="{{ route('login') }}" class="btn btn-primary">Iniciar Sesión</a>
+            <a href="{{ url('/') }}" class="btn btn-secondary">Ir al Inicio</a>
         </div>
     </div>
 </body>

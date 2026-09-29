@@ -3,7 +3,49 @@
 @section('title', 'Detalle de Cita #' . $appointment->code . ' — ' . config('branding.app_name'))
 
 @section('content')
-<div class="space-y-6 animate-fadeIn" x-data="{ cancelModal: false, transferModal: false }">
+<div class="space-y-6 animate-fadeIn" x-data="{
+    cancelModal: false,
+    transferModal: false,
+    rescheduleModal: false,
+    rescheduleDate: '{{ now()->addDay()->format('Y-m-d') }}',
+    rescheduleTime: '',
+    rescheduleReason: '',
+    loadingSlots: false,
+    slots: [],
+    slotsError: '',
+    fetchSlots() {
+        if (!this.rescheduleDate) return;
+        this.loadingSlots = true;
+        this.slotsError = '';
+        this.slots = [];
+        this.rescheduleTime = '';
+        fetch(`{{ route('patient.appointment.slots', $appointment) }}?date=${this.rescheduleDate}`)
+            .then(res => res.json())
+            .then(data => {
+                this.loadingSlots = false;
+                if (data.success) {
+                    this.slots = data.slots;
+                    if (this.slots.length === 0) {
+                        this.slotsError = 'No hay turnos disponibles para esta fecha. Por favor selecciona otro día.';
+                    }
+                } else {
+                    this.slotsError = data.message || 'Error al consultar disponibilidad.';
+                }
+            })
+            .catch(err => {
+                this.loadingSlots = false;
+                this.slotsError = 'Error de conexión al obtener horarios.';
+            });
+    },
+    openReschedule() {
+        this.rescheduleModal = true;
+        this.$nextTick(() => {
+            if (this.slots.length === 0 && !this.loadingSlots) {
+                this.fetchSlots();
+            }
+        });
+    }
+}">
     <!-- Header with Back button -->
     <div class="flex items-center justify-between">
         <a href="{{ route('patient.appointments') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
@@ -19,12 +61,12 @@
 
     @if(session('success'))
         <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center space-x-2">
-            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
         <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1">
             @foreach($errors->all() as $error)
                 <p>{{ $error }}</p>
@@ -37,18 +79,23 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
             <div class="flex items-center space-x-4">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white flex items-center justify-center font-bold text-2xl shadow-md shrink-0">
-                    {{ substr($appointment->doctor->user->name, 0, 2) }}
+                    {{ substr($appointment->doctor?->user?->name ?? 'Dr', 0, 2) }}
                 </div>
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">{{ $appointment->specialty->name }}</span>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{{ $appointment->doctor->user->name }}</h1>
-                    <p class="text-xs text-slate-400">Reg. {{ $appointment->doctor->license_number }}</p>
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-primary">{{ $appointment->specialty?->name ?? 'Consulta' }}</span>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{{ $appointment->doctor?->user?->name ?? 'Especialista' }}</h1>
+                    <p class="text-xs text-slate-400">
+                        Reg. {{ $appointment->doctor?->license_number ?? 'MSP' }}
+                        @if($appointment->doctor?->room_office)
+                            &bull; {{ $appointment->doctor->room_office }}
+                        @endif
+                    </p>
                 </div>
             </div>
 
             <div class="text-left sm:text-right">
                 <span class="text-xs text-slate-400 block">Total de Consulta</span>
-                <span class="text-2xl font-black text-brand-primary">${{ number_format($appointment->total_amount, 0) }}</span>
+                <span class="text-2xl font-black text-brand-primary">${{ number_format($appointment->total_amount, 2) }}</span>
             </div>
         </div>
 
@@ -60,7 +107,7 @@
             </div>
 
             <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <span class="text-xs text-slate-400 block font-semibold">Procedimiento</span>
+                <span class="text-xs text-slate-400 block font-semibold">Procedimiento / Servicio</span>
                 <span class="font-bold text-slate-900 block mt-1">{{ $appointment->procedure ? $appointment->procedure->name : 'Consulta Médica General' }}</span>
                 <span class="text-xs text-slate-500">Duración: {{ $appointment->duration_minutes }} minutos</span>
             </div>
@@ -72,10 +119,61 @@
             </div>
         </div>
 
-        @if($appointment->reason)
+        @if($appointment->patient_notes)
             <div class="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 text-xs text-blue-900">
                 <span class="font-bold block mb-1">Motivo manifestado por el paciente:</span>
-                <p>{{ $appointment->reason }}</p>
+                <p>{{ $appointment->patient_notes }}</p>
+            </div>
+        @endif
+
+        @if($appointment->clinical_notes)
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-900">
+                <span class="font-bold block mb-1">Notas Clínicas del Médico Tratante:</span>
+                <p>{{ $appointment->clinical_notes }}</p>
+            </div>
+        @endif
+
+        @if($appointment->hasClinicalHistory() || $appointment->hasProcedureDocument())
+            <div class="p-5 rounded-2xl bg-brand-soft/30 border border-brand-primary/20 space-y-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900">Documentos Clínicos Disponibles</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    @if($appointment->hasClinicalHistory())
+                        <div class="p-3.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
+                            <div class="truncate">
+                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->clinical_history_filename ?: 'Historia Clínica' }}</span>
+                                <span class="text-[11px] text-slate-400">Historia Clínica / Informe Médico</span>
+                            </div>
+                            <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'historia']) }}" class="px-3 py-1.5 rounded-xl bg-brand-primary text-white font-bold text-xs hover:bg-brand-primary-dark transition-colors shrink-0">
+                                Descargar
+                            </a>
+                        </div>
+                    @endif
+
+                    @if($appointment->hasProcedureDocument())
+                        <div class="p-3.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
+                            <div class="truncate">
+                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->procedure_document_filename ?: 'Informe de Procedimiento' }}</span>
+                                <span class="text-[11px] text-slate-400">Resultado / Protocolo de Procedimiento</span>
+                            </div>
+                            <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'procedimiento']) }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shrink-0">
+                                Descargar
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if($appointment->status->value === 'CANCELLED' && $appointment->cancelled_reason)
+            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-rose-900">
+                <span class="font-bold block mb-1">Motivo de Cancelación:</span>
+                <p>{{ $appointment->cancelled_reason }}</p>
             </div>
         @endif
 
@@ -91,10 +189,10 @@
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="font-bold text-xs text-slate-800">Método: {{ $latestPayment->method->label() }}</span>
+                            <span class="font-bold text-xs text-slate-800">Método: {{ $latestPayment->payment_method?->label() ?? 'No especificado' }}</span>
                             <span class="text-xs text-slate-400">&bull;</span>
-                            <span class="text-xs font-semibold {{ $latestPayment->status->value === 'PAID' ? 'text-emerald-600' : ($latestPayment->status->value === 'REJECTED' ? 'text-rose-600' : 'text-amber-600') }}">
-                                {{ $latestPayment->status->label() }}
+                            <span class="text-xs font-semibold {{ $latestPayment->status?->value === 'PAID' ? 'text-emerald-600' : ($latestPayment->status?->value === 'REJECTED' ? 'text-rose-600' : 'text-amber-600') }}">
+                                {{ $latestPayment->status?->label() ?? 'Pendiente' }}
                             </span>
                         </div>
                         @if($latestPayment->bankTransfer)
@@ -105,8 +203,8 @@
                         @endif
                     </div>
 
-                    @if($appointment->status->value === 'PENDING_PAYMENT' || ($latestPayment->bankTransfer && $latestPayment->bankTransfer->status->value === 'REJECTED'))
-                        <button @click="transferModal = true" class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors shadow-sm">
+                    @if($appointment->status->value === 'PENDING_PAYMENT' || ($latestPayment->bankTransfer && $latestPayment->bankTransfer->isRejected()))
+                        <button type="button" @click="transferModal = true" class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors shadow-sm">
                             Subir Comprobante de Pago
                         </button>
                     @endif
@@ -114,33 +212,51 @@
             @else
                 <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between">
                     <span>Pago no registrado aún para esta consulta.</span>
-                    <button @click="transferModal = true" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors">
+                    <button type="button" @click="transferModal = true" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors">
                         Adjuntar Transferencia
                     </button>
                 </div>
             @endif
         </div>
 
-        <!-- ACCIONES DE CITA -->
-        @if(in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT', 'CONFIRMED']))
+        <!-- ACCIONES DE CITA: REPROGRAMAR & CANCELAR -->
+        @if($appointment->canBeRescheduled() || $appointment->canBeCancelled())
             <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
-                <button @click="cancelModal = true" class="px-4 py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-colors">
-                    Cancelar Cita
-                </button>
+                @if($appointment->canBeRescheduled())
+                    <button type="button" @click="openReschedule()" class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Cambiar Fecha / Reprogramar</span>
+                    </button>
+                @endif
+
+                @if($appointment->canBeCancelled())
+                    <button type="button" @click="cancelModal = true" class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span>Cancelar Cita</span>
+                    </button>
+                @endif
             </div>
         @endif
     </div>
 
-    <!-- HISTORIAL DE ESTADOS -->
+    <!-- HISTORIAL DE ESTADOS / TRAZABILIDAD -->
     <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm">
         <h3 class="text-sm font-bold text-slate-900 mb-4">Trazabilidad de la Cita</h3>
         <div class="space-y-4">
             @foreach($appointment->histories as $history)
                 <div class="flex items-start space-x-3 text-xs">
-                    <div class="w-2 h-2 rounded-full bg-brand-primary mt-1.5 shrink-0"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-brand-primary mt-1 shrink-0"></div>
                     <div class="flex-1">
-                        <span class="font-bold text-slate-800">{{ $history->new_status->label() }}</span>
-                        <span class="text-slate-400 ml-1">por {{ $history->user ? $history->user->name : 'Sistema' }} &bull; {{ $history->created_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-bold text-slate-800">
+                            @if(is_object($history->new_status) && method_exists($history->new_status, 'label'))
+                                {{ $history->new_status->label() }}
+                            @elseif(is_string($history->new_status) && \App\Domain\Appointments\Enums\AppointmentStatus::tryFrom($history->new_status))
+                                {{ \App\Domain\Appointments\Enums\AppointmentStatus::from($history->new_status)->label() }}
+                            @else
+                                {{ $history->new_status }}
+                            @endif
+                        </span>
+                        <span class="text-slate-400 ml-1">por {{ $history->user ? $history->user->name : 'Sistema' }} &bull; {{ $history->created_at ? $history->created_at->format('d/m/Y H:i') : '' }}</span>
                         @if($history->reason)
                             <p class="text-slate-600 mt-0.5 italic">"{{ $history->reason }}"</p>
                         @endif
@@ -150,20 +266,105 @@
         </div>
     </div>
 
+    <!-- MODAL REPROGRAMAR / CAMBIAR FECHA -->
+    <div x-show="rescheduleModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5" @click.away="rescheduleModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <span class="text-xs font-bold text-brand-primary uppercase tracking-wider">Reprogramación de Consulta</span>
+                    <h3 class="text-lg font-black text-slate-900 mt-0.5">Cambiar Fecha y Hora</h3>
+                </div>
+                <button type="button" @click="rescheduleModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-100 text-xs text-blue-900 flex items-start space-x-2.5">
+                <svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <p class="font-bold">Médico: {{ $appointment->doctor?->user?->name ?? 'Especialista' }}</p>
+                    <p class="text-blue-700 mt-0.5">Selecciona un nuevo día hábil y horario disponible para mover tu turno sin costo adicional.</p>
+                </div>
+            </div>
+
+            <form action="{{ route('patient.appointment.reschedule', $appointment) }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">1. Selecciona la Nueva Fecha *</label>
+                    <input 
+                        type="date" 
+                        name="new_date" 
+                        required 
+                        x-model="rescheduleDate" 
+                        @change="fetchSlots()"
+                        min="{{ now()->format('Y-m-d') }}" 
+                        class="w-full rounded-2xl border-slate-200 text-xs p-3 font-semibold focus:border-brand-primary focus:ring-brand-primary shadow-xs" 
+                    />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">2. Selecciona el Nuevo Horario Disponible *</label>
+                    
+                    <!-- Loading State -->
+                    <div x-show="loadingSlots" class="py-6 text-center text-xs text-slate-500 space-y-2">
+                        <svg class="w-6 h-6 animate-spin mx-auto text-brand-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <p>Consultando agenda del especialista...</p>
+                    </div>
+
+                    <!-- Error / No slots -->
+                    <div x-show="!loadingSlots && slotsError" class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                        <span x-text="slotsError"></span>
+                    </div>
+
+                    <!-- Slots Grid -->
+                    <div x-show="!loadingSlots && slots.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
+                        <template x-for="slot in slots" :key="slot.time">
+                            <label class="relative flex items-center justify-center p-2.5 rounded-xl border cursor-pointer text-xs font-bold transition-all"
+                                :class="rescheduleTime === slot.time ? 'bg-brand-primary text-white border-brand-primary shadow-md' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'">
+                                <input type="radio" name="new_time" :value="slot.time" x-model="rescheduleTime" required class="sr-only" />
+                                <span x-text="slot.label"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">3. Motivo del cambio (opcional)</label>
+                    <textarea name="reason" rows="2" x-model="rescheduleReason" class="w-full rounded-2xl border-slate-200 text-xs p-3 focus:border-brand-primary focus:ring-brand-primary shadow-xs" placeholder="Ej: Cambio de turno laboral, compromiso imprevisto..."></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2.5 pt-2 border-t border-slate-100">
+                    <button type="button" @click="rescheduleModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" :disabled="!rescheduleTime || loadingSlots" class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all">
+                        Confirmar Reprogramación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL CANCELACIÓN -->
-    <div x-show="cancelModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
+    <div x-show="cancelModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4" @click.away="cancelModal = false">
-            <h3 class="text-lg font-bold text-slate-900">¿Deseas cancelar esta cita médica?</h3>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="text-base font-bold text-slate-900">¿Deseas cancelar esta cita médica?</h3>
+                <button type="button" @click="cancelModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
             <p class="text-xs text-slate-500">Por favor indícanos el motivo de la cancelación para liberar el turno para otros pacientes.</p>
 
             <form action="{{ route('patient.appointment.cancel', $appointment) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Motivo de Cancelación *</label>
-                    <textarea name="reason" rows="3" required class="w-full rounded-xl border-slate-200 text-xs p-3 focus:border-brand-primary focus:ring-brand-primary" placeholder="Ej: Imprevisto laboral, reprogramaré posteriormente..."></textarea>
+                    <textarea name="reason" rows="3" required class="w-full rounded-xl border-slate-200 text-xs p-3 focus:border-brand-primary focus:ring-brand-primary shadow-xs" placeholder="Ej: Imprevisto de salud, reprogramaré en otra fecha..."></textarea>
                 </div>
 
-                <div class="flex justify-end space-x-2 pt-2">
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="cancelModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
                         Volver
                     </button>
@@ -176,29 +377,34 @@
     </div>
 
     <!-- MODAL SUBIR TRANSFERENCIA -->
-    <div x-show="transferModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
+    <div x-show="transferModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4" @click.away="transferModal = false">
-            <h3 class="text-lg font-bold text-slate-900">Adjuntar Comprobante Bancario</h3>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="text-base font-bold text-slate-900">Adjuntar Comprobante Bancario</h3>
+                <button type="button" @click="transferModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
             
-            <div class="p-3 rounded-xl bg-blue-50 text-blue-900 text-xs space-y-1">
+            <div class="p-3.5 rounded-2xl bg-blue-50 text-blue-900 text-xs space-y-1">
                 <span class="font-bold block">Datos de Cuenta {{ config('branding.app_name') }}:</span>
-                <p>Banco: Bancolombia - Cuenta de Ahorros # 123-456789-01</p>
-                <p>Titular: SurHospital S.A.S. - NIT: 900.123.456-7</p>
+                <p>Banco: Banco Pichincha - Cta. Corriente # 2100849201</p>
+                <p>Titular: SurHospital S.A. - RUC: 0992384756001</p>
             </div>
 
             <form action="{{ route('patient.transfer.submit', $appointment) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Banco de Origen *</label>
-                    <input type="text" name="bank_name" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary" placeholder="Ej: Bancolombia / Nequi / Davivienda" />
+                    <input type="text" name="bank_name" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary shadow-xs" placeholder="Ej: Banco Pichincha / Guayaquil / Pacífico" />
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Número de Referencia / Aprobación *</label>
-                    <input type="text" name="reference_number" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary" placeholder="Ej: 987654321" />
+                    <input type="text" name="reference_number" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary shadow-xs" placeholder="Ej: 987654321" />
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha de Transferencia *</label>
-                    <input type="date" name="transfer_date" required value="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary" />
+                    <input type="date" name="transfer_date" required value="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary shadow-xs" />
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Foto o PDF del Comprobante (Máx 5MB) *</label>
@@ -206,10 +412,10 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Observaciones adicionales</label>
-                    <input type="text" name="notes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary" placeholder="Opcional..." />
+                    <input type="text" name="notes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary shadow-xs" placeholder="Opcional..." />
                 </div>
 
-                <div class="flex justify-end space-x-2 pt-2">
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="transferModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
                         Cancelar
                     </button>

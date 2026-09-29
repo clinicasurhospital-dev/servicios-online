@@ -21,10 +21,11 @@ class AdminDashboardController extends Controller
     public function index(): View
     {
         $user = Auth::user();
+        $isDoctor = $user->isDoctor() && $user->doctor;
 
         // Base query depending on role
         $appointmentQuery = Appointment::query();
-        if ($user->isDoctor() && $user->doctor) {
+        if ($isDoctor) {
             $appointmentQuery->where('doctor_id', $user->doctor->id);
         }
 
@@ -36,7 +37,21 @@ class AdminDashboardController extends Controller
         $todayCancelled = (clone $appointmentQuery)->whereDate('start_at', $today)->where('status', AppointmentStatus::CANCELLED)->count();
         $todayNoShow = (clone $appointmentQuery)->whereDate('start_at', $today)->where('status', AppointmentStatus::NO_SHOW)->count();
 
-        // Global metrics
+        // Doctor specific metrics
+        $doctorPatientsCount = 0;
+        $doctorMonthAppointments = 0;
+        $doctorProfile = null;
+
+        if ($isDoctor) {
+            $doctorProfile = $user->doctor()->with(['specialties', 'schedules'])->first();
+            $doctorPatientsCount = (clone $appointmentQuery)->distinct('patient_id')->count('patient_id');
+            $doctorMonthAppointments = (clone $appointmentQuery)
+                ->whereMonth('start_at', Carbon::now()->month)
+                ->whereYear('start_at', Carbon::now()->year)
+                ->count();
+        }
+
+        // Global metrics (Admin / Reception)
         $totalPatients = Patient::count();
         $pendingTransfersCount = BankTransfer::where('validation_status', BankTransferStatus::PENDING_VALIDATION)->count();
         $totalRevenue = Payment::where('status', PaymentStatus::PAID)->sum('amount');
@@ -78,7 +93,11 @@ class AdminDashboardController extends Controller
             'monthRevenue',
             'appointmentsBySpecialty',
             'appointmentsByDoctor',
-            'upcomingToday'
+            'upcomingToday',
+            'isDoctor',
+            'doctorPatientsCount',
+            'doctorMonthAppointments',
+            'doctorProfile'
         ));
     }
 }

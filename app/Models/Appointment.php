@@ -26,6 +26,11 @@ class Appointment extends Model
         'price',
         'patient_notes',
         'clinical_notes',
+        'clinical_history_path',
+        'clinical_history_filename',
+        'procedure_document_path',
+        'procedure_document_filename',
+        'clinical_history_uploaded_at',
         'cancelled_reason',
         'cancelled_by',
         'cancelled_at',
@@ -37,12 +42,27 @@ class Appointment extends Model
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'clinical_history_uploaded_at' => 'datetime',
         'price' => 'decimal:2',
     ];
 
     public function getTotalAmountAttribute(): float
     {
         return (float) ($this->price ?? 0);
+    }
+
+    public function getDurationMinutesAttribute(): int
+    {
+        if ($this->start_at && $this->end_at) {
+            return (int) $this->start_at->diffInMinutes($this->end_at);
+        }
+
+        return 30;
+    }
+
+    public function getReasonAttribute(): ?string
+    {
+        return $this->patient_notes;
     }
 
     public function patient(): BelongsTo
@@ -136,5 +156,15 @@ class Appointment extends Model
         }
 
         return "Consulta: {$this->specialty->name}";
+    }
+
+    public function hasClinicalHistory(): bool
+    {
+        return !empty($this->clinical_history_path);
+    }
+
+    public function hasProcedureDocument(): bool
+    {
+        return !empty($this->procedure_document_path);
     }
 }

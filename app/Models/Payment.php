@@ -33,6 +33,11 @@ class Payment extends Model
         'payload_response' => 'array',
     ];
 
+    public function getMethodAttribute(): ?PaymentMethod
+    {
+        return $this->payment_method;
+    }
+
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);

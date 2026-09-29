@@ -45,13 +45,13 @@ class AdminTransferController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $status = BankTransferStatus::from($request->string('status')->value());
+        $isApproved = $request->string('status')->value() === 'APPROVED';
 
         $this->transferService->validateTransfer(
             transfer: $transfer,
-            status: $status,
             validator: $request->user(),
-            rejectionReason: $status === BankTransferStatus::REJECTED ? $request->input('notes') : null
+            isApproved: $isApproved,
+            rejectionReason: ! $isApproved ? $request->input('notes') : null
         );
 
         return back()->with('success', 'Transferencia procesada correctamente.');

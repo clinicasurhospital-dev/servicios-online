@@ -2,7 +2,7 @@
     x-data
     class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"
 >
-    <template x-for="toast in $store.toasts.items" :key="toast.id">
+    <template x-for="toast in ($store && $store.toasts && $store.toasts.items ? $store.toasts.items : [])" :key="toast.id">
         <div
             x-transition:enter="transform ease-out duration-300 transition"
             x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
@@ -52,7 +52,7 @@
             <!-- Close Button -->
             <button
                 type="button"
-                x-on:click="$store.toasts.remove(toast.id)"
+                x-on:click="$store && $store.toasts && $store.toasts.remove(toast.id)"
                 class="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
             >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

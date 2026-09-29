@@ -33,6 +33,11 @@ class BankTransfer extends Model
         'validated_at' => 'datetime',
     ];
 
+    public function getStatusAttribute(): ?BankTransferStatus
+    {
+        return $this->validation_status;
+    }
+
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);

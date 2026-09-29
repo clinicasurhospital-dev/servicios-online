@@ -40,10 +40,10 @@ class AuthController extends Controller
             }
 
             if ($user->isAdmin() || $user->isReception() || $user->isDoctor()) {
-                return redirect()->intended(route('admin.dashboard'));
+                return redirect('/admin');
             }
 
-            return redirect()->intended(route('patient.dashboard'));
+            return redirect('/paciente');
         }
 
         return back()->withErrors([
@@ -95,7 +95,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('patient.dashboard')->with('success', '¡Bienvenido a SurHospital! Tu cuenta ha sido creada exitosamente.');
+        return redirect('/paciente')->with('success', '¡Bienvenido a SurHospital! Tu cuenta ha sido creada exitosamente.');
     }
 
     public function logout(Request $request): RedirectResponse
@@ -104,6 +104,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('info', 'Has cerrado sesión exitosamente.');
+        return redirect('/')->with('info', 'Has cerrado sesión exitosamente.');
     }
 }

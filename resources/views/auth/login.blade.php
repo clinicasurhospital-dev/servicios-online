@@ -21,6 +21,18 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @if(session('info'))
+            <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold">
+                {{ session('info') }}
+            </div>
+        @endif
+
         @if(session('status'))
             <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
                 {{ session('status') }}
@@ -64,7 +76,30 @@
             </button>
         </form>
 
-        <div class="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
+        <!-- Quick Access Demo Credentials -->
+        <div class="mt-6 pt-5 border-t border-slate-100">
+            <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">Acceso Rápido de Prueba (1 Clic)</span>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <button type="button" onclick="document.getElementById('email').value='admin@surhospital.com'; document.getElementById('password').value='password123';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
+                    <span class="font-bold block text-slate-800 text-[11px]">👑 Admin</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">admin@surhospital.com</span>
+                </button>
+                <button type="button" onclick="document.getElementById('email').value='recepcion@surhospital.com'; document.getElementById('password').value='password123';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
+                    <span class="font-bold block text-slate-800 text-[11px]">📋 Recepción</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">recepcion@surhospital.com</span>
+                </button>
+                <button type="button" onclick="document.getElementById('email').value='dr.carlos.soledispa@surhospital.net'; document.getElementById('password').value='password123';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
+                    <span class="font-bold block text-slate-800 text-[11px]">🩺 Médico</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">dr.carlos.soledispa@...</span>
+                </button>
+                <button type="button" onclick="document.getElementById('email').value='paciente@surhospital.com'; document.getElementById('password').value='password123';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
+                    <span class="font-bold block text-slate-800 text-[11px]">👤 Paciente</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">paciente@surhospital.com</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
             ¿Aún no tienes cuenta?
             <a href="{{ route('register') }}" class="font-bold text-[#0700FF] hover:underline" style="color: #0700FF;">Regístrate aquí</a>
         </div>

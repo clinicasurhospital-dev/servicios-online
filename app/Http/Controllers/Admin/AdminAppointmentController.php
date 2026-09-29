@@ -12,7 +12,9 @@ use App\Models\Specialty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminAppointmentController extends Controller
 {
@@ -65,6 +67,11 @@ class AdminAppointmentController extends Controller
 
     public function updateStatus(Request $request, Appointment $appointment): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user->isDoctor() && $user->doctor && $appointment->doctor_id !== $user->doctor->id) {
+            abort(403, 'No tienes permiso para gestionar citas de otros médicos.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:CONFIRMED,COMPLETED,CANCELLED,NO_SHOW'],
             'reason' => ['nullable', 'string', 'max:500'],
@@ -104,5 +111,134 @@ class AdminAppointmentController extends Controller
         ]);
 
         return back()->with('success', "Estado de la cita {$appointment->code} actualizado a {$newStatus->label()}.");
+    }
+
+    public function uploadClinicalRecord(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user->isDoctor() && $user->doctor && $appointment->doctor_id !== $user->doctor->id) {
+            abort(403, 'No tienes permiso para adjuntar documentos a citas de otros médicos.');
+        }
+
+        $validated = $request->validate([
+            'clinical_history' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'procedure_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'clinical_notes' => 'nullable|string|max:3000',
+            'status' => 'nullable|string|in:CONFIRMED,COMPLETED,CANCELLED,NO_SHOW',
+        ], [
+            'clinical_history.mimes' => 'La historia clínica debe ser un archivo PDF, Imagen o Word.',
+            'clinical_history.max' => 'El archivo de historia clínica no debe superar los 10MB.',
+            'procedure_document.mimes' => 'El documento de procedimiento debe ser un archivo PDF, Imagen o Word.',
+            'procedure_document.max' => 'El archivo de procedimiento no debe superar los 10MB.',
+        ]);
+
+        $beforeState = $appointment->toArray();
+        $updates = [];
+
+        if ($request->hasFile('clinical_history')) {
+            if ($appointment->clinical_history_path && Storage::disk('medical_records')->exists($appointment->clinical_history_path)) {
+                Storage::disk('medical_records')->delete($appointment->clinical_history_path);
+            }
+            $file = $request->file('clinical_history');
+            $path = str_replace('\\', '/', Storage::disk('medical_records')->putFile('historia_clinica', $file));
+            $updates['clinical_history_path'] = $path;
+            $updates['clinical_history_filename'] = $file->getClientOriginalName();
+            $updates['clinical_history_uploaded_at'] = now();
+        }
+
+        if ($request->hasFile('procedure_document')) {
+            if ($appointment->procedure_document_path && Storage::disk('medical_records')->exists($appointment->procedure_document_path)) {
+                Storage::disk('medical_records')->delete($appointment->procedure_document_path);
+            }
+            $file = $request->file('procedure_document');
+            $path = str_replace('\\', '/', Storage::disk('medical_records')->putFile('procedimientos', $file));
+            $updates['procedure_document_path'] = $path;
+            $updates['procedure_document_filename'] = $file->getClientOriginalName();
+            $updates['clinical_history_uploaded_at'] = now();
+        }
+
+        if ($request->filled('clinical_notes')) {
+            $updates['clinical_notes'] = $validated['clinical_notes'];
+        }
+
+        if (!empty($validated['status']) && $validated['status'] !== $appointment->status->value) {
+            $previousStatus = $appointment->status->value;
+            $newStatus = AppointmentStatus::from($validated['status']);
+            $updates['status'] = $newStatus;
+
+            AppointmentStatusHistory::create([
+                'appointment_id' => $appointment->id,
+                'previous_status' => $previousStatus,
+                'new_status' => $newStatus->value,
+                'changed_by_user_id' => Auth::id(),
+                'reason' => 'Actualización con registro clínico / procedimiento',
+                'created_at' => now(),
+            ]);
+        }
+
+        if (!empty($updates)) {
+            $appointment->update($updates);
+
+            AuditLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'ClinicalRecordUploaded',
+                'auditable_type' => Appointment::class,
+                'auditable_id' => (string) $appointment->id,
+                'before_state' => $beforeState,
+                'after_state' => $appointment->fresh()->toArray(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'created_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', "Historia clínica / documento de procedimiento adjuntado correctamente a la cita #{$appointment->code}.");
+    }
+
+    public function downloadClinicalRecord(Appointment $appointment, string $type): StreamedResponse|RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user->isDoctor() && $user->doctor && $appointment->doctor_id !== $user->doctor->id) {
+            abort(403, 'No tienes acceso a los documentos de citas pertenecientes a otros especialistas.');
+        }
+
+        $path = $type === 'procedimiento' ? $appointment->procedure_document_path : $appointment->clinical_history_path;
+        $name = $type === 'procedimiento' ? ($appointment->procedure_document_filename ?: "procedimiento_{$appointment->code}.pdf") : ($appointment->clinical_history_filename ?: "historia_clinica_{$appointment->code}.pdf");
+
+        if (! $path || ! Storage::disk('medical_records')->exists($path)) {
+            return back()->with('error', 'El documento clínico solicitado no fue encontrado en el almacenamiento seguro.');
+        }
+
+        return Storage::disk('medical_records')->download($path, $name);
+    }
+
+    public function deleteClinicalRecord(Appointment $appointment, string $type): RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user->isDoctor() && $user->doctor && $appointment->doctor_id !== $user->doctor->id) {
+            abort(403, 'No tienes permiso para eliminar documentos de esta cita.');
+        }
+
+        if ($type === 'procedimiento') {
+            if ($appointment->procedure_document_path && Storage::disk('medical_records')->exists($appointment->procedure_document_path)) {
+                Storage::disk('medical_records')->delete($appointment->procedure_document_path);
+            }
+            $appointment->update([
+                'procedure_document_path' => null,
+                'procedure_document_filename' => null,
+            ]);
+            $label = 'Documento de procedimiento';
+        } else {
+            if ($appointment->clinical_history_path && Storage::disk('medical_records')->exists($appointment->clinical_history_path)) {
+                Storage::disk('medical_records')->delete($appointment->clinical_history_path);
+            }
+            $appointment->update([
+                'clinical_history_path' => null,
+                'clinical_history_filename' => null,
+            ]);
+            $label = 'Historia clínica';
+        }
+
+        return back()->with('success', "{$label} eliminada de la cita #{$appointment->code}.");
     }
 }

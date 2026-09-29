@@ -57,7 +57,8 @@ class AppointmentBookingService
             }
 
             $initialStatus = match ($dto->paymentMethod) {
-                'ONLINE', 'BANK_TRANSFER' => AppointmentStatus::PENDING_PAYMENT,
+                'CREDIT_CARD' => AppointmentStatus::CONFIRMED,
+                'PAYMENT_LINK', 'BANK_TRANSFER', 'TRANSFER', 'ONLINE' => AppointmentStatus::PENDING_PAYMENT,
                 default => AppointmentStatus::PENDING,
             };
 
@@ -78,10 +79,17 @@ class AppointmentBookingService
 
             // 5. Create initial payment record
             $paymentMethodEnum = match ($dto->paymentMethod) {
-                'BANK_TRANSFER' => PaymentMethod::BANK_TRANSFER,
+                'CREDIT_CARD' => PaymentMethod::CREDIT_CARD,
+                'PAYMENT_LINK' => PaymentMethod::PAYMENT_LINK,
+                'BANK_TRANSFER', 'TRANSFER' => PaymentMethod::BANK_TRANSFER,
                 'CASH' => PaymentMethod::CASH,
                 'CARD_ONSITE' => PaymentMethod::CARD_ONSITE,
                 default => PaymentMethod::ONLINE,
+            };
+
+            $paymentStatus = match ($dto->paymentMethod) {
+                'CREDIT_CARD' => PaymentStatus::PAID,
+                default => PaymentStatus::PENDING,
             };
 
             Payment::create([
@@ -89,7 +97,8 @@ class AppointmentBookingService
                 'payment_method' => $paymentMethodEnum,
                 'amount' => $dto->price,
                 'currency' => 'USD',
-                'status' => PaymentStatus::PENDING,
+                'status' => $paymentStatus,
+                'paid_at' => $paymentStatus === PaymentStatus::PAID ? now() : null,
             ]);
 
             // 6. Record immutable status history

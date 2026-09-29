@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Appointments\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,8 @@ class AppointmentStatusHistory extends Model
     ];
 
     protected $casts = [
+        'previous_status' => AppointmentStatus::class,
+        'new_status' => AppointmentStatus::class,
         'metadata' => 'array',
         'created_at' => 'datetime',
     ];

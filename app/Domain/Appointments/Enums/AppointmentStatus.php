@@ -64,6 +64,7 @@ enum AppointmentStatus: string
             self::PENDING,
             self::PENDING_PAYMENT,
             self::CONFIRMED,
+            self::RESCHEDULED,
         ]);
     }
 
@@ -76,6 +77,7 @@ enum AppointmentStatus: string
             self::PENDING,
             self::PENDING_PAYMENT,
             self::CONFIRMED,
+            self::RESCHEDULED,
         ]);
     }
 }

@@ -51,10 +51,20 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:items-end justify-center pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                            <a href="{{ route('patient.appointment.show', $nextAppointment) }}" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm text-center transition-colors">
-                                Ver Detalles de Cita
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-2 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                            <a href="{{ route('patient.appointment.show', $nextAppointment) }}" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs text-center shadow-md shadow-brand-primary/20 transition-all">
+                                Ver Detalles
                             </a>
+                            @if($nextAppointment->canBeRescheduled())
+                                <a href="{{ route('patient.appointment.show', $nextAppointment) }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-brand-primary font-bold text-xs text-center transition-colors">
+                                    Cambiar Fecha
+                                </a>
+                            @endif
+                            @if($nextAppointment->canBeCancelled())
+                                <a href="{{ route('patient.appointment.show', $nextAppointment) }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold text-xs text-center transition-colors">
+                                    Cancelar
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>

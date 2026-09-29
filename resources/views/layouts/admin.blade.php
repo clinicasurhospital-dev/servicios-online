@@ -57,20 +57,34 @@
             <!-- Navigation Links -->
             <nav class="px-4 py-6 space-y-1.5 flex-1">
                 @php
-                    $navItems = [
-                        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'home', 'can' => 'view_dashboard'],
-                        ['label' => 'Agenda Médica', 'route' => 'admin.agenda', 'icon' => 'calendar', 'can' => 'view_all_appointments'],
-                        ['label' => 'Gestión de Citas', 'route' => 'admin.appointments', 'icon' => 'clock', 'can' => 'view_all_appointments'],
-                        ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users', 'can' => 'manage_patients'],
-                        ['label' => 'Médicos & Turnos', 'route' => 'admin.doctors', 'icon' => 'user-md', 'can' => 'manage_doctors'],
-                        ['label' => 'Especialidades', 'route' => 'admin.specialties', 'icon' => 'sparkles', 'can' => 'manage_specialties'],
-                        ['label' => 'Validar Pagos', 'route' => 'admin.transfers', 'icon' => 'credit-card', 'can' => 'validate_bank_transfers'],
-                        ['label' => 'Auditoría & Logs', 'route' => 'admin.audit', 'icon' => 'shield-check', 'can' => 'view_audit_logs'],
-                    ];
+                    $isDoctor = auth()->user()->isDoctor();
+                    $isAdminOrSuper = auth()->user()->isSuperAdmin() || auth()->user()->isAdmin();
+                    $isReception = auth()->user()->isReception();
+
+                    if ($isDoctor) {
+                        $navItems = [
+                            ['label' => 'Mi Panel', 'route' => 'admin.dashboard', 'icon' => 'home'],
+                            ['label' => 'Mi Agenda', 'route' => 'admin.agenda', 'icon' => 'calendar'],
+                            ['label' => 'Mis Citas', 'route' => 'admin.appointments', 'icon' => 'clock'],
+                            ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users'],
+                            ['label' => 'Médicos & Turnos', 'route' => 'admin.doctors', 'icon' => 'user-md'],
+                        ];
+                    } else {
+                        $navItems = [
+                            ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'home', 'can' => 'view_dashboard'],
+                            ['label' => 'Agenda Médica', 'route' => 'admin.agenda', 'icon' => 'calendar', 'can' => 'view_all_appointments'],
+                            ['label' => 'Gestión de Citas', 'route' => 'admin.appointments', 'icon' => 'clock', 'can' => 'view_all_appointments'],
+                            ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users', 'can' => 'manage_patients'],
+                            ['label' => 'Médicos & Turnos', 'route' => 'admin.doctors', 'icon' => 'user-md', 'can' => 'manage_doctors'],
+                            ['label' => 'Especialidades', 'route' => 'admin.specialties', 'icon' => 'sparkles', 'can' => 'manage_specialties'],
+                            ['label' => 'Validar Pagos', 'route' => 'admin.transfers', 'icon' => 'credit-card', 'can' => 'validate_bank_transfers'],
+                            ['label' => 'Auditoría & Logs', 'route' => 'admin.audit', 'icon' => 'shield-check', 'can' => 'view_audit_logs'],
+                        ];
+                    }
                 @endphp
 
                 @foreach($navItems as $item)
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->hasPermissionTo($item['can']) || auth()->user()->isAdmin() || auth()->user()->isReception())
+                    @if($isDoctor || $isAdminOrSuper || $isReception || (isset($item['can']) && auth()->user()->hasPermissionTo($item['can'])))
                         @php
                             $isActive = request()->routeIs($item['route']);
                         @endphp
@@ -156,7 +170,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{ $header ?? 'Panel Administrativo' }}</h1>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{ $header ?? (auth()->check() && auth()->user()->isDoctor() ? 'Panel Médico' : 'Panel Administrativo') }}</h1>
             </div>
 
             <!-- Header Quick Actions -->
@@ -168,30 +182,110 @@
                     Ver Sitio Público
                 </x-button>
 
-                <x-button x-on:click="$dispatch('open-modal', 'quick-appointment-modal')" variant="primary" size="sm">
-                    <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Nueva Cita
-                </x-button>
+                @if(!auth()->user()->isDoctor())
+                    <x-button x-on:click="$dispatch('open-modal', 'quick-appointment-modal')" variant="primary" size="sm">
+                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nueva Cita
+                    </x-button>
+                @endif
             </div>
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar space-y-4">
+            {{-- Global Feedback Alerts --}}
+            @if(session('success'))
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-fadeIn" x-data="{ show: true }" x-show="show">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                    <button type="button" @click="show = false" class="text-emerald-500 hover:text-emerald-700 p-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-fadeIn" x-data="{ show: true }" x-show="show">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    <button type="button" @click="show = false" class="text-rose-500 hover:text-rose-700 p-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center justify-between shadow-xs animate-fadeIn" x-data="{ show: true }" x-show="show">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <span>{{ session('warning') }}</span>
+                    </div>
+                    <button type="button" @click="show = false" class="text-amber-500 hover:text-amber-700 p-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs shadow-xs animate-fadeIn" x-data="{ show: true }" x-show="show">
+                    <div class="flex items-start justify-between">
+                        <div class="space-y-1">
+                            <p class="font-bold flex items-center space-x-1.5 text-rose-900">
+                                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Por favor corrige los siguientes errores:</span>
+                            </p>
+                            <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-1">
+                                @foreach($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <button type="button" @click="show = false" class="text-rose-400 hover:text-rose-600 p-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             {{ $slot ?? '' }}
             @yield('content')
         </main>
     </div>
 
     <!-- Quick Manual Appointment Creation Modal for Reception/Admin -->
-    <x-modal name="quick-appointment-modal" maxWidth="2xl">
-        <div class="p-6">
-            <h3 class="text-lg font-bold text-slate-900 mb-2">Creación Manual de Cita</h3>
-            <p class="text-xs text-slate-500 mb-6">Asigna una consulta o procedimiento clínico directamente desde recepción.</p>
-            <livewire:booking-wizard :is-manual="true" />
-        </div>
-    </x-modal>
+    @if(!auth()->user()->isDoctor())
+        <x-modal name="quick-appointment-modal" maxWidth="5xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Creación Manual de Cita</h3>
+                        <p class="text-xs text-slate-500">Asignar consulta médica o procedimiento desde recepción.</p>
+                    </div>
+                </div>
+                <button x-on:click="$dispatch('close-modal', 'quick-appointment-modal')" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors" title="Cerrar ventana">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/30">
+                <livewire:booking-wizard :is-manual="true" wire:key="admin-manual-wizard" />
+            </div>
+        </x-modal>
+    @endif
 
     <!-- Global Toast Container -->
     <x-toast-container />

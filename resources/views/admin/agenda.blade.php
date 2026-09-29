@@ -98,7 +98,13 @@
 
                             <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-400">
                                 <span class="font-mono">#{{ $app->code }}</span>
-                                <span class="font-bold text-slate-700">${{ number_format($app->total_amount, 0) }}</span>
+                                @if(!auth()->user()->isDoctor())
+                                    <span class="font-bold text-slate-700">${{ number_format($app->total_amount, 0) }}</span>
+                                @else
+                                    <span class="text-brand-primary font-semibold text-[11px]">
+                                        {{ $app->hasClinicalHistory() ? 'Historia ✓' : 'Sin doc' }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -107,7 +113,9 @@
                 <div class="text-center py-16 text-slate-400">
                     <svg class="w-12 h-12 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     <p class="text-sm font-semibold text-slate-600">No hay citas registradas para este día</p>
-                    <p class="text-xs text-slate-400 mt-1">Crea una nueva cita manual desde el botón superior o selecciona otra fecha.</p>
+                    @if(!auth()->user()->isDoctor())
+                        <p class="text-xs text-slate-400 mt-1">Crea una nueva cita manual desde el botón superior o selecciona otra fecha.</p>
+                    @endif
                 </div>
             @endif
         </div>
@@ -158,20 +166,21 @@
 
     <!-- QUICK APPOINTMENT DETAIL DRAWER / MODAL -->
     <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="showModal = false">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar" @click.away="showModal = false">
             <template x-if="selectedApp">
                 <div>
                     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                         <div>
-                            <span class="text-xs font-mono text-slate-400" x-text="'#' + selectedApp.code"></span>
+                            <span class="text-xs font-mono font-bold text-brand-primary" x-text="'#' + selectedApp.code"></span>
                             <h3 class="text-lg font-extrabold text-slate-900" x-text="selectedApp.patient ? selectedApp.patient.first_name + ' ' + selectedApp.patient.last_name : 'Paciente'"></h3>
+                            <p class="text-xs text-slate-400" x-text="(selectedApp.specialty?.name || '') + (selectedApp.procedure ? ' — ' + selectedApp.procedure.name : ' — Consulta')"></p>
                         </div>
                         <button @click="showModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>
 
-                    <div class="py-4 space-y-3 text-xs">
+                    <div class="py-4 space-y-4 text-xs">
                         <div class="grid grid-cols-2 gap-3">
                             <div class="p-3 rounded-xl bg-slate-50">
                                 <span class="text-slate-400 block">Médico Especialista:</span>
@@ -188,30 +197,69 @@
                             <span class="font-bold text-brand-primary" x-text="selectedApp.start_at"></span>
                         </div>
 
-                        <!-- Status Update Form -->
-                        <div class="pt-3 border-t border-slate-100">
-                            <label class="block font-bold text-slate-700 mb-1.5">Actualizar Estado de la Consulta:</label>
-                            <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/estado'" method="POST" class="space-y-3">
-                                @csrf
-                                <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-bold focus:border-brand-primary">
+                        <!-- Existing Documents in Modal -->
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                            <span class="font-bold text-slate-700 block">Documentos Clínicos:</span>
+                            <div class="space-y-1.5">
+                                <template x-if="selectedApp.clinical_history_path">
+                                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200">
+                                        <span class="font-bold text-slate-800 truncate" x-text="selectedApp.clinical_history_filename || 'Historia Clínica'"></span>
+                                        <a :href="'/admin/citas/' + selectedApp.id + '/historia-clinica/historia'" class="px-2.5 py-1 rounded-lg bg-brand-soft text-brand-primary font-bold hover:bg-brand-primary hover:text-white transition-colors text-[11px] shrink-0">
+                                            Descargar
+                                        </a>
+                                    </div>
+                                </template>
+                                <template x-if="selectedApp.procedure_document_path">
+                                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200">
+                                        <span class="font-bold text-slate-800 truncate" x-text="selectedApp.procedure_document_filename || 'Informe Procedimiento'"></span>
+                                        <a :href="'/admin/citas/' + selectedApp.id + '/historia-clinica/procedimiento'" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-600 hover:text-white transition-colors text-[11px] shrink-0">
+                                            Descargar
+                                        </a>
+                                    </div>
+                                </template>
+                                <template x-if="!selectedApp.clinical_history_path && !selectedApp.procedure_document_path">
+                                    <span class="text-slate-400 italic">Sin documentos adjuntos</span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Upload / Update Form -->
+                        <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/historia-clinica'" method="POST" enctype="multipart/form-data" class="space-y-3 pt-2 border-t border-slate-100">
+                            @csrf
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Subir / Actualizar Historia Clínica</label>
+                                <input type="file" name="clinical_history" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-soft file:text-brand-primary hover:file:bg-brand-primary hover:file:text-white transition-colors" />
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Subir Informe de Procedimiento (Opcional)</label>
+                                <input type="file" name="procedure_document" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-600 hover:file:text-white transition-colors" />
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Notas Clínicas / Prescripción</label>
+                                <textarea name="clinical_notes" x-model="selectedApp.clinical_notes" rows="2" class="w-full rounded-xl border-slate-200 text-xs p-2.5" placeholder="Evolución médica o indicaciones..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Estado de la Consulta</label>
+                                <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2 font-bold focus:border-brand-primary">
+                                    <option value="COMPLETED" selected>COMPLETED (Atendida / Realizada)</option>
                                     <option value="CONFIRMED">CONFIRMED (Confirmada)</option>
-                                    <option value="COMPLETED">COMPLETED (Atendida / Realizada)</option>
                                     <option value="NO_SHOW">NO_SHOW (No Asistió)</option>
                                     <option value="CANCELLED">CANCELLED (Cancelada)</option>
                                 </select>
+                            </div>
 
-                                <input type="text" name="notes" placeholder="Notas de recepción o motivo..." class="w-full rounded-xl border-slate-200 text-xs p-2.5" />
-
-                                <div class="flex justify-end space-x-2 pt-2">
-                                    <button type="button" @click="showModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">
-                                        Cerrar
-                                    </button>
-                                    <button type="submit" class="px-4 py-2 rounded-xl bg-brand-primary text-white font-bold shadow-sm">
-                                        Guardar Estado
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            <div class="flex justify-end space-x-2 pt-2">
+                                <button type="button" @click="showModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                                    Cerrar
+                                </button>
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-brand-primary text-white font-bold shadow-sm hover:bg-brand-primary-dark">
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </template>

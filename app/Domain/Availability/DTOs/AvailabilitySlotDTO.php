@@ -30,6 +30,25 @@ class AvailabilitySlotDTO
         return $this->startAt->format('Y-m-d');
     }
 
+    public function __get(string $name): mixed
+    {
+        if ($name === 'startTime' || $name === 'time') {
+            return $this->timeFormatted();
+        }
+        if ($name === 'endTime' || $name === 'end_time') {
+            return $this->endTimeFormatted();
+        }
+        if ($name === 'date') {
+            return $this->dateFormatted();
+        }
+        return null;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return in_array($name, ['startTime', 'endTime', 'time', 'end_time', 'date']);
+    }
+
     public function toArray(): array
     {
         return [

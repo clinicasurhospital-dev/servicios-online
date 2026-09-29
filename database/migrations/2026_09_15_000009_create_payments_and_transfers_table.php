@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('appointment_id')->constrained('appointments')->cascadeOnDelete();
-            $table->enum('payment_method', ['ONLINE', 'BANK_TRANSFER', 'CASH', 'CARD_ONSITE'])->default('ONLINE');
+            $table->string('payment_method', 50)->default('CREDIT_CARD');
             $table->string('gateway_name')->nullable();
             $table->string('gateway_transaction_id')->nullable()->index();
             $table->decimal('amount', 10, 2);

@@ -4,8 +4,8 @@
 ])
 
 @php
-    $statusValue = is_object($status) ? ($status->value ?? (string)$status) : $status;
-    $displayLabel = $label ?? (is_object($status) && method_exists($status, 'label') ? $status->label() : $statusValue);
+    $statusValue = is_object($status) ? ($status->value ?? (string)$status) : (string)($status ?? 'UNKNOWN');
+    $displayLabel = $label ?? (is_object($status) && method_exists($status, 'label') ? $status->label() : ($statusValue ?: 'N/D'));
 
     $classes = match(strtoupper($statusValue)) {
         'CONFIRMED', 'PAID', 'APPROVED' => 'bg-emerald-50 text-emerald-700 border-emerald-200',

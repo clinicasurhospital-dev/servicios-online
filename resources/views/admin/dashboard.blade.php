@@ -7,8 +7,13 @@
     <!-- Header Greeting and Quick Summary -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Panel de Control Clínico</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">Monitoreo de citas, ingresos, ocupación médica y validación de pagos en tiempo real.</p>
+            @if($isDoctor)
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Panel Médico &mdash; {{ auth()->user()->name }}</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Gestión de consultas, agenda de pacientes y control clínico en tiempo real.</p>
+            @else
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Panel de Control Clínico</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Monitoreo de citas, ingresos, ocupación médica y validación de pagos en tiempo real.</p>
+            @endif
         </div>
 
         <div class="flex items-center space-x-3">
@@ -22,53 +27,103 @@
 
     <!-- STATS CARDS GRID -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Citas Hoy -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Citas Programadas Hoy</span>
-                <span class="text-3xl font-black text-slate-900 mt-1 block">{{ $todayAppointments }}</span>
-                <span class="text-xs text-emerald-600 font-semibold mt-1 block">{{ $todayConfirmed }} confirmadas</span>
+        @if($isDoctor)
+            <!-- Doctor Card 1: Citas Hoy -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Mis Citas Hoy</span>
+                    <span class="text-3xl font-black text-slate-900 mt-1 block">{{ $todayAppointments }}</span>
+                    <span class="text-xs text-emerald-600 font-semibold mt-1 block">{{ $todayConfirmed }} confirmadas</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </div>
-        </div>
 
-        <!-- Citas Pendientes -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pendientes de Pago/Turno</span>
-                <span class="text-3xl font-black text-amber-600 mt-1 block">{{ $todayPending }}</span>
-                <span class="text-xs text-slate-500 font-medium mt-1 block">{{ $todayCancelled }} canceladas / {{ $todayNoShow }} no asistió</span>
+            <!-- Doctor Card 2: Pendientes -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pendientes de Atención</span>
+                    <span class="text-3xl font-black text-amber-600 mt-1 block">{{ $todayPending }}</span>
+                    <span class="text-xs text-slate-500 font-medium mt-1 block">{{ $todayCancelled }} canceladas / {{ $todayNoShow }} no asistió</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-        </div>
 
-        <!-- Pagos por Validar -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Transferencias por Validar</span>
-                <span class="text-3xl font-black text-brand-primary mt-1 block">{{ $pendingTransfersCount }}</span>
-                <a href="{{ route('admin.transfers') }}" class="text-xs text-brand-primary font-bold hover:underline mt-1 block">Validar ahora &rarr;</a>
+            <!-- Doctor Card 3: Pacientes Únicos -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Mis Pacientes</span>
+                    <span class="text-3xl font-black text-brand-primary mt-1 block">{{ $doctorPatientsCount }}</span>
+                    <span class="text-xs text-slate-400 font-medium mt-1 block">Historial clínico registrado</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-            </div>
-        </div>
 
-        <!-- Ingresos del Mes -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Recaudación del Mes</span>
-                <span class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 block">${{ number_format($monthRevenue, 0) }}</span>
-                <span class="text-xs text-slate-400 font-medium mt-1 block">Histórico: ${{ number_format($totalRevenue, 0) }}</span>
+            <!-- Doctor Card 4: Consultas Mes -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Consultas este Mes</span>
+                    <span class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 block">{{ $doctorMonthAppointments }}</span>
+                    <span class="text-xs text-slate-400 font-medium mt-1 block">{{ now()->translatedFormat('F Y') }}</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        @else
+            <!-- Admin Card 1: Citas Hoy -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Citas Programadas Hoy</span>
+                    <span class="text-3xl font-black text-slate-900 mt-1 block">{{ $todayAppointments }}</span>
+                    <span class="text-xs text-emerald-600 font-semibold mt-1 block">{{ $todayConfirmed }} confirmadas</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
             </div>
-        </div>
+
+            <!-- Admin Card 2: Citas Pendientes -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Pendientes de Pago/Turno</span>
+                    <span class="text-3xl font-black text-amber-600 mt-1 block">{{ $todayPending }}</span>
+                    <span class="text-xs text-slate-500 font-medium mt-1 block">{{ $todayCancelled }} canceladas / {{ $todayNoShow }} no asistió</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+
+            <!-- Admin Card 3: Pagos por Validar -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Transferencias por Validar</span>
+                    <span class="text-3xl font-black text-brand-primary mt-1 block">{{ $pendingTransfersCount }}</span>
+                    <a href="{{ route('admin.transfers') }}" class="text-xs text-brand-primary font-bold hover:underline mt-1 block">Validar ahora &rarr;</a>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </div>
+            </div>
+
+            <!-- Admin Card 4: Ingresos del Mes -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Recaudación del Mes</span>
+                    <span class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 block">${{ number_format($monthRevenue, 0) }}</span>
+                    <span class="text-xs text-slate-400 font-medium mt-1 block">Histórico: ${{ number_format($totalRevenue, 0) }}</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- MAIN TWO-COLUMN SECTION -->
@@ -78,7 +133,7 @@
         <div class="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-900">Agenda de Turnos para Hoy</h2>
+                    <h2 class="text-lg font-bold text-slate-900">{{ $isDoctor ? 'Mis Consultas de Hoy' : 'Agenda de Turnos para Hoy' }}</h2>
                     <p class="text-xs text-slate-500">Pacientes programados para atención durante el día de hoy.</p>
                 </div>
                 <a href="{{ route('admin.agenda') }}" class="text-xs font-bold text-brand-primary hover:underline">Ver Agenda Completa &rarr;</a>
@@ -98,7 +153,13 @@
                                         <span class="text-xs text-slate-400 font-mono">#{{ $appointment->code }}</span>
                                     </div>
                                     <p class="text-xs text-slate-500 mt-0.5">
-                                        Dr. {{ $appointment->doctor->user->name }} &bull; <span class="text-brand-primary font-semibold">{{ $appointment->specialty->name }}</span>
+                                        @if(!$isDoctor)
+                                            Dr. {{ $appointment->doctor->user->name }} &bull;
+                                        @endif
+                                        <span class="text-brand-primary font-semibold">{{ $appointment->specialty->name }}</span>
+                                        @if($appointment->procedure)
+                                            &bull; <span class="text-slate-600">{{ $appointment->procedure->name }}</span>
+                                        @endif
                                     </p>
                                 </div>
                             </div>
@@ -119,49 +180,91 @@
             @endif
         </div>
 
-        <!-- SPECIALTIES & DOCTOR METRICS (4 Cols) -->
+        <!-- RIGHT SIDEBAR COLUMN (4 Cols) -->
         <div class="lg:col-span-4 space-y-6">
-            <!-- Top Specialties -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900 mb-4">Demanda por Especialidad</h3>
-                <div class="space-y-4">
-                    @foreach($appointmentsBySpecialty as $spec)
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-slate-700">{{ $spec->name }}</span>
-                                <span class="text-brand-primary font-bold">{{ $spec->appointments_count }} citas</span>
+            @if($isDoctor && $doctorProfile)
+                <!-- Doctor Weekly Schedule Widget -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold text-slate-900">Mis Horarios de Atención</h3>
+                        <a href="{{ route('admin.agenda') }}" class="text-[11px] font-bold text-brand-primary hover:underline">Ver Agenda</a>
+                    </div>
+                    <div class="space-y-2">
+                        @php
+                            $dayNames = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 0 => 'Domingo'];
+                        @endphp
+                        @forelse($doctorProfile->schedules as $sch)
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                                <span class="font-bold text-slate-700">{{ $dayNames[$sch->day_of_week] ?? 'Día' }}</span>
+                                <span class="font-mono text-brand-primary font-semibold">{{ substr($sch->start_time, 0, 5) }} &ndash; {{ substr($sch->end_time, 0, 5) }}</span>
                             </div>
-                            <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                                @php
-                                    $percent = $totalAppointments = $spec->appointments_count ? min(100, ($spec->appointments_count / max(1, $appointmentsBySpecialty->first()->appointments_count)) * 100) : 0;
-                                @endphp
-                                <div class="h-full bg-brand-primary rounded-full" style="width: {{ $percent }}%"></div>
-                            </div>
-                        </div>
-                    @endforeach
+                        @empty
+                            <p class="text-xs text-slate-400 italic">No tienes horarios configurados.</p>
+                        @endforelse
+                    </div>
                 </div>
-            </div>
 
-            <!-- Top Doctors -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <h3 class="text-base font-bold text-slate-900 mb-4">Citas por Especialista</h3>
-                <div class="space-y-3">
-                    @foreach($appointmentsByDoctor as $doc)
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="w-8 h-8 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold text-xs">
-                                    {{ substr($doc->user->name, 0, 1) }}
+                <!-- Doctor Specialties Widget -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-900 mb-3">Especialidades Asignadas</h3>
+                    <div class="flex flex-wrap gap-2">
+                        @forelse($doctorProfile->specialties as $sp)
+                            <span class="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-soft text-brand-primary">
+                                {{ $sp->name }}
+                            </span>
+                        @empty
+                            <span class="text-xs text-slate-400 italic">Sin especialidades vinculadas</span>
+                        @endforelse
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                        <p><strong>Registro Médico:</strong> <span class="font-mono">{{ $doctorProfile->license_number }}</span></p>
+                        <p><strong>Consultorio:</strong> {{ $doctorProfile->room_office ?: 'Por asignar' }}</p>
+                        <p><strong>Duración Turno:</strong> {{ $doctorProfile->default_slot_duration_minutes }} minutos</p>
+                    </div>
+                </div>
+            @else
+                <!-- Admin: Top Specialties -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-900 mb-4">Demanda por Especialidad</h3>
+                    <div class="space-y-4">
+                        @foreach($appointmentsBySpecialty as $spec)
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-700">{{ $spec->name }}</span>
+                                    <span class="text-brand-primary font-bold">{{ $spec->appointments_count }} citas</span>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-slate-900 leading-snug">{{ $doc->user->name }}</h4>
-                                    <p class="text-[11px] text-slate-400">{{ $doc->specialties->first()?->name }}</p>
+                                <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                                    @php
+                                        $percent = $spec->appointments_count ? min(100, ($spec->appointments_count / max(1, $appointmentsBySpecialty->first()->appointments_count)) * 100) : 0;
+                                    @endphp
+                                    <div class="h-full bg-brand-primary rounded-full" style="width: {{ $percent }}%"></div>
                                 </div>
                             </div>
-                            <span class="font-black text-brand-primary text-sm">{{ $doc->appointments_count }}</span>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+
+                <!-- Admin: Top Doctors -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-900 mb-4">Citas por Especialista</h3>
+                    <div class="space-y-3">
+                        @foreach($appointmentsByDoctor as $doc)
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold text-xs">
+                                        {{ substr($doc->user->name, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 leading-snug">{{ $doc->user->name }}</h4>
+                                        <p class="text-[11px] text-slate-400">{{ $doc->specialties->first()?->name }}</p>
+                                    </div>
+                                </div>
+                                <span class="font-black text-brand-primary text-sm">{{ $doc->appointments_count }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
     </div>

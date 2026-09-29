@@ -3,19 +3,27 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Domain\Appointments\Services\AppointmentCancellationService;
+use App\Domain\Appointments\Services\AppointmentRescheduleService;
+use App\Domain\Availability\Services\AvailabilityService;
 use App\Domain\Payments\Services\BankTransferService;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\BankTransfer;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatientPortalController extends Controller
 {
     public function __construct(
         protected AppointmentCancellationService $cancellationService,
+        protected AppointmentRescheduleService $rescheduleService,
+        protected AvailabilityService $availabilityService,
         protected BankTransferService $transferService
     ) {}
 
@@ -30,7 +38,7 @@ class PatientPortalController extends Controller
 
         $nextAppointment = Appointment::where('patient_id', $patient->id)
             ->where('start_at', '>=', now())
-            ->whereIn('status', ['PENDING', 'PENDING_PAYMENT', 'CONFIRMED'])
+            ->whereIn('status', ['PENDING', 'PENDING_PAYMENT', 'CONFIRMED', 'RESCHEDULED'])
             ->with(['doctor.user', 'specialty', 'procedure', 'payments'])
             ->orderBy('start_at', 'asc')
             ->first();
@@ -48,11 +56,11 @@ class PatientPortalController extends Controller
     {
         $patient = Auth::user()->patient;
         if (!$patient) {
-            abort(403);
+            abort(403, 'Perfil de paciente no asociado.');
         }
 
         $appointments = Appointment::where('patient_id', $patient->id)
-            ->with(['doctor.user', 'specialty', 'procedure', 'payments'])
+            ->with(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories'])
             ->orderBy('start_at', 'desc')
             ->paginate(10);
 
@@ -63,9 +71,86 @@ class PatientPortalController extends Controller
     {
         $this->authorize('view', $appointment);
 
-        $appointment->load(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories.user']);
+        $appointment->load(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories.user', 'cancelledBy']);
 
         return view('patient.appointment-show', compact('appointment'));
+    }
+
+    public function availableSlots(Request $request, Appointment $appointment): JsonResponse
+    {
+        $this->authorize('view', $appointment);
+
+        $dateStr = $request->query('date');
+        if (!$dateStr) {
+            return response()->json(['success' => false, 'message' => 'Fecha requerida', 'slots' => []], 422);
+        }
+
+        try {
+            $date = Carbon::parse($dateStr);
+            $appointment->loadMissing(['doctor', 'specialty', 'procedure']);
+
+            $slots = $this->availabilityService->getAvailableSlotsForDate(
+                doctor: $appointment->doctor,
+                date: $date,
+                durationMinutes: $appointment->duration_minutes,
+                specialtyId: $appointment->specialty_id,
+                procedureId: $appointment->procedure_id,
+                excludeAppointmentId: $appointment->id
+            );
+
+            $availableSlots = $slots->filter(fn($s) => $s->isAvailable)->map(fn($s) => [
+                'time' => $s->startAt->format('H:i'),
+                'label' => $s->startAt->format('h:i A') . ' - ' . $s->endAt->format('h:i A'),
+                'start_at' => $s->startAt->format('Y-m-d H:i:s'),
+                'end_at' => $s->endAt->format('Y-m-d H:i:s'),
+            ])->values();
+
+            return response()->json([
+                'success' => true,
+                'date' => $date->format('Y-m-d'),
+                'slots' => $availableSlots,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al consultar horarios: ' . $e->getMessage(),
+                'slots' => [],
+            ], 400);
+        }
+    }
+
+    public function rescheduleAppointment(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $this->authorize('update', $appointment);
+
+        $validated = $request->validate([
+            'new_date' => ['required', 'date', 'after_or_equal:today'],
+            'new_time' => ['required', 'string', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ], [
+            'new_date.required' => 'Debes seleccionar una fecha.',
+            'new_date.after_or_equal' => 'La fecha no puede ser anterior a hoy.',
+            'new_time.required' => 'Debes seleccionar un horario disponible.',
+            'new_time.regex' => 'El formato de hora no es válido.',
+        ]);
+
+        try {
+            $newStartAt = Carbon::parse("{$validated['new_date']} {$validated['new_time']}");
+            $duration = $appointment->duration_minutes ?: 30;
+            $newEndAt = $newStartAt->copy()->addMinutes($duration);
+
+            $this->rescheduleService->reschedule(
+                appointment: $appointment,
+                newStartAt: $newStartAt,
+                newEndAt: $newEndAt,
+                userId: Auth::id(),
+                reason: $validated['reason'] ?? 'Reprogramación solicitada desde el portal del paciente'
+            );
+
+            return back()->with('success', '¡Cita reprogramada exitosamente para el ' . $newStartAt->translatedFormat('l, d \d\e F \a \l\a\s H:i') . '!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['reschedule' => $e->getMessage()])->withInput();
+        }
     }
 
     public function cancelAppointment(Request $request, Appointment $appointment): RedirectResponse
@@ -74,11 +159,16 @@ class PatientPortalController extends Controller
 
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'reason.required' => 'Por favor indícanos el motivo de la cancelación.',
         ]);
 
-        $this->cancellationService->cancel($appointment, $validated['reason'], Auth::id());
-
-        return back()->with('success', 'La cita ha sido cancelada correctamente.');
+        try {
+            $this->cancellationService->cancel($appointment, $validated['reason'], Auth::id());
+            return back()->with('success', 'La cita #' . $appointment->code . ' ha sido cancelada correctamente.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['cancel' => $e->getMessage()]);
+        }
     }
 
     public function submitTransfer(Request $request, Appointment $appointment): RedirectResponse
@@ -106,4 +196,19 @@ class PatientPortalController extends Controller
     {
         return view('patient.payment-success');
     }
+
+    public function downloadClinicalRecord(Appointment $appointment, string $type): StreamedResponse|RedirectResponse
+    {
+        $this->authorize('view', $appointment);
+
+        $path = $type === 'procedimiento' ? $appointment->procedure_document_path : $appointment->clinical_history_path;
+        $name = $type === 'procedimiento' ? ($appointment->procedure_document_filename ?: "procedimiento_{$appointment->code}.pdf") : ($appointment->clinical_history_filename ?: "historia_clinica_{$appointment->code}.pdf");
+
+        if (! $path || ! Storage::disk('medical_records')->exists($path)) {
+            return back()->with('error', 'El documento clínico solicitado no está disponible para descarga.');
+        }
+
+        return Storage::disk('medical_records')->download($path, $name);
+    }
 }
+

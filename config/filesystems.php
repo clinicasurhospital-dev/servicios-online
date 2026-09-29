@@ -26,6 +26,14 @@ return [
             'visibility' => 'private',
             'throw' => false,
         ],
+
+        'medical_records' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/medical_records'),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => false,
+        ],
     ],
 
     'links' => [

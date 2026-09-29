@@ -9,6 +9,10 @@
         color: #172033;
         scroll-behavior: smooth;
     }
+
+    [x-cloak] {
+        display: none !important;
+    }
 }
 
 /* Custom Healthcare UI Utilities */
