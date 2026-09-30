@@ -201,11 +201,14 @@ class PatientPortalController extends Controller
     {
         $this->authorize('view', $appointment);
 
-        $path = $type === 'procedimiento' ? $appointment->procedure_document_path : $appointment->clinical_history_path;
-        $name = $type === 'procedimiento' ? ($appointment->procedure_document_filename ?: "procedimiento_{$appointment->code}.pdf") : ($appointment->clinical_history_filename ?: "historia_clinica_{$appointment->code}.pdf");
+        $isProcedure = in_array(strtolower($type), ['procedimiento', 'procedimientos', 'resultado', 'resultados', 'estudio']);
+        $path = $isProcedure ? $appointment->procedure_document_path : $appointment->clinical_history_path;
+        $name = $isProcedure 
+            ? ($appointment->procedure_document_filename ?: "resultado_procedimiento_{$appointment->code}.pdf") 
+            : ($appointment->clinical_history_filename ?: "historia_clinica_{$appointment->code}.pdf");
 
         if (! $path || ! Storage::disk('medical_records')->exists($path)) {
-            return back()->with('error', 'El documento clínico solicitado no está disponible para descarga.');
+            return back()->with('error', 'El documento clínico solicitado no está disponible para descarga o aún no ha sido cargado.');
         }
 
         return Storage::disk('medical_records')->download($path, $name);

@@ -3,7 +3,7 @@
 @section('title', 'Auditoría & Trazabilidad — ' . config('branding.app_name'))
 
 @section('content')
-<div class="space-y-6 animate-fadeIn" x-data="{ payloadModal: false, selectedLog: null }">
+<div class="space-y-6 animate-fadeIn" x-data="{ payloadModal: false, selectedLog: null, logsMap: @json($logs->keyBy('id')) }">
     <!-- Header with Filters -->
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -38,7 +38,7 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-slate-50/70 transition-colors">
                             <td class="py-4 px-6 font-mono text-slate-500 text-[11px]">
-                                {{ $log->created_at->format('d/m/Y H:i:s') }}
+                                {{ $log->created_at ? $log->created_at->format('d/m/Y H:i:s') : '—' }}
                             </td>
                             <td class="py-4 px-6">
                                 <span class="font-bold text-slate-900 block text-sm">{{ $log->user?->name ?? 'Sistema Automático' }}</span>
@@ -50,14 +50,14 @@
                                 </span>
                             </td>
                             <td class="py-4 px-6">
-                                <span class="font-bold text-slate-700 block">{{ class_basename($log->auditable_type) }}</span>
-                                <span class="text-slate-400 font-mono text-[11px]">ID: {{ $log->auditable_id }}</span>
+                                <span class="font-bold text-slate-700 block">{{ $log->auditable_type ? class_basename($log->auditable_type) : 'Sistema' }}</span>
+                                <span class="text-slate-400 font-mono text-[11px]">ID: {{ $log->auditable_id ?: 'N/A' }}</span>
                             </td>
                             <td class="py-4 px-6 font-mono text-slate-400 text-[11px]">
                                 {{ $log->ip_address ?: '127.0.0.1' }}
                             </td>
                             <td class="py-4 px-6 text-right">
-                                <button @click="selectedLog = {{ $log->toJson() }}; payloadModal = true" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary text-slate-700 hover:text-brand-primary font-bold text-xs transition-colors">
+                                <button type="button" @click="selectedLog = logsMap[{{ $log->id }}] || null; payloadModal = true" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary text-slate-700 hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
                                     Ver Diff
                                 </button>
                             </td>

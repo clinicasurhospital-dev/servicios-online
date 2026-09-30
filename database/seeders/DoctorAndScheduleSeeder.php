@@ -15,6 +15,17 @@ class DoctorAndScheduleSeeder extends Seeder
     {
         $doctorsData = [
             [
+                'name' => 'Dr. Carlos Soledispa (Demo)',
+                'email' => 'doctor@surhospital.com',
+                'phone' => '042590670',
+                'license' => 'MSP-EC-091820',
+                'specialty_slug' => 'neurocirugia',
+                'bio' => 'Médico Especialista en Neurocirugía y Cirugía de Alta Complejidad en SurHospital.',
+                'room' => 'Torre Médica Sur - Consultorio 401',
+                'price' => 60.00,
+                'duration' => 30,
+            ],
+            [
                 'name' => 'Dr. Carlos Soledispa Suárez',
                 'email' => 'dr.carlos.soledispa@surhospital.net',
                 'phone' => '042590670',

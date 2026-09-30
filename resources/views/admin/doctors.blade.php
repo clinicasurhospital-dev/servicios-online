@@ -25,14 +25,25 @@
         specialty_ids: []
     },
     schedulesData: [
-        { day: 1, name: 'Lunes', enabled: true, start: '08:00', end: '13:00' },
-        { day: 2, name: 'Martes', enabled: true, start: '08:00', end: '13:00' },
-        { day: 3, name: 'Miércoles', enabled: true, start: '08:00', end: '13:00' },
-        { day: 4, name: 'Jueves', enabled: true, start: '08:00', end: '13:00' },
-        { day: 5, name: 'Viernes', enabled: true, start: '08:00', end: '13:00' },
-        { day: 6, name: 'Sábado', enabled: false, start: '08:00', end: '12:00' },
-        { day: 0, name: 'Domingo', enabled: false, start: '08:00', end: '12:00' }
+        { day: 1, name: 'Lunes', enabled: true, blocks: [{ start: '08:00', end: '13:00' }] },
+        { day: 2, name: 'Martes', enabled: true, blocks: [{ start: '08:00', end: '13:00' }] },
+        { day: 3, name: 'Miércoles', enabled: true, blocks: [{ start: '08:00', end: '13:00' }] },
+        { day: 4, name: 'Jueves', enabled: true, blocks: [{ start: '08:00', end: '13:00' }] },
+        { day: 5, name: 'Viernes', enabled: true, blocks: [{ start: '08:00', end: '13:00' }] },
+        { day: 6, name: 'Sábado', enabled: false, blocks: [{ start: '08:00', end: '12:00' }] },
+        { day: 0, name: 'Domingo', enabled: false, blocks: [{ start: '08:00', end: '12:00' }] }
     ],
+    addBlock(dayItem) {
+        dayItem.enabled = true;
+        dayItem.blocks.push({ start: '14:00', end: '18:00' });
+    },
+    removeBlock(dayItem, bIdx) {
+        if (dayItem.blocks.length > 1) {
+            dayItem.blocks.splice(bIdx, 1);
+        } else {
+            dayItem.enabled = false;
+        }
+    },
     openEditModal(doc) {
         this.selectedDoctor = doc;
         this.editDoctorData = {
@@ -54,14 +65,17 @@
         if (!doc) return;
         this.selectedDoctor = doc;
         // Map existing schedules
-        this.schedulesData.forEach(item => {
-            const found = (doc.schedules || []).find(s => s.day_of_week === item.day);
-            if (found) {
-                item.enabled = true;
-                item.start = (found.start_time || '08:00').substring(0, 5);
-                item.end = (found.end_time || '13:00').substring(0, 5);
+        this.schedulesData.forEach(dayItem => {
+            const foundSchedules = (doc.schedules || []).filter(s => s.day_of_week === dayItem.day && s.is_active);
+            if (foundSchedules.length > 0) {
+                dayItem.enabled = true;
+                dayItem.blocks = foundSchedules.map(s => ({
+                    start: (s.start_time || '08:00').substring(0, 5),
+                    end: (s.end_time || '13:00').substring(0, 5)
+                }));
             } else {
-                item.enabled = false;
+                dayItem.enabled = false;
+                dayItem.blocks = [{ start: '08:00', end: '13:00' }];
             }
         });
         this.schedulesModal = true;
@@ -381,29 +395,52 @@
 
             <form method="POST" :action="'/admin/medicos/' + selectedDoctor?.id + '/horarios'" class="space-y-4">
                 @csrf
-                <p class="text-xs text-slate-500">Marca los días en que el médico atiende en la clínica y especifica su rango de horas (inicio y fin):</p>
+                <p class="text-xs text-slate-500">Configura los días y múltiples franjas horarias de atención para este especialista (ej: mañana de 08:00 a 09:00 y tarde de 11:00 a 11:30):</p>
 
-                <div class="space-y-2.5">
-                    <template x-for="(item, idx) in schedulesData" :key="item.day">
-                        <div class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-3" :class="item.enabled ? 'border-brand-primary/40 bg-brand-soft/20' : 'border-slate-100 bg-slate-50/50 opacity-60'">
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" :name="'schedules[' + idx + '][enabled]'" value="1" x-model="item.enabled" class="rounded text-brand-primary focus:ring-brand-primary h-4 w-4" />
-                                <span class="font-bold text-xs text-slate-800 w-20" x-text="item.name"></span>
-                                <input type="hidden" :name="'schedules[' + idx + '][day_of_week]'" :value="item.day" />
+                <div class="space-y-3">
+                    <template x-for="(dayItem, dayIdx) in schedulesData" :key="dayItem.day">
+                        <div class="p-3.5 rounded-2xl border transition-all space-y-2.5" :class="dayItem.enabled ? 'border-brand-primary/40 bg-brand-soft/10 shadow-2xs' : 'border-slate-100 bg-slate-50/50 opacity-60'">
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" x-model="dayItem.enabled" class="rounded text-brand-primary focus:ring-brand-primary h-4 w-4" />
+                                    <span class="font-bold text-xs text-slate-800" x-text="dayItem.name"></span>
+                                </label>
+
+                                <div class="flex items-center space-x-2" x-show="dayItem.enabled">
+                                    <button type="button" @click="addBlock(dayItem)" class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-dark bg-white hover:bg-brand-soft px-2.5 py-1 rounded-lg border border-brand-primary/20 shadow-2xs transition-all cursor-pointer">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        <span>+ Agregar horario</span>
+                                    </button>
+                                </div>
+
+                                <span class="text-xs text-slate-400 italic" x-show="!dayItem.enabled">No atiende</span>
                             </div>
 
-                            <div class="flex items-center space-x-2" x-show="item.enabled">
-                                <div class="flex items-center space-x-1">
-                                    <span class="text-[11px] text-slate-400 font-semibold">De:</span>
-                                    <input type="time" :name="'schedules[' + idx + '][start_time]'" x-model="item.start" class="rounded-xl border-slate-200 text-xs p-1.5 w-24 bg-white" />
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <span class="text-[11px] text-slate-400 font-semibold">A:</span>
-                                    <input type="time" :name="'schedules[' + idx + '][end_time]'" x-model="item.end" class="rounded-xl border-slate-200 text-xs p-1.5 w-24 bg-white" />
-                                </div>
-                            </div>
+                            <!-- List of multiple blocks for this day -->
+                            <div class="space-y-2 pl-7 pt-1" x-show="dayItem.enabled">
+                                <template x-for="(block, bIdx) in dayItem.blocks" :key="bIdx">
+                                    <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <input type="hidden" :name="'schedules[' + dayItem.day + '_' + bIdx + '][day_of_week]'" :value="dayItem.day" />
+                                        <input type="hidden" :name="'schedules[' + dayItem.day + '_' + bIdx + '][enabled]'" value="1" />
 
-                            <span class="text-xs text-slate-400 italic" x-show="!item.enabled">No atiende</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase">Turno <span x-text="bIdx + 1"></span>:</span>
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-[11px] text-slate-500 font-medium">De</span>
+                                                <input type="time" :name="'schedules[' + dayItem.day + '_' + bIdx + '][start_time]'" x-model="block.start" required class="rounded-lg border-slate-200 text-xs p-1.5 w-24 font-bold bg-slate-50 focus:bg-white" />
+                                            </div>
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-[11px] text-slate-500 font-medium">a</span>
+                                                <input type="time" :name="'schedules[' + dayItem.day + '_' + bIdx + '][end_time]'" x-model="block.end" required class="rounded-lg border-slate-200 text-xs p-1.5 w-24 font-bold bg-slate-50 focus:bg-white" />
+                                            </div>
+                                        </div>
+
+                                        <button type="button" @click="removeBlock(dayItem, bIdx)" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Eliminar este horario">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>

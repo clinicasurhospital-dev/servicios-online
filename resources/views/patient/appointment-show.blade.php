@@ -126,49 +126,89 @@
             </div>
         @endif
 
-        @if($appointment->clinical_notes)
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-900">
-                <span class="font-bold block mb-1">Notas Clínicas del Médico Tratante:</span>
-                <p>{{ $appointment->clinical_notes }}</p>
-            </div>
-        @endif
-
-        @if($appointment->hasClinicalHistory() || $appointment->hasProcedureDocument())
-            <div class="p-5 rounded-2xl bg-brand-soft/30 border border-brand-primary/20 space-y-3">
-                <div class="flex items-center space-x-2">
-                    <div class="w-7 h-7 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold">
+        <!-- SECCIÓN: HISTORIA CLÍNICA, DIAGNÓSTICO Y RESULTADOS DE PROCEDIMIENTOS -->
+        <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200/80 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200/60">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-brand-primary text-white flex items-center justify-center font-bold shadow-xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900">Documentos Clínicos Disponibles</h3>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900">Historia Clínica, Diagnóstico y Resultados</h3>
+                        <p class="text-[11px] text-slate-500">Documentación oficial emitida por el equipo médico de SurHospital</p>
+                    </div>
                 </div>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    @if($appointment->hasClinicalHistory())
-                        <div class="p-3.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
-                            <div class="truncate">
-                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->clinical_history_filename ?: 'Historia Clínica' }}</span>
-                                <span class="text-[11px] text-slate-400">Historia Clínica / Informe Médico</span>
-                            </div>
-                            <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'historia']) }}" class="px-3 py-1.5 rounded-xl bg-brand-primary text-white font-bold text-xs hover:bg-brand-primary-dark transition-colors shrink-0">
-                                Descargar
-                            </a>
-                        </div>
-                    @endif
-
-                    @if($appointment->hasProcedureDocument())
-                        <div class="p-3.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
-                            <div class="truncate">
-                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->procedure_document_filename ?: 'Informe de Procedimiento' }}</span>
-                                <span class="text-[11px] text-slate-400">Resultado / Protocolo de Procedimiento</span>
-                            </div>
-                            <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'procedimiento']) }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shrink-0">
-                                Descargar
-                            </a>
-                        </div>
-                    @endif
-                </div>
+                @if($appointment->hasClinicalHistory() || $appointment->hasProcedureDocument())
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Documentos Listos
+                    </span>
+                @endif
             </div>
-        @endif
+
+            @if($appointment->clinical_notes)
+                <div class="p-4 rounded-2xl bg-white border border-emerald-200/70 text-xs shadow-2xs space-y-1">
+                    <span class="font-bold text-emerald-800 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <span>Diagnóstico / Notas Clínicas del Médico:</span>
+                    </span>
+                    <p class="text-slate-800 font-medium whitespace-pre-line leading-relaxed">{{ $appointment->clinical_notes }}</p>
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                <!-- Historia Clínica Card -->
+                @if($appointment->hasClinicalHistory())
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between gap-3 shadow-sm hover:border-brand-primary/40 transition-colors">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->clinical_history_filename ?: 'Historia_Clinica.pdf' }}</span>
+                                <span class="text-[11px] text-slate-500">Historia Clínica / Informe de Consulta</span>
+                                @if($appointment->clinical_history_uploaded_at)
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">Subido: {{ $appointment->clinical_history_uploaded_at->format('d/m/Y H:i') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'historia']) }}" class="w-full py-2 px-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Descargar Historia Clínica</span>
+                        </a>
+                    </div>
+                @endif
+
+                <!-- Resultados / Procedimiento Card -->
+                @if($appointment->hasProcedureDocument())
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between gap-3 shadow-sm hover:border-emerald-500/40 transition-colors">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="font-bold text-slate-900 block text-xs truncate">{{ $appointment->procedure_document_filename ?: 'Resultados_Procedimiento.pdf' }}</span>
+                                <span class="text-[11px] text-slate-500">Resultados / Procedimientos Médicos</span>
+                                @if($appointment->clinical_history_uploaded_at)
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">Subido: {{ $appointment->clinical_history_uploaded_at->format('d/m/Y H:i') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <a href="{{ route('patient.appointment.clinical_record', [$appointment, 'procedimiento']) }}" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Descargar Resultados / Procedimiento</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if(!$appointment->hasClinicalHistory() && !$appointment->hasProcedureDocument() && !$appointment->clinical_notes)
+                    <div class="col-span-full p-4 rounded-2xl bg-white border border-slate-200 text-center text-xs text-slate-500 py-6">
+                        <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="font-bold text-slate-700">Documentos Clínicos en Proceso</p>
+                        <p class="text-slate-400 text-[11px] mt-0.5">La historia clínica, diagnósticos y resultados de procedimientos se publicarán aquí una vez que el especialista complete la consulta.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
 
         @if($appointment->status->value === 'CANCELLED' && $appointment->cancelled_reason)
             <div class="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-rose-900">

@@ -67,7 +67,6 @@
                             ['label' => 'Mi Agenda', 'route' => 'admin.agenda', 'icon' => 'calendar'],
                             ['label' => 'Mis Citas', 'route' => 'admin.appointments', 'icon' => 'clock'],
                             ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users'],
-                            ['label' => 'Médicos & Turnos', 'route' => 'admin.doctors', 'icon' => 'user-md'],
                         ];
                     } else {
                         $navItems = [

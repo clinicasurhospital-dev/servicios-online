@@ -228,13 +228,13 @@
                         @forelse($doctors as $doc)
                             <button type="button" wire:key="doctor-{{ $doc->id }}" wire:click="selectDoctor({{ $doc->id }})" class="p-4 sm:p-5 rounded-2xl border-2 text-left transition-all duration-200 flex items-start space-x-3.5 hover:border-brand-primary hover:shadow-md hover:shadow-brand-primary/10 cursor-pointer group relative {{ $doctorId == $doc->id ? 'border-brand-primary bg-brand-soft/40 shadow-sm ring-2 ring-brand-primary/20' : 'border-slate-100 bg-slate-50/60 hover:bg-white' }}">
                                 <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-                                    {{ substr($doc->user->name, 0, 2) }}
+                                    {{ substr($doc->name, 0, 2) }}
                                 </div>
                                 <div class="flex-1 min-w-0 pr-6">
                                     <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-brand-soft text-brand-primary mb-1">
                                         Reg. {{ $doc->license_number }}
                                     </span>
-                                    <h4 class="font-bold {{ $doctorId == $doc->id ? 'text-brand-primary' : 'text-slate-900' }} text-sm sm:text-base leading-tight truncate">{{ $doc->user->name }}</h4>
+                                    <h4 class="font-bold {{ $doctorId == $doc->id ? 'text-brand-primary' : 'text-slate-900' }} text-sm sm:text-base leading-tight truncate">{{ $doc->name }}</h4>
                                     <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ $doc->bio ?: 'Especialista certificado en SurHospital.' }}</p>
                                     <div class="mt-2.5 flex items-center space-x-1.5 text-xs text-emerald-600 font-bold">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -277,7 +277,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <span>Turnos en Tiempo Real</span>
                                     </p>
-                                    <p class="text-[11px] text-blue-700">Agenda sincronizada en vivo con la disponibilidad del Dr. {{ $selectedDoctor->user->name }}.</p>
+                                    <p class="text-[11px] text-blue-700">Agenda sincronizada en vivo con la disponibilidad del Dr. {{ $selectedDoctor->name }}.</p>
                                 </div>
                             </div>
 

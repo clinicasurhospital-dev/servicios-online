@@ -40,7 +40,7 @@ class PatientAndAppointmentSeeder extends Seeder
                 'first_name' => 'Ana Sofía',
                 'last_name' => 'Mendoza',
                 'email' => 'paciente@surhospital.com',
-                'password' => 'password123',
+                'password' => 'password',
                 'phone' => '+593 99 123 4567',
                 'identification_number' => '0958473621',
                 'gender' => 'FEMALE',

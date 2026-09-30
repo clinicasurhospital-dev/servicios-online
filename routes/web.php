@@ -75,16 +75,16 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
     Route::put('/pacientes/{patient}', [AdminPatientController::class, 'update'])->name('patients.update');
     Route::delete('/pacientes/{patient}', [AdminPatientController::class, 'destroy'])->name('patients.destroy');
 
-    // Médicos CRUD & Horarios
-    Route::get('/medicos', [AdminDoctorController::class, 'index'])->name('doctors');
-    Route::post('/medicos', [AdminDoctorController::class, 'store'])->name('doctors.store');
-    Route::put('/medicos/{doctor}', [AdminDoctorController::class, 'update'])->name('doctors.update');
-    Route::post('/medicos/{doctor}/toggle', [AdminDoctorController::class, 'toggleActive'])->name('doctors.toggle');
-    Route::delete('/medicos/{doctor}', [AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
-    Route::post('/medicos/{doctor}/horarios', [AdminDoctorController::class, 'updateSchedules'])->name('doctors.schedules');
-
     // Super Admin & Admin / Reception Only Management Routes
     Route::middleware('role:SUPER_ADMIN|ADMIN|RECEPTION')->group(function () {
+        // Médicos CRUD & Horarios
+        Route::get('/medicos', [AdminDoctorController::class, 'index'])->name('doctors');
+        Route::post('/medicos', [AdminDoctorController::class, 'store'])->name('doctors.store');
+        Route::put('/medicos/{doctor}', [AdminDoctorController::class, 'update'])->name('doctors.update');
+        Route::post('/medicos/{doctor}/toggle', [AdminDoctorController::class, 'toggleActive'])->name('doctors.toggle');
+        Route::delete('/medicos/{doctor}', [AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
+        Route::post('/medicos/{doctor}/horarios', [AdminDoctorController::class, 'updateSchedules'])->name('doctors.schedules');
+
         // Especialidades CRUD
         Route::get('/especialidades', [AdminSpecialtyController::class, 'index'])->name('specialties');
         Route::post('/especialidades', [AdminSpecialtyController::class, 'store'])->name('specialties.store');

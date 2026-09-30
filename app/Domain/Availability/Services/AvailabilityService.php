@@ -211,7 +211,8 @@ class AvailabilityService
         return SystemHoliday::where('date', $date->toDateString())
             ->orWhere(function ($query) use ($date) {
                 $query->where('is_recurring', true)
-                      ->whereRaw("strftime('%m-%d', date) = ?", [$date->format('m-d')]);
+                      ->whereMonth('date', $date->month)
+                      ->whereDay('date', $date->day);
             })
             ->exists();
     }

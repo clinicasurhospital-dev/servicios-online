@@ -51,6 +51,20 @@
                                 <span class="font-semibold text-slate-700">{{ $app->start_at->translatedFormat('d \d\e F, Y - H:i') }}</span>
                                 <span>({{ $app->duration_minutes }} min)</span>
                             </p>
+                            @if($app->hasClinicalHistory() || $app->hasProcedureDocument())
+                                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                                    @if($app->hasClinicalHistory())
+                                        <a href="{{ route('patient.appointment.clinical_record', [$app, 'historia']) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white transition-colors">
+                                            <span>📄 Historia Clínica</span>
+                                        </a>
+                                    @endif
+                                    @if($app->hasProcedureDocument())
+                                        <a href="{{ route('patient.appointment.clinical_record', [$app, 'procedimiento']) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-colors">
+                                            <span>🔬 Resultados</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
 

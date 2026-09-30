@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['doctor_id', 'day_of_week', 'is_active']);
+            $table->index(['doctor_id', 'day_of_week', 'is_active'], 'doc_schedules_day_active_idx');
         });
 
         Schema::create('system_holidays', function (Blueprint $table) {

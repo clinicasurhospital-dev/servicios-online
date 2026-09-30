@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->index(['doctor_id', 'start_datetime', 'end_datetime']);
+            $table->index(['doctor_id', 'start_datetime', 'end_datetime'], 'doc_blocks_doctor_dates_idx');
         });
 
         Schema::create('doctor_absences', function (Blueprint $table) {
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->index(['doctor_id', 'start_date', 'end_date', 'is_approved']);
+            $table->index(['doctor_id', 'start_date', 'end_date', 'is_approved'], 'doc_absences_doctor_dates_idx');
         });
     }
 

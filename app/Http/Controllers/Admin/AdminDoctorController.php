@@ -19,7 +19,10 @@ class AdminDoctorController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $isDoctor = $user->isDoctor();
+        if ($user->isDoctor()) {
+            abort(403, 'El perfil médico no tiene acceso al módulo de administración de médicos y horarios.');
+        }
+
         $search = $request->query('search');
         $specialtyId = $request->query('specialty_id');
 
@@ -27,19 +30,15 @@ class AdminDoctorController extends Controller
             ->with(['user', 'specialties', 'schedules'])
             ->withCount('appointments');
 
-        if ($isDoctor && $user->doctor) {
-            $query->where('id', $user->doctor->id);
-        } else {
-            $query->when($search, function ($query, $term) {
-                $query->whereHas('user', function ($q) use ($term) {
-                    $q->where('name', 'like', "%{$term}%")
-                        ->orWhere('email', 'like', "%{$term}%");
-                })->orWhere('license_number', 'like', "%{$term}%");
-            })
-            ->when($specialtyId, function ($query, $id) {
-                $query->whereHas('specialties', fn ($q) => $q->where('specialties.id', $id));
-            });
-        }
+        $query->when($search, function ($query, $term) {
+            $query->whereHas('user', function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%");
+            })->orWhere('license_number', 'like', "%{$term}%");
+        })
+        ->when($specialtyId, function ($query, $id) {
+            $query->whereHas('specialties', fn ($q) => $q->where('specialties.id', $id));
+        });
 
         $doctors = $query->orderBy('is_active', 'desc')
             ->latest()
@@ -48,7 +47,7 @@ class AdminDoctorController extends Controller
 
         $specialties = Specialty::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.doctors', compact('doctors', 'specialties', 'search', 'specialtyId', 'isDoctor'));
+        return view('admin.doctors', compact('doctors', 'specialties', 'search', 'specialtyId'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -242,17 +241,21 @@ class AdminDoctorController extends Controller
         ]);
 
         return DB::transaction(function () use ($doctor, $validated) {
-            // Delete existing schedules and re-create selected active ones
+            // Delete existing schedules and re-create all configured active intervals
             $doctor->schedules()->delete();
 
             if (!empty($validated['schedules'])) {
                 foreach ($validated['schedules'] as $sch) {
-                    if (!empty($sch['enabled']) || !empty($sch['is_active'])) {
+                    $enabled = !empty($sch['enabled']) || !empty($sch['is_active']);
+                    $startTime = trim($sch['start_time'] ?? '');
+                    $endTime = trim($sch['end_time'] ?? '');
+
+                    if ($enabled && $startTime && $endTime && $startTime < $endTime) {
                         DoctorSchedule::create([
                             'doctor_id' => $doctor->id,
                             'day_of_week' => (int) $sch['day_of_week'],
-                            'start_time' => $sch['start_time'] . (strlen($sch['start_time']) === 5 ? ':00' : ''),
-                            'end_time' => $sch['end_time'] . (strlen($sch['end_time']) === 5 ? ':00' : ''),
+                            'start_time' => strlen($startTime) === 5 ? "{$startTime}:00" : $startTime,
+                            'end_time' => strlen($endTime) === 5 ? "{$endTime}:00" : $endTime,
                             'slot_duration_minutes' => $sch['slot_duration_minutes'] ?? $doctor->default_slot_duration_minutes ?? 30,
                             'is_active' => true,
                         ]);
