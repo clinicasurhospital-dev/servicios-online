@@ -15,9 +15,6 @@
 /storage/logs/*
 !/storage/logs/.gitkeep
 /vendor
-.env
-.env.backup
-.env.production
 *.sqlite
 *.sqlite-journal
 *.log
@@ -31,3 +28,18 @@ NUL
 .DS_Store
 Thumbs.db
 
+# Permitir archivos .env y .htaccess
+!.env
+!.env.*
+!.htaccess
+!public/.htaccess
+
+# Archivos comprimidos restringidos
+*.zip
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.gz
+*.bz2
