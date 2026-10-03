@@ -117,6 +117,7 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
         
         // Builder AJAX endpoints
         Route::post('/versiones/{version}/secciones', [AdminClinicalTemplateController::class, 'storeSection'])->name('sections.store');
+        Route::put('/secciones/{section}', [AdminClinicalTemplateController::class, 'updateSection'])->name('sections.update');
         Route::delete('/secciones/{section}', [AdminClinicalTemplateController::class, 'destroySection'])->name('sections.destroy');
         Route::post('/versiones/{version}/reordenar-secciones', [AdminClinicalTemplateController::class, 'reorderSections'])->name('sections.reorder');
         Route::post('/secciones/{section}/campos', [AdminClinicalTemplateController::class, 'storeField'])->name('fields.store');

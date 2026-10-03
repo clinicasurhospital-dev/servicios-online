@@ -233,6 +233,38 @@ class AdminClinicalTemplateController extends Controller
     }
 
     /**
+     * Update Section in Version.
+     */
+    public function updateSection(Request $request, ClinicalTemplateSection $section): JsonResponse
+    {
+        if ($section->version->isPublished()) {
+            return response()->json(['success' => false, 'message' => 'No se puede modificar una versión publicada.'], 422);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'is_required' => ['boolean'],
+            'is_repeatable' => ['boolean'],
+            'visibility' => ['nullable', 'string'],
+        ]);
+
+        $section->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_required' => $validated['is_required'] ?? false,
+            'is_repeatable' => $validated['is_repeatable'] ?? false,
+            'visibility' => $validated['visibility'] ?? 'ALL',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sección actualizada exitosamente.',
+            'section' => $section->fresh('fields.options'),
+        ]);
+    }
+
+    /**
      * Delete Section.
      */
     public function destroySection(ClinicalTemplateSection $section): JsonResponse
