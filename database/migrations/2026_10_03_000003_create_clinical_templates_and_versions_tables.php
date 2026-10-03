@@ -8,6 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('clinical_field_options');
+        Schema::dropIfExists('clinical_template_fields');
+        Schema::dropIfExists('clinical_template_sections');
+        Schema::dropIfExists('clinical_template_versions');
+        Schema::dropIfExists('clinical_templates');
+        Schema::enableForeignKeyConstraints();
+
         // 1. Clinical Templates (Header)
         Schema::create('clinical_templates', function (Blueprint $table) {
             $table->id();
@@ -32,8 +40,8 @@ return new class extends Migration
             $table->foreignId('published_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->unique(['clinical_template_id', 'version_number']);
-            $table->index(['clinical_template_id', 'status']);
+            $table->unique(['clinical_template_id', 'version_number'], 'ctv_template_ver_unique');
+            $table->index(['clinical_template_id', 'status'], 'ctv_template_status_idx');
         });
 
         // 3. Clinical Template Sections

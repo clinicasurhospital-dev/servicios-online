@@ -8,6 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('clinical_addendums');
+        Schema::dropIfExists('clinical_diagnoses');
+        Schema::dropIfExists('clinical_encounter_values');
+        Schema::dropIfExists('clinical_encounters');
+        Schema::enableForeignKeyConstraints();
+
         // 1. Clinical Encounters (Medical Attention Instance)
         Schema::create('clinical_encounters', function (Blueprint $table) {
             $table->id();

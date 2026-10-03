@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('clinical_audit_logs');
+        Schema::dropIfExists('clinical_documents');
+        Schema::enableForeignKeyConstraints();
+
         // 1. Clinical Documents (Private Encrypted/Protected Storage)
         Schema::create('clinical_documents', function (Blueprint $table) {
             $table->id();
