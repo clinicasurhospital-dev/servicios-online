@@ -18,33 +18,55 @@
         </a>
     </div>
 
-    <!-- ALERTA AUTOMÁTICA: CITA PENDIENTE DE PAGO -->
+    <!-- ALERTA AUTOMÁTICA: CITA PENDIENTE DE PAGO O TRANSFERENCIA EN VALIDACIÓN -->
     @if(isset($pendingPaymentAppointment) && $pendingPaymentAppointment)
-        <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/75 border-l-4 border-l-amber-500 border-y border-r border-amber-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-scaleUp">
+        @php
+            $transferInValidation = $pendingPaymentAppointment->payments->first()?->bankTransfer?->isPending();
+        @endphp
+        <div class="p-4 sm:p-5 rounded-2xl {{ $transferInValidation ? 'bg-blue-50/80 border-l-4 border-l-blue-600 border-y border-r border-blue-200/80' : 'bg-amber-50/75 border-l-4 border-l-amber-500 border-y border-r border-amber-200/80' }} shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-scaleUp">
             <div class="flex items-start space-x-3.5">
-                <div class="w-10 h-10 rounded-xl bg-amber-100/90 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <div class="w-10 h-10 rounded-xl {{ $transferInValidation ? 'bg-blue-100 border border-blue-200 text-blue-700' : 'bg-amber-100/90 border border-amber-200/80 text-amber-700' }} flex items-center justify-center shrink-0 mt-0.5">
+                    @if($transferInValidation)
+                        <span class="text-lg">🏦</span>
+                    @else
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    @endif
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center space-x-2">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200/70 text-amber-900 border border-amber-300/60">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5 animate-pulse"></span>
-                            Pago Pendiente
-                        </span>
+                        @if($transferInValidation)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300/60">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span>
+                                Transferencia en Validación
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200/70 text-amber-900 border border-amber-300/60">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5 animate-pulse"></span>
+                                Pago Pendiente
+                            </span>
+                        @endif
                         <span class="text-[11px] text-slate-400 font-medium font-mono">#{{ $pendingPaymentAppointment->code }}</span>
                     </div>
                     <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                        Tienes una cita médica pendiente de pago con {{ $pendingPaymentAppointment->doctor?->user?->name ?? 'el especialista' }}
+                        @if($transferInValidation)
+                            Comprobante de transferencia en revisión para tu cita con {{ $pendingPaymentAppointment->doctor?->user?->name ?? 'el especialista' }}
+                        @else
+                            Tienes una cita médica pendiente de pago con {{ $pendingPaymentAppointment->doctor?->user?->name ?? 'el especialista' }}
+                        @endif
                     </h3>
                     <p class="text-xs text-slate-600">
-                        Turno para el {{ $pendingPaymentAppointment->start_at->translatedFormat('d \d\e F \a \l\a\s H:i') }} &bull; {{ $pendingPaymentAppointment->specialty?->name }} &bull; Total: <strong>${{ number_format($pendingPaymentAppointment->total_amount, 2) }} USD</strong>. Completa tu pago para formalizar y confirmar la reserva.
+                        @if($transferInValidation)
+                            Turno para el {{ $pendingPaymentAppointment->start_at->translatedFormat('d \d\e F \a \l\a\s H:i') }} &bull; {{ $pendingPaymentAppointment->specialty?->name }}. Recepción está validando tu comprobante de pago.
+                        @else
+                            Turno para el {{ $pendingPaymentAppointment->start_at->translatedFormat('d \d\e F \a \l\a\s H:i') }} &bull; {{ $pendingPaymentAppointment->specialty?->name }} &bull; Total: <strong>${{ number_format($pendingPaymentAppointment->total_amount, 2) }} USD</strong>. Completa tu pago para formalizar y confirmar la reserva.
+                        @endif
                     </p>
                 </div>
             </div>
 
             <div class="shrink-0">
-                <a href="{{ route('patient.appointment.show', $pendingPaymentAppointment) }}" class="inline-flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-xs hover:shadow transition-all">
-                    <span>💳 Pagar y Confirmar</span>
+                <a href="{{ route('patient.appointment.show', $pendingPaymentAppointment) }}" class="inline-flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2.5 rounded-xl {{ $transferInValidation ? 'bg-blue-600 hover:bg-blue-700' : 'bg-amber-500 hover:bg-amber-600' }} text-white font-bold text-xs shadow-xs hover:shadow transition-all">
+                    <span>{{ $transferInValidation ? '🏦 Ver Estado' : '💳 Pagar y Confirmar' }}</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
             </div>

@@ -53,6 +53,11 @@ class BankTransfer extends Model
         return $this->validation_status === BankTransferStatus::PENDING_VALIDATION;
     }
 
+    public function isPendingValidation(): bool
+    {
+        return $this->validation_status === BankTransferStatus::PENDING_VALIDATION;
+    }
+
     public function isApproved(): bool
     {
         return $this->validation_status === BankTransferStatus::APPROVED;

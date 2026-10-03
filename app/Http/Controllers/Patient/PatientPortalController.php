@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -279,14 +280,83 @@ class PatientPortalController extends Controller
                 AuditLog::create([
                     'user_id' => Auth::id(),
                     'action' => 'APPOINTMENT_PAID_ONLINE',
-                    'description' => "El paciente pagó y confirmó la cita #{$appointment->code} mediante tarjeta",
+                    'auditable_type' => Appointment::class,
+                    'auditable_id' => (string) $appointment->id,
                     'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'created_at' => now(),
                 ]);
             });
 
             return back()->with('success', '¡Pago procesado exitosamente! Tu cita médica #' . $appointment->code . ' ha sido confirmada.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al procesar el pago: ' . $e->getMessage());
+        }
+    }
+
+    public function payWithLink(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $this->authorize('view', $appointment);
+
+        if (!in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT'])) {
+            return back()->with('error', 'Esta cita ya ha sido confirmada, atendida o cancelada.');
+        }
+
+        $validated = $request->validate([
+            'payment_reference' => ['nullable', 'string', 'max:100'],
+            'gateway_provider' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($appointment, $validated) {
+                $payment = $appointment->payments()->first();
+                if (!$payment) {
+                    $payment = Payment::create([
+                        'appointment_id' => $appointment->id,
+                        'payment_method' => PaymentMethod::PAYMENT_LINK,
+                        'amount' => $appointment->price,
+                        'currency' => 'USD',
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                } else {
+                    $payment->update([
+                        'payment_method' => PaymentMethod::PAYMENT_LINK,
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                }
+
+                $oldStatus = $appointment->status->value;
+                $appointment->update([
+                    'status' => AppointmentStatus::CONFIRMED,
+                ]);
+
+                $ref = !empty($validated['payment_reference']) ? $validated['payment_reference'] : ('LNK-' . strtoupper(Str::random(8)));
+                $provider = !empty($validated['gateway_provider']) ? $validated['gateway_provider'] : 'Enlace de Pago Digital';
+
+                AppointmentStatusHistory::create([
+                    'appointment_id' => $appointment->id,
+                    'previous_status' => $oldStatus,
+                    'new_status' => AppointmentStatus::CONFIRMED->value,
+                    'changed_by_user_id' => Auth::id(),
+                    'reason' => "Pago validado automáticamente mediante {$provider} (Ref: {$ref})",
+                ]);
+
+                AuditLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'APPOINTMENT_PAID_LINK',
+                    'auditable_type' => Appointment::class,
+                    'auditable_id' => (string) $appointment->id,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'created_at' => now(),
+                ]);
+            });
+
+            return back()->with('success', '¡Pago mediante enlace validado exitosamente! Tu cita médica #' . $appointment->code . ' ha sido confirmada.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al validar el pago por enlace: ' . $e->getMessage());
         }
     }
 

@@ -108,9 +108,18 @@
 
                         <div class="flex flex-wrap items-center space-x-2">
                             @if(in_array($app->status->value, ['PENDING', 'PENDING_PAYMENT']))
-                                <a href="{{ route('patient.appointment.show', $app) }}#pago" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5">
-                                    <span>💳 Pagar y Confirmar</span>
-                                </a>
+                                @php
+                                    $appPendingTransfer = $app->payments->first()?->bankTransfer?->isPending();
+                                @endphp
+                                @if($appPendingTransfer)
+                                    <a href="{{ route('patient.appointment.show', $app) }}#pago" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5">
+                                        <span>🏦 Transferencia en Validación</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('patient.appointment.show', $app) }}#pago" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5">
+                                        <span>💳 Pagar y Confirmar</span>
+                                    </a>
+                                @endif
                             @endif
 
                             @if($app->status->value === 'COMPLETED')

@@ -65,13 +65,15 @@ class PatientAppointmentDetailAndActionsTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->specialty = Specialty::create([
-            'name' => 'Cardiología',
-            'slug' => 'cardiologia',
-            'base_price' => 45.00,
-            'default_duration_minutes' => 30,
-            'is_active' => true,
-        ]);
+        $this->specialty = Specialty::firstOrCreate(
+            ['slug' => 'cardiologia-test-detail'],
+            [
+                'name' => 'Cardiología Test',
+                'base_price' => 45.00,
+                'default_duration_minutes' => 30,
+                'is_active' => true,
+            ]
+        );
 
         $this->doctor->specialties()->attach($this->specialty->id);
 
@@ -160,5 +162,103 @@ class PatientAppointmentDetailAndActionsTest extends TestCase
         $this->appointment->refresh();
         $this->assertEquals(AppointmentStatus::CANCELLED, $this->appointment->status);
         $this->assertEquals('No podré asistir a la cita', $this->appointment->cancelled_reason);
+    }
+
+    public function test_patient_can_pay_with_card_and_confirms_automatically(): void
+    {
+        $pendingAppointment = Appointment::create([
+            'code' => 'SUR-PAC-PAY-CARD',
+            'patient_id' => $this->patient->id,
+            'doctor_id' => $this->doctor->id,
+            'specialty_id' => $this->specialty->id,
+            'start_at' => now()->addDays(2)->setTime(14, 0),
+            'end_at' => now()->addDays(2)->setTime(14, 30),
+            'status' => AppointmentStatus::PENDING_PAYMENT,
+            'price' => 45.00,
+        ]);
+
+        $response = $this->actingAs($this->user)->post(route('patient.appointment.pay_card', $pendingAppointment), [
+            'card_holder' => 'ANA SOFIA MENDOZA',
+            'card_number' => '4532 8900 1234 5678',
+            'card_expiry' => '12/28',
+            'card_cvv' => '842',
+        ]);
+
+        $response->assertRedirect();
+        $pendingAppointment->refresh();
+        $this->assertEquals(AppointmentStatus::CONFIRMED, $pendingAppointment->status);
+        $this->assertDatabaseHas('payments', [
+            'appointment_id' => $pendingAppointment->id,
+            'payment_method' => 'CREDIT_CARD',
+            'status' => 'PAID',
+        ]);
+    }
+
+    public function test_patient_can_pay_with_payment_link_and_confirms_automatically(): void
+    {
+        $pendingAppointment = Appointment::create([
+            'code' => 'SUR-PAC-PAY-LINK',
+            'patient_id' => $this->patient->id,
+            'doctor_id' => $this->doctor->id,
+            'specialty_id' => $this->specialty->id,
+            'start_at' => now()->addDays(2)->setTime(15, 0),
+            'end_at' => now()->addDays(2)->setTime(15, 30),
+            'status' => AppointmentStatus::PENDING_PAYMENT,
+            'price' => 45.00,
+        ]);
+
+        $response = $this->actingAs($this->user)->post(route('patient.appointment.pay_link', $pendingAppointment), [
+            'gateway_provider' => 'Wompi / Bancolombia',
+            'payment_reference' => 'WOMPI-998877',
+        ]);
+
+        $response->assertRedirect();
+        $pendingAppointment->refresh();
+        $this->assertEquals(AppointmentStatus::CONFIRMED, $pendingAppointment->status);
+        $this->assertDatabaseHas('payments', [
+            'appointment_id' => $pendingAppointment->id,
+            'payment_method' => 'PAYMENT_LINK',
+            'status' => 'PAID',
+        ]);
+    }
+
+    public function test_patient_submitting_bank_transfer_stays_in_pending_validation(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('receipts');
+
+        $pendingAppointment = Appointment::create([
+            'code' => 'SUR-PAC-PAY-TRANS',
+            'patient_id' => $this->patient->id,
+            'doctor_id' => $this->doctor->id,
+            'specialty_id' => $this->specialty->id,
+            'start_at' => now()->addDays(2)->setTime(16, 0),
+            'end_at' => now()->addDays(2)->setTime(16, 30),
+            'status' => AppointmentStatus::PENDING_PAYMENT,
+            'price' => 45.00,
+        ]);
+
+        $receipt = \Illuminate\Http\UploadedFile::fake()->create('comprobante.pdf', 500, 'application/pdf');
+
+        $response = $this->actingAs($this->user)->post(route('patient.transfer.submit', $pendingAppointment), [
+            'bank_name' => 'Banco Pichincha',
+            'reference_number' => 'REF-98765432',
+            'transfer_date' => now()->format('Y-m-d'),
+            'receipt' => $receipt,
+            'notes' => 'Pago realizado desde banca web',
+        ]);
+
+        $response->assertRedirect();
+        $pendingAppointment->refresh();
+        $this->assertEquals(AppointmentStatus::PENDING_PAYMENT, $pendingAppointment->status);
+        $this->assertDatabaseHas('bank_transfers', [
+            'reference_number' => 'REF-98765432',
+            'validation_status' => 'PENDING_VALIDATION',
+        ]);
+
+        // When viewing detail, patient sees transfer validation notice
+        $detailResponse = $this->actingAs($this->user)->get(route('patient.appointment.show', $pendingAppointment));
+        $detailResponse->assertStatus(200);
+        $detailResponse->assertSee('Transferencia Bancaria en Validación');
+        $detailResponse->assertSee('REF-98765432');
     }
 }

@@ -9,6 +9,8 @@
     rescheduleModal: false,
     reviewModal: false,
     paymentTab: 'card',
+    paymentLinkRef: '',
+    paymentProvider: 'Enlace Oficial SurHospital',
     cardHolder: '{{ strtoupper(auth()->user()->name) }}',
     cardNumber: '',
     cardExpiry: '',
@@ -18,6 +20,9 @@
         this.cardNumber = '4532 8900 1234 5678';
         this.cardExpiry = '12/28';
         this.cardCvv = '842';
+    },
+    fillDemoLink() {
+        this.paymentLinkRef = 'SUR-' + Math.floor(100000 + Math.random() * 900000);
     },
     patientRating: 5,
     patientHoverRating: 0,
@@ -328,11 +333,71 @@
         <!-- PAGO Y CONFIRMACIÓN DE CITA -->
         @php
             $latestPayment = $appointment->payments->first();
-            $isPendingPayment = in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT']) || ($latestPayment && $latestPayment->status?->value === 'PENDING') || ($latestPayment?->bankTransfer && $latestPayment->bankTransfer->isRejected());
+            $hasPendingTransfer = $latestPayment?->bankTransfer && $latestPayment->bankTransfer->isPending();
+            $isRejectedTransfer = $latestPayment?->bankTransfer && $latestPayment->bankTransfer->isRejected();
+            $isPaid = $latestPayment && $latestPayment->status?->value === 'PAID';
+            $isPendingPayment = (in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT']) || ($latestPayment && $latestPayment->status?->value === 'PENDING')) && !$hasPendingTransfer;
         @endphp
 
-        <div id="pago" class="pt-4 border-t border-slate-100">
-            @if($isPendingPayment)
+        <div id="pago" class="pt-4 border-t border-slate-100 space-y-4">
+            {{-- CASO 1: TRANSFERENCIA EN REVISIÓN / VALIDACIÓN --}}
+            @if($hasPendingTransfer)
+                <div class="p-6 sm:p-7 rounded-3xl bg-blue-50/80 border-2 border-blue-200 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-blue-200/80">
+                        <div class="flex items-start space-x-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0">
+                                🏦
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5 animate-pulse"></span>
+                                    Transferencia Bancaria en Validación
+                                </span>
+                                <h3 class="text-base sm:text-lg font-black text-slate-900 mt-1">Comprobante de Transferencia en Revisión</h3>
+                                <p class="text-xs text-slate-600">Tu comprobante fue registrado exitosamente y está siendo validado por nuestro equipo de recepción.</p>
+                            </div>
+                        </div>
+
+                        <div class="text-left sm:text-right bg-white px-4 py-2.5 rounded-2xl border border-blue-200 shadow-2xs">
+                            <span class="text-[11px] text-slate-400 font-semibold block">Total Registrado</span>
+                            <span class="text-xl font-black text-brand-primary">${{ number_format($latestPayment->bankTransfer->amount ?: $appointment->total_amount, 2) }} USD</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-white border border-blue-100 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Banco Emisor</span>
+                            <span class="font-bold text-slate-800">{{ $latestPayment->bankTransfer->bank_name }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Nº Referencia / Depósito</span>
+                            <span class="font-mono font-bold text-slate-800">{{ $latestPayment->bankTransfer->reference_number }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Fecha Reportada</span>
+                            <span class="font-bold text-slate-800">{{ $latestPayment->bankTransfer->transfer_date?->format('d/m/Y') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-blue-100/60 text-xs text-blue-900 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>En cuanto el equipo de recepción confirme la acreditación bancaria, tu cita médica cambiará a estado <strong>Confirmada</strong> automáticamente.</span>
+                    </div>
+                </div>
+
+            {{-- CASO 2: PAGO PENDIENTE (O TRANSFERENCIA RECHAZADA) -> MOSTRAR 3 MÉTODOS --}}
+            @elseif($isPendingPayment || $isRejectedTransfer)
+                @if($isRejectedTransfer)
+                    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-900 flex items-start space-x-3">
+                        <span class="text-base">⚠️</span>
+                        <div>
+                            <span class="font-bold block">Tu comprobante anterior no pudo ser validado por recepción:</span>
+                            <p class="mt-0.5 text-rose-700">{{ $latestPayment->bankTransfer->rejection_reason ?? 'Comprobante ilegible o referencia no encontrada en la cuenta bancaria.' }}</p>
+                            <p class="mt-1 font-semibold text-rose-900">Por favor vuelve a subir un comprobante válido o utiliza tarjeta/enlace de pago para confirmación inmediata.</p>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-slate-50 border-2 border-amber-200/90 shadow-sm space-y-5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/80">
                         <div class="flex items-start space-x-3.5">
@@ -345,7 +410,7 @@
                                     Paso Final para tu Consulta
                                 </span>
                                 <h3 class="text-base sm:text-lg font-black text-slate-900 mt-1">Pagar y Confirmar tu Cita Médica</h3>
-                                <p class="text-xs text-slate-600">Completa tu pago para asegurar y formalizar tu turno médico.</p>
+                                <p class="text-xs text-slate-600">Selecciona tu método de pago preferido para formalizar tu turno médico.</p>
                             </div>
                         </div>
 
@@ -355,24 +420,31 @@
                         </div>
                     </div>
 
-                    <!-- Pestañas de Pago -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" @click="paymentTab = 'card'" class="p-3.5 rounded-2xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer" :class="paymentTab === 'card' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
+                    <!-- 3 Pestañas de Pago -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <button type="button" @click="paymentTab = 'card'" class="p-3 rounded-2xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center" :class="paymentTab === 'card' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
                             <span>💳</span>
-                            <span>Tarjeta Crédito / Débito</span>
+                            <span>Tarjeta Débito / Crédito</span>
                         </button>
-                        <button type="button" @click="paymentTab = 'transfer'" class="p-3.5 rounded-2xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer" :class="paymentTab === 'transfer' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
+                        <button type="button" @click="paymentTab = 'link'" class="p-3 rounded-2xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center" :class="paymentTab === 'link' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
+                            <span>🔗</span>
+                            <span>Enlace de Pago</span>
+                        </button>
+                        <button type="button" @click="paymentTab = 'transfer'" class="p-3 rounded-2xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center" :class="paymentTab === 'transfer' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
                             <span>🏦</span>
                             <span>Transferencia Bancaria</span>
                         </button>
                     </div>
 
-                    <!-- Opción 1: Tarjeta Instantánea -->
+                    <!-- Opción 1: Tarjeta Instantánea (Validación Automática) -->
                     <div x-show="paymentTab === 'card'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4">
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-800">Pasarela Segura SSL — Confirmación Inmediata</span>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Pago con Tarjeta de Débito / Crédito</span>
+                                <span class="text-[10px] text-emerald-600 font-semibold">⚡ Validación y confirmación automática inmediata</span>
+                            </div>
                             <button type="button" @click="fillDemoCard()" class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
-                                ⚡ Rellenar Datos Demo
+                                ⚡ Rellenar Demo
                             </button>
                         </div>
 
@@ -400,7 +472,7 @@
                             <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
                                 <span class="text-[11px] text-slate-500 flex items-center gap-1">
                                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                    <span>Transacción segura y encriptada</span>
+                                    <span>Encriptación y seguridad SSL 256-bit</span>
                                 </span>
                                 <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
                                     <span>Pagar ${{ number_format($appointment->total_amount, 2) }} y Confirmar Cita</span>
@@ -410,8 +482,68 @@
                         </form>
                     </div>
 
-                    <!-- Opción 2: Transferencia Bancaria -->
+                    <!-- Opción 2: Enlace de Pago Digital (Validación Automática) -->
+                    <div x-show="paymentTab === 'link'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4" style="display: none;">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Enlace de Pago Digital / Pasarela Externa</span>
+                                <span class="text-[10px] text-emerald-600 font-semibold">⚡ Validación y confirmación automática inmediata</span>
+                            </div>
+                            <button type="button" @click="fillDemoLink()" class="text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                                ⚡ Generar Ref Demo
+                            </button>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 space-y-1">
+                            <div class="flex items-center space-x-2 font-bold text-indigo-950">
+                                <span>🔗 Enlace de Pago Directo:</span>
+                            </div>
+                            <p class="text-[11px] text-indigo-800">
+                                Si recibiste un enlace de pago por WhatsApp/Correo o pagaste mediante botón digital (Wompi, Bold, PSE, Deuna o Link institucional), confirma aquí tu pago.
+                            </p>
+                        </div>
+
+                        <form action="{{ route('patient.appointment.pay_link', $appointment) }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Plataforma / Canal de Pago *</label>
+                                    <select name="gateway_provider" x-model="paymentProvider" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white font-medium">
+                                        <option value="Enlace Oficial SurHospital">Enlace Oficial SurHospital</option>
+                                        <option value="Wompi / Bancolombia">Wompi / Bancolombia</option>
+                                        <option value="Bold / PSE">Bold / PSE</option>
+                                        <option value="Deuna / App Móvil">Deuna / App Móvil</option>
+                                        <option value="Link de Pago WhatsApp">Link de Pago WhatsApp</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Referencia / Código de Transacción (opcional)</label>
+                                    <input type="text" name="payment_reference" x-model="paymentLinkRef" class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-mono uppercase focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="Ej: WOMPI-849201 o Deuna-738" />
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <span class="text-[11px] text-slate-500 flex items-center gap-1">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Se valida y confirma tu cita al instante</span>
+                                </span>
+                                <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>Validar Pago por Enlace (${{ number_format($appointment->total_amount, 2) }}) y Confirmar</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Opción 3: Transferencia Bancaria (Pendiente de Validación) -->
                     <div x-show="paymentTab === 'transfer'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4" style="display: none;">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 block">Depósito o Transferencia Bancaria</span>
+                                <span class="text-[10px] text-amber-700 font-semibold">⏳ Queda en estado pendiente de validación por el equipo de recepción</span>
+                            </div>
+                        </div>
+
                         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
                             <span class="font-bold text-slate-900 block">Datos Bancarios para Depósito / Transferencia:</span>
                             <p><strong>Banco:</strong> Banco Pichincha &bull; <strong>Cuenta Corriente:</strong> #2100849201</p>
@@ -452,6 +584,8 @@
                         </form>
                     </div>
                 </div>
+
+            {{-- CASO 3: CITA YA PAGADA / CONFIRMADA --}}
             @else
                 <h3 class="text-sm font-bold text-slate-900 mb-3">Información del Pago</h3>
                 @if($latestPayment)
@@ -468,6 +602,9 @@
                                 <p class="text-xs text-slate-500 mt-1">Ref Bancaria: {{ $latestPayment->bankTransfer->reference_number }} ({{ $latestPayment->bankTransfer->bank_name }})</p>
                             @endif
                         </div>
+                        <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                            ✓ Pago Registrado (${{ number_format($latestPayment->amount, 2) }} USD)
+                        </span>
                     </div>
                 @endif
             @endif
