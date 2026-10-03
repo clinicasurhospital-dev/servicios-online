@@ -45,13 +45,21 @@ class PatientPortalController extends Controller
             ->orderBy('start_at', 'asc')
             ->first();
 
+        // Buscar si tiene alguna cita atendida pendiente de valoración
+        $pendingReviewAppointment = Appointment::where('patient_id', $patient->id)
+            ->where('status', 'COMPLETED')
+            ->whereDoesntHave('review', fn($q) => $q->whereNotNull('submitted_at'))
+            ->with(['doctor.user', 'specialty', 'procedure'])
+            ->orderBy('start_at', 'desc')
+            ->first();
+
         $recentAppointments = Appointment::where('patient_id', $patient->id)
-            ->with(['doctor.user', 'specialty', 'procedure', 'payments'])
+            ->with(['doctor.user', 'specialty', 'procedure', 'payments', 'review'])
             ->orderBy('start_at', 'desc')
             ->take(5)
             ->get();
 
-        return view('patient.dashboard', compact('patient', 'nextAppointment', 'recentAppointments'));
+        return view('patient.dashboard', compact('patient', 'nextAppointment', 'recentAppointments', 'pendingReviewAppointment'));
     }
 
     public function appointments(): View
@@ -61,12 +69,19 @@ class PatientPortalController extends Controller
             abort(403, 'Perfil de paciente no asociado.');
         }
 
+        $pendingReviewAppointment = Appointment::where('patient_id', $patient->id)
+            ->where('status', 'COMPLETED')
+            ->whereDoesntHave('review', fn($q) => $q->whereNotNull('submitted_at'))
+            ->with(['doctor.user', 'specialty', 'procedure'])
+            ->orderBy('start_at', 'desc')
+            ->first();
+
         $appointments = Appointment::where('patient_id', $patient->id)
-            ->with(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories'])
+            ->with(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories', 'review'])
             ->orderBy('start_at', 'desc')
             ->paginate(10);
 
-        return view('patient.appointments', compact('patient', 'appointments'));
+        return view('patient.appointments', compact('patient', 'appointments', 'pendingReviewAppointment'));
     }
 
     public function showAppointment(Appointment $appointment): View

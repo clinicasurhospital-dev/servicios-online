@@ -27,7 +27,7 @@ class AdminAppointmentController extends Controller
         $date = $request->input('date');
         $search = $request->input('search');
 
-        $query = Appointment::with(['patient', 'doctor.user', 'specialty', 'procedure', 'payments']);
+        $query = Appointment::with(['patient', 'doctor.user', 'specialty', 'procedure', 'payments', 'review']);
 
         if ($user->isDoctor() && $user->doctor) {
             $query->where('doctor_id', $user->doctor->id);
@@ -88,6 +88,10 @@ class AdminAppointmentController extends Controller
             'cancelled_at' => $newStatus === AppointmentStatus::CANCELLED ? now() : null,
             'cancelled_by' => $newStatus === AppointmentStatus::CANCELLED ? Auth::id() : null,
         ]);
+
+        if ($newStatus === AppointmentStatus::COMPLETED) {
+            app(\App\Domain\Doctors\Services\DoctorReviewService::class)->getOrCreateReviewForAppointment($appointment);
+        }
 
         AppointmentStatusHistory::create([
             'appointment_id' => $appointment->id,
@@ -178,6 +182,10 @@ class AdminAppointmentController extends Controller
 
         if (!empty($updates)) {
             $appointment->update($updates);
+
+            if ($appointment->fresh()->status === AppointmentStatus::COMPLETED) {
+                app(\App\Domain\Doctors\Services\DoctorReviewService::class)->getOrCreateReviewForAppointment($appointment);
+            }
 
             AuditLog::create([
                 'user_id' => Auth::id(),

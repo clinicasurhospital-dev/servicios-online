@@ -16,6 +16,37 @@
         </a>
     </div>
 
+    <!-- ALERTA AUTOMÁTICA: CONSULTA ATENDIDA PENDIENTE DE VALORACIÓN -->
+    @if(isset($pendingReviewAppointment) && $pendingReviewAppointment)
+        <div class="p-6 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow-xl shadow-amber-500/25 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-amber-300/40 animate-scaleUp">
+            <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl"></div>
+            
+            <div class="flex items-start space-x-4 relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md text-white flex items-center justify-center font-black text-xl shadow-inner shrink-0">
+                    ⭐
+                </div>
+                <div class="space-y-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/25 text-white inline-block">
+                        Tu opinión es importante
+                    </span>
+                    <h3 class="text-base font-black text-white leading-snug">
+                        ¿Cómo fue tu consulta con el {{ $pendingReviewAppointment->doctor?->user?->name }}?
+                    </h3>
+                    <p class="text-xs text-amber-100">
+                        Atención del {{ $pendingReviewAppointment->start_at->translatedFormat('d \d\e F') }} &bull; {{ $pendingReviewAppointment->specialty?->name }} (#{{ $pendingReviewAppointment->code }}). Déjanos tus sugerencias para seguir mejorando.
+                    </p>
+                </div>
+            </div>
+
+            <div class="relative z-10 shrink-0">
+                <a href="{{ route('patient.appointment.show', $pendingReviewAppointment) }}" class="inline-flex items-center justify-center space-x-2 w-full sm:w-auto px-5 py-3 rounded-2xl bg-white text-amber-800 hover:bg-amber-50 font-black text-xs shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                    <span>⭐ Calificar Consulta & Sugerencias</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            </div>
+        </div>
+    @endif
+
     @if(session('success'))
         <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center space-x-2">
             <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -71,7 +102,20 @@
                     <div class="flex flex-wrap items-center justify-between lg:justify-end gap-2.5 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                         <x-status-badge :status="$app->status" />
 
-                        <div class="flex items-center space-x-2">
+                        <div class="flex flex-wrap items-center space-x-2">
+                            @if($app->status->value === 'COMPLETED')
+                                @if($app->review && $app->review->isCompleted())
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                        ★ {{ $app->review->rating }}/5 Calificada
+                                    </span>
+                                @else
+                                    <a href="{{ route('patient.appointment.show', $app) }}" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1">
+                                        <span>⭐</span>
+                                        <span>Calificar Consulta</span>
+                                    </a>
+                                @endif
+                            @endif
+
                             <a href="{{ route('patient.appointment.show', $app) }}" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center space-x-1">
                                 <span>Ver Detalles</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
@@ -86,13 +130,6 @@
                             @if($app->canBeCancelled())
                                 <a href="{{ route('patient.appointment.show', $app) }}" class="px-3.5 py-2 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold text-xs transition-colors">
                                     Cancelar
-                                </a>
-                            @endif
-
-                            @if($app->status->value === 'COMPLETED')
-                                <a href="{{ route('patient.appointment.show', $app) }}" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition-colors flex items-center gap-1">
-                                    <span>⭐</span>
-                                    <span>Calificar Atención</span>
                                 </a>
                             @endif
                         </div>

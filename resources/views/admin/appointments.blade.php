@@ -8,15 +8,89 @@
     clinicalModal: false,
     selectedApp: null,
     activeTab: 'status',
+    copiedLink: false,
+    emailSending: false,
+    emailSent: false,
+    emailMessage: '',
     openManageModal(app) {
         this.selectedApp = app;
         this.activeTab = 'status';
+        this.resetReviewState();
         this.statusModal = true;
     },
     openClinicalModal(app) {
         this.selectedApp = app;
         this.activeTab = 'clinical';
+        this.resetReviewState();
         this.statusModal = true;
+    },
+    openReviewModal(app) {
+        this.selectedApp = app;
+        this.activeTab = 'review';
+        this.resetReviewState();
+        this.statusModal = true;
+    },
+    resetReviewState() {
+        this.copiedLink = false;
+        this.emailSending = false;
+        this.emailSent = false;
+        this.emailMessage = '';
+    },
+    getReviewUrl() {
+        if (this.selectedApp && this.selectedApp.review && this.selectedApp.review.token) {
+            return '{{ url('/valorar') }}/' + this.selectedApp.review.token;
+        }
+        return '';
+    },
+    getWhatsAppUrl() {
+        if (!this.selectedApp) return '#';
+        let phone = this.selectedApp.patient?.phone || '';
+        phone = phone.replace(/[^0-9]/g, '');
+        if (phone.startsWith('09') && phone.length === 10) {
+            phone = '593' + phone.substring(1);
+        }
+        const doctor = this.selectedApp.doctor?.user?.name || 'su médico';
+        const brand = '{{ config('branding.client_name', 'Clínica Sur Hospital') }}';
+        const link = this.getReviewUrl();
+        const text = `¡Hola! 👋 En *${brand}* nos interesa mucho conocer tu opinión sobre tu consulta con el *Dr(a). ${doctor}*.\n\n⭐ ¿Nos ayudas con tu valoración y sugerencias? Solo te tomará 1 minuto:\n👉 ${link}\n\n¡Muchas gracias por confiar en nosotros!`;
+        return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text);
+    },
+    copyReviewLink() {
+        const url = this.getReviewUrl();
+        if (!url) return;
+        navigator.clipboard.writeText(url);
+        this.copiedLink = true;
+        setTimeout(() => { this.copiedLink = false; }, 2500);
+    },
+    async sendEmailInvitation() {
+        if (!this.selectedApp) return;
+        this.emailSending = true;
+        this.emailSent = false;
+        this.emailMessage = '';
+        try {
+            const resp = await fetch('{{ url('/admin/citas') }}/' + this.selectedApp.id + '/enviar-invitacion-valoracion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ channel: 'EMAIL' })
+            });
+            const data = await resp.json();
+            this.emailSending = false;
+            this.emailSent = data.success;
+            this.emailMessage = data.message;
+            if (data.review_url && (!this.selectedApp.review || !this.selectedApp.review.token)) {
+                const token = data.review_url.split('/').pop();
+                if (!this.selectedApp.review) this.selectedApp.review = {};
+                this.selectedApp.review.token = token;
+            }
+        } catch(e) {
+            this.emailSending = false;
+            this.emailSent = false;
+            this.emailMessage = 'Error de red al intentar enviar el correo.';
+        }
     }
 }">
     <!-- Header with Search and Filter Form -->
@@ -155,18 +229,23 @@
                                 </td>
                             @endif
                             <td class="py-4 px-6">
-                                <x-status-badge :status="$app->status" />
+                                <div class="space-y-1">
+                                    <x-status-badge :status="$app->status" />
+                                    @if($app->review && $app->review->submitted_at)
+                                        <button type="button" @click="openReviewModal({{ $app->toJson() }})" class="flex items-center space-x-1 text-amber-600 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md font-bold text-[10px] transition-colors cursor-pointer" title="Ver valoración">
+                                            <span>⭐</span>
+                                            <span>{{ $app->review->rating }}/5</span>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td class="py-4 px-6 text-right">
                                 <div class="flex items-center justify-end space-x-2">
                                     @if($app->status->value === 'COMPLETED')
-                                        @php
-                                            $waUrl = app(\App\Domain\Doctors\Services\DoctorReviewService::class)->getWhatsAppShareUrl($app);
-                                        @endphp
-                                        <a href="{{ $waUrl }}" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold text-xs transition-colors flex items-center space-x-1" title="Enviar enlace de valoración por WhatsApp">
-                                            <span>📲</span>
-                                            <span>Valoración</span>
-                                        </a>
+                                        <button @click="openReviewModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Gestionar valoración y enlaces">
+                                            <span>⭐</span>
+                                            <span>{{ $app->review && $app->review->submitted_at ? 'Ver Opinión' : 'Valoración' }}</span>
+                                        </button>
                                     @endif
                                     <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
@@ -212,13 +291,17 @@
                     </div>
 
                     <!-- Modal Navigation Tabs -->
-                    <div class="flex p-1 bg-slate-100 rounded-2xl my-4 text-xs font-bold">
-                        <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 rounded-xl transition-all">
-                            Estado de la Cita
+                    <div class="flex p-1 bg-slate-100 rounded-2xl my-4 text-xs font-bold gap-1">
+                        <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all">
+                            Estado
                         </button>
-                        <button type="button" @click="activeTab = 'clinical'" :class="activeTab === 'clinical' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            <span>Historia Clínica / Procedimiento</span>
+                        <button type="button" @click="activeTab = 'clinical'" :class="activeTab === 'clinical' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Historia</span>
+                        </button>
+                        <button type="button" @click="activeTab = 'review'" :class="activeTab === 'review' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1">
+                            <span class="text-amber-500">⭐</span>
+                            <span>Valoración</span>
                         </button>
                     </div>
 
@@ -352,6 +435,134 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- TAB 3: VALORACIÓN & ENLACES (WHATSAPP / CORREO / LINK) -->
+                    <div x-show="activeTab === 'review'" class="space-y-4 text-xs">
+                        <!-- SI YA FUE VALORADA -->
+                        <template x-if="selectedApp.review && selectedApp.review.submitted_at">
+                            <div class="space-y-3">
+                                <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-1 text-amber-500 text-base">
+                                            <template x-for="i in 5" :key="i">
+                                                <span x-text="i <= selectedApp.review.rating ? '★' : '☆'"></span>
+                                            </template>
+                                            <span class="text-xs font-black text-slate-800 ml-1.5" x-text="selectedApp.review.rating + ' / 5 Estrellas'"></span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800" x-text="selectedApp.review.channel ? 'Vía ' + selectedApp.review.channel : 'Completada'"></span>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-amber-200/60 text-center text-[10px]">
+                                        <div class="bg-white/80 p-2 rounded-xl">
+                                            <span class="text-slate-400 block font-medium">Atención</span>
+                                            <span class="font-extrabold text-slate-800" x-text="(selectedApp.review.attention_rating || selectedApp.review.rating) + ' / 5 ⭐'"></span>
+                                        </div>
+                                        <div class="bg-white/80 p-2 rounded-xl">
+                                            <span class="text-slate-400 block font-medium">Puntualidad</span>
+                                            <span class="font-extrabold text-slate-800" x-text="(selectedApp.review.punctuality_rating || '-') + (selectedApp.review.punctuality_rating ? ' / 5 ⭐' : '')"></span>
+                                        </div>
+                                        <div class="bg-white/80 p-2 rounded-xl">
+                                            <span class="text-slate-400 block font-medium">Instalaciones</span>
+                                            <span class="font-extrabold text-slate-800" x-text="(selectedApp.review.facilities_rating || '-') + (selectedApp.review.facilities_rating ? ' / 5 ⭐' : '')"></span>
+                                        </div>
+                                    </div>
+
+                                    <template x-if="selectedApp.review.comment">
+                                        <div class="bg-white p-3 rounded-xl border border-amber-100 space-y-1">
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sugerencias & Comentarios del Paciente:</span>
+                                            <p class="text-slate-700 italic" x-text="'“' + selectedApp.review.comment + '”'"></p>
+                                        </div>
+                                    </template>
+
+                                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                                        <span x-text="selectedApp.review.is_anonymous ? '👤 Opinión anónima' : '👤 Paciente: ' + (selectedApp.patient?.first_name || '') + ' ' + (selectedApp.patient?.last_name || '')"></span>
+                                        <span x-text="'Enviada: ' + (selectedApp.review.submitted_at || '')"></span>
+                                    </div>
+                                </div>
+
+                                <div class="text-center pt-2">
+                                    <a :href="'{{ url('/admin/valoraciones') }}?search=' + selectedApp.code" class="text-brand-primary font-bold hover:underline text-xs inline-flex items-center space-x-1">
+                                        <span>Ver en Módulo de Valoraciones</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- SI AÚN NO HA SIDO VALORADA -->
+                        <template x-if="!selectedApp.review || !selectedApp.review.submitted_at">
+                            <div class="space-y-4">
+                                <template x-if="selectedApp.status !== 'COMPLETED'">
+                                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1.5">
+                                        <div class="flex items-center space-x-2 font-bold text-xs">
+                                            <span>ℹ️</span>
+                                            <span>Consulta pendiente de atención</span>
+                                        </div>
+                                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                                            Para habilitar las valoraciones y enviar invitaciones al paciente, primero marca el estado de la cita como <strong class="font-black">COMPLETED (Atendida)</strong> en la pestaña anterior.
+                                        </p>
+                                    </div>
+                                </template>
+
+                                <template x-if="selectedApp.status === 'COMPLETED'">
+                                    <div class="space-y-4">
+                                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-600 text-xs">
+                                            <p class="font-medium">
+                                                Esta cita médica ya fue <strong class="text-emerald-700 font-bold">Atendida</strong>. El paciente puede valorarla automáticamente desde su <strong class="text-slate-800">Portal de Pacientes</strong> o mediante el enlace directo.
+                                            </p>
+                                        </div>
+
+                                        <!-- Direct Link Box -->
+                                        <div class="space-y-1.5">
+                                            <label class="block font-bold text-slate-700">Enlace Directo para el Paciente:</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" readonly :value="getReviewUrl()" class="flex-1 rounded-xl bg-slate-50 border-slate-200 text-[11px] font-mono p-2.5 text-slate-600 focus:outline-none select-all" />
+                                                <button type="button" @click="copyReviewLink()" class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all shrink-0 cursor-pointer" :class="copiedLink ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'">
+                                                    <span x-text="copiedLink ? '✓ Copiado' : 'Copiar'"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Fast Share Buttons -->
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                            <!-- WhatsApp Share -->
+                                            <a :href="getWhatsAppUrl()" target="_blank" class="p-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center space-x-2 shadow-md shadow-emerald-600/20 transition-all text-xs">
+                                                <span class="text-base">📲</span>
+                                                <span>Enviar por WhatsApp</span>
+                                            </a>
+
+                                            <!-- Email Invitation -->
+                                            <button type="button" @click="sendEmailInvitation()" :disabled="emailSending" class="p-3.5 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold flex items-center justify-center space-x-2 shadow-md shadow-brand-primary/20 transition-all text-xs cursor-pointer disabled:opacity-50">
+                                                <template x-if="!emailSending">
+                                                    <span class="flex items-center space-x-1.5">
+                                                        <span>✉️</span>
+                                                        <span>Enviar por Correo</span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="emailSending">
+                                                    <span class="flex items-center space-x-1.5">
+                                                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                                        <span>Enviando...</span>
+                                                    </span>
+                                                </template>
+                                            </button>
+                                        </div>
+
+                                        <!-- Email Status Feedback Message -->
+                                        <template x-if="emailMessage">
+                                            <div class="p-3 rounded-xl text-xs font-semibold animate-fadeIn" :class="emailSent ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'" x-text="emailMessage"></div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <div class="flex justify-end pt-3 border-t border-slate-100">
+                            <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                                Cerrar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </template>

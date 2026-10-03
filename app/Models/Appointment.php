@@ -177,4 +177,17 @@ class Appointment extends Model
     {
         return $this->review()->whereNotNull('submitted_at')->exists();
     }
+
+    public function getReviewUrlAttribute(): ?string
+    {
+        if ($this->review && $this->review->token) {
+            return route('reviews.public.show', ['token' => $this->review->token]);
+        }
+        return null;
+    }
+
+    public function getWhatsappShareUrlAttribute(): string
+    {
+        return app(\App\Domain\Doctors\Services\DoctorReviewService::class)->getWhatsAppShareUrl($this);
+    }
 }
