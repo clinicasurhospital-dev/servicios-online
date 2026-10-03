@@ -110,6 +110,11 @@ class Appointment extends Model
         return $this->hasOne(Payment::class)->latestOfMany();
     }
 
+    public function clinicalEncounter(): HasOne
+    {
+        return $this->hasOne(ClinicalEncounter::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->whereIn('status', [

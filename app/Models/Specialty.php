@@ -60,4 +60,14 @@ class Specialty extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function clinicalTemplates(): HasMany
+    {
+        return $this->hasMany(ClinicalTemplate::class);
+    }
+
+    public function clinicalEncounters(): HasMany
+    {
+        return $this->hasMany(ClinicalEncounter::class);
+    }
 }

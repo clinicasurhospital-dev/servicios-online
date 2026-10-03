@@ -16,6 +16,7 @@ abstract class TestCase extends BaseTestCase
         \Illuminate\Support\Facades\Hash::setRounds(4);
         config(['cache.default' => 'array', 'session.driver' => 'array']);
         $this->withoutVite();
-        $this->seed(RoleAndPermissionSeeder::class);
+        $this->seed(\Database\Seeders\RoleAndPermissionSeeder::class);
+        $this->seed(\Database\Seeders\ClinicalModuleSeeder::class);
     }
 }

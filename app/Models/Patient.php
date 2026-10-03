@@ -52,6 +52,55 @@ class Patient extends Model
         return $this->hasMany(DoctorReview::class);
     }
 
+    public function clinicalRecord(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ClinicalRecord::class);
+    }
+
+    public function encounters(): HasMany
+    {
+        return $this->hasMany(ClinicalEncounter::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get active clinical alerts (critical allergies and alert-tagged conditions).
+     */
+    public function getClinicalAlertsAttribute(): \Illuminate\Support\Collection
+    {
+        $record = $this->clinicalRecord;
+        if (!$record) {
+            return collect();
+        }
+
+        $alerts = collect();
+
+        // Critical Allergies
+        $criticalAllergies = $record->allergies()->where('is_critical', true)->get();
+        foreach ($criticalAllergies as $allergy) {
+            $alerts->push([
+                'type' => 'ALLERGY',
+                'title' => "Alergia Crítica: {$allergy->substance}",
+                'severity' => $allergy->severity->label(),
+                'details' => $allergy->reaction ?: 'Reacción severa',
+                'badge' => 'bg-red-100 text-red-800 border-red-200',
+            ]);
+        }
+
+        // Active Alert Conditions
+        $alertConditions = $record->conditions()->where('is_clinical_alert', true)->where('status', 'ACTIVE')->get();
+        foreach ($alertConditions as $cond) {
+            $alerts->push([
+                'type' => 'CONDITION',
+                'title' => "Condición Relevante: {$cond->condition_name}",
+                'severity' => 'Activa',
+                'details' => $cond->notes ?: '',
+                'badge' => 'bg-amber-100 text-amber-800 border-amber-200',
+            ]);
+        }
+
+        return $alerts;
+    }
+
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";

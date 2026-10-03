@@ -241,22 +241,33 @@
                             </td>
                             <td class="py-4 px-6 text-right">
                                 <div class="flex items-center justify-end space-x-2">
-                                    @if($app->status->value === 'COMPLETED')
+                                    @if($app->clinicalEncounter)
+                                        <a href="{{ route('admin.clinical.encounter.show', $app->clinicalEncounter->id) }}" class="px-2.5 py-1.5 rounded-xl bg-brand-600 text-white hover:bg-brand-700 font-bold text-xs transition-colors flex items-center space-x-1 shadow-xs" title="Ver Consulta Médica">
+                                            <span>🩺</span>
+                                            <span>Ver Consulta</span>
+                                        </a>
+                                    @elseif($app->status->value !== 'CANCELLED')
+                                        <a href="{{ route('admin.appointments.start_encounter', $app->id) }}" class="px-2.5 py-1.5 rounded-xl bg-brand-600 text-white hover:bg-brand-700 font-bold text-xs transition-colors flex items-center space-x-1 shadow-xs" title="Iniciar Atención Médica">
+                                            <span>🩺</span>
+                                            <span>Atender</span>
+                                        </a>
+                                    @endif
+
+                                    @if($app->status->value === 'COMPLETED' || $app->status->value === 'ATTENDED')
                                         <button @click="openReviewModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Gestionar valoración y enlaces">
                                             <span>⭐</span>
                                             <span>{{ $app->review && $app->review->submitted_at ? 'Ver Opinión' : 'Valoración' }}</span>
                                         </button>
-                                        <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                            <span>Historia / Doc</span>
-                                        </button>
+                                        <a href="{{ route('admin.patients.clinical_record', $app->patient_id) }}" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1" title="Ver Historia Clínica del Paciente">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            <span>Historial</span>
+                                        </a>
                                     @elseif($app->status->value === 'CANCELLED')
                                         <span class="text-slate-400 italic text-[11px] px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg">Cita cancelada</span>
                                     @else
-                                        <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                            <span>Historia / Doc</span>
-                                        </button>
+                                        <a href="{{ route('admin.patients.clinical_record', $app->patient_id) }}" class="px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs transition-colors flex items-center space-x-1" title="Ver Historia Clínica del Paciente">
+                                            <span>Historial</span>
+                                        </a>
                                         <button @click="openManageModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
                                             Estado
                                         </button>

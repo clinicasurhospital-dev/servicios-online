@@ -3,6 +3,9 @@
 use App\Http\Controllers\Admin\AdminAgendaController;
 use App\Http\Controllers\Admin\AdminAppointmentController;
 use App\Http\Controllers\Admin\AdminAuditController;
+use App\Http\Controllers\Admin\AdminClinicalEncounterController;
+use App\Http\Controllers\Admin\AdminClinicalRecordController;
+use App\Http\Controllers\Admin\AdminClinicalTemplateController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDoctorController;
 use App\Http\Controllers\Admin\AdminPatientController;
@@ -81,6 +84,45 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
     // Módulo de Sugerencias y Valoraciones Médicas
     Route::get('/valoraciones', [AdminReviewController::class, 'index'])->name('reviews');
     Route::post('/valoraciones/{review}/toggle-visibilidad', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle_visibility');
+
+    // =========================================================================
+    // HISTORIA CLÍNICA ELECTRÓNICA (EHR) — NEXARIS LINK / SURHOSPITAL
+    // =========================================================================
+
+    // Atención Médica Asistencial (Doctor)
+    Route::get('/citas/{appointment}/iniciar-atencion', [AdminClinicalEncounterController::class, 'startFromAppointment'])->name('appointments.start_encounter');
+    Route::get('/historia-clinica/atencion/{encounter}', [AdminClinicalEncounterController::class, 'show'])->name('clinical.encounter.show');
+    Route::post('/historia-clinica/atencion/{encounter}/borrador', [AdminClinicalEncounterController::class, 'saveDraft'])->name('clinical.encounter.draft');
+    Route::post('/historia-clinica/atencion/{encounter}/finalizar', [AdminClinicalEncounterController::class, 'finalize'])->name('clinical.encounter.finalize');
+    Route::post('/historia-clinica/atencion/{encounter}/adenda', [AdminClinicalEncounterController::class, 'storeAddendum'])->name('clinical.encounter.addendum');
+
+    // Historia Clínica Longitudinal del Paciente
+    Route::get('/pacientes/{patient}/historia-clinica', [AdminClinicalRecordController::class, 'show'])->name('patients.clinical_record');
+    Route::post('/pacientes/{patient}/historia-clinica/alergia', [AdminClinicalRecordController::class, 'storeAllergy'])->name('patients.clinical_record.allergy');
+    Route::post('/pacientes/{patient}/historia-clinica/condicion', [AdminClinicalRecordController::class, 'storeCondition'])->name('patients.clinical_record.condition');
+    Route::post('/pacientes/{patient}/historia-clinica/medicamento', [AdminClinicalRecordController::class, 'storeMedication'])->name('patients.clinical_record.medication');
+    Route::post('/pacientes/{patient}/historia-clinica/antecedente', [AdminClinicalRecordController::class, 'storeBackground'])->name('patients.clinical_record.background');
+    Route::post('/pacientes/{patient}/historia-clinica/documento', [AdminClinicalRecordController::class, 'uploadDocument'])->name('patients.clinical_record.document_upload');
+    Route::get('/historia-clinica/documentos/{document}/descargar', [AdminClinicalRecordController::class, 'downloadDocument'])->name('clinical.documents.download');
+
+    // Configurador de Plantillas (Admin / Super Admin)
+    Route::middleware('role:SUPER_ADMIN|ADMIN')->prefix('configuracion/historia-clinica')->name('clinical.templates.')->group(function () {
+        Route::get('/plantillas', [AdminClinicalTemplateController::class, 'index'])->name('index');
+        Route::post('/plantillas', [AdminClinicalTemplateController::class, 'store'])->name('store');
+        Route::get('/plantillas/{template}/builder', [AdminClinicalTemplateController::class, 'builder'])->name('builder');
+        Route::post('/plantillas/{template}/duplicar', [AdminClinicalTemplateController::class, 'duplicate'])->name('duplicate');
+        Route::post('/plantillas/{template}/nueva-version', [AdminClinicalTemplateController::class, 'newVersion'])->name('new_version');
+        Route::post('/versiones/{version}/publicar', [AdminClinicalTemplateController::class, 'publishVersion'])->name('publish');
+        
+        // Builder AJAX endpoints
+        Route::post('/versiones/{version}/secciones', [AdminClinicalTemplateController::class, 'storeSection'])->name('sections.store');
+        Route::delete('/secciones/{section}', [AdminClinicalTemplateController::class, 'destroySection'])->name('sections.destroy');
+        Route::post('/versiones/{version}/reordenar-secciones', [AdminClinicalTemplateController::class, 'reorderSections'])->name('sections.reorder');
+        Route::post('/secciones/{section}/campos', [AdminClinicalTemplateController::class, 'storeField'])->name('fields.store');
+        Route::put('/campos/{field}', [AdminClinicalTemplateController::class, 'updateField'])->name('fields.update');
+        Route::delete('/campos/{field}', [AdminClinicalTemplateController::class, 'destroyField'])->name('fields.destroy');
+        Route::post('/secciones/{section}/reordenar-campos', [AdminClinicalTemplateController::class, 'reorderFields'])->name('fields.reorder');
+    });
 
     // Super Admin & Admin / Reception Only Management Routes
     Route::middleware('role:SUPER_ADMIN|ADMIN|RECEPTION')->group(function () {

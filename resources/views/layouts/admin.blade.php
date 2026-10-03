@@ -77,6 +77,7 @@
                             ['label' => 'Médicos & Turnos', 'route' => 'admin.doctors', 'icon' => 'user-md', 'can' => 'manage_doctors'],
                             ['label' => 'Especialidades', 'route' => 'admin.specialties', 'icon' => 'sparkles', 'can' => 'manage_specialties'],
                             ['label' => 'Validar Pagos', 'route' => 'admin.transfers', 'icon' => 'credit-card', 'can' => 'validate_bank_transfers'],
+                            ['label' => 'Plantillas Clínicas', 'route' => 'admin.clinical.templates.index', 'icon' => 'clipboard-document-list', 'can' => 'clinical_template_view'],
                             ['label' => 'Valoraciones & Sugerencias', 'route' => 'admin.reviews', 'icon' => 'star'],
                             ['label' => 'Auditoría & Logs', 'route' => 'admin.audit', 'icon' => 'shield-check', 'can' => 'view_audit_logs'],
                         ];

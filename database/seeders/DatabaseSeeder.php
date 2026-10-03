@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             SpecialtyAndProcedureSeeder::class,
             DoctorAndScheduleSeeder::class,
             PatientAndAppointmentSeeder::class,
+            ClinicalModuleSeeder::class,
         ]);
     }
 }
