@@ -80,25 +80,25 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         
         <!-- Card 1: Overall Average Rating -->
-        <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white rounded-3xl p-6 shadow-xl shadow-amber-500/20 relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-white/10 rounded-full blur-xl"></div>
+        <div class="bg-gradient-to-br from-brand-primary via-brand-primary-dark to-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-brand-primary/25 relative overflow-hidden flex flex-col justify-between border border-blue-400/20">
+            <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
             <div>
-                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-100">Índice General</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-blue-200">Índice General</span>
                 <div class="flex items-baseline space-x-2 mt-2">
                     <span class="text-4xl font-black">{{ number_format($stats['average_rating'], 1) }}</span>
-                    <span class="text-base font-bold text-amber-200">/ 5.0</span>
+                    <span class="text-base font-bold text-blue-200">/ 5.0</span>
                 </div>
-                <div class="flex items-center space-x-1 mt-1 text-amber-200 text-lg">
+                <div class="flex items-center space-x-1 mt-1 text-amber-400 text-lg drop-shadow-xs">
                     @for($i = 1; $i <= 5; $i++)
                         @if($i <= round($stats['average_rating']))
                             <span>★</span>
                         @else
-                            <span class="text-amber-300/40">★</span>
+                            <span class="text-white/25">★</span>
                         @endif
                     @endfor
                 </div>
             </div>
-            <p class="text-[11px] text-amber-100 mt-4 pt-3 border-t border-white/20">
+            <p class="text-[11px] text-blue-100 mt-4 pt-3 border-t border-white/15">
                 Basado en <strong>{{ $stats['total_reviews'] }}</strong> opiniones registradas.
             </p>
         </div>

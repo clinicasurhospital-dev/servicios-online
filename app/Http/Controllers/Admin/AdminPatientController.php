@@ -16,18 +16,16 @@ use Illuminate\View\View;
 
 class AdminPatientController extends Controller
 {
-    public function __construct()
+    protected function ensureNotDoctor(): void
     {
-        $this->middleware(function ($request, $next) {
-            if (auth()->check() && auth()->user()->isDoctor()) {
-                abort(403, 'El perfil médico no tiene acceso a la administración ni registro directo de pacientes. El paciente debe ser registrado previamente por recepción.');
-            }
-            return $next($request);
-        });
+        if (auth()->check() && auth()->user()->isDoctor()) {
+            abort(403, 'El perfil médico no tiene acceso a la administración ni registro directo de pacientes. El paciente debe ser registrado previamente por recepción.');
+        }
     }
 
     public function index(Request $request): View
     {
+        $this->ensureNotDoctor();
         $search = $request->query('search');
 
         $patients = Patient::query()
@@ -49,6 +47,7 @@ class AdminPatientController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->ensureNotDoctor();
         $validated = $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
@@ -98,6 +97,7 @@ class AdminPatientController extends Controller
 
     public function update(Request $request, Patient $patient): RedirectResponse
     {
+        $this->ensureNotDoctor();
         $validated = $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
@@ -144,6 +144,7 @@ class AdminPatientController extends Controller
 
     public function destroy(Patient $patient): RedirectResponse
     {
+        $this->ensureNotDoctor();
         if ($patient->appointments()->exists()) {
             return back()->with('warning', "No se puede eliminar al paciente {$patient->full_name} porque tiene citas registradas en el historial.");
         }
