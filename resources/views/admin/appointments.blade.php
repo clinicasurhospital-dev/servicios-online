@@ -246,14 +246,21 @@
                                             <span>⭐</span>
                                             <span>{{ $app->review && $app->review->submitted_at ? 'Ver Opinión' : 'Valoración' }}</span>
                                         </button>
+                                        <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                            <span>Historia / Doc</span>
+                                        </button>
+                                    @elseif($app->status->value === 'CANCELLED')
+                                        <span class="text-slate-400 italic text-[11px] px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg">Cita cancelada</span>
+                                    @else
+                                        <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                            <span>Historia / Doc</span>
+                                        </button>
+                                        <button @click="openManageModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
+                                            Estado
+                                        </button>
                                     @endif
-                                    <button @click="openClinicalModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-brand-soft text-brand-primary hover:bg-brand-primary hover:text-white font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer" title="Subir o gestionar historia clínica">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                        <span>Historia / Doc</span>
-                                    </button>
-                                    <button @click="openManageModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
-                                        Estado
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -292,9 +299,11 @@
 
                     <!-- Modal Navigation Tabs -->
                     <div class="flex p-1 bg-slate-100 rounded-2xl my-4 text-xs font-bold gap-1">
-                        <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all">
-                            Estado
-                        </button>
+                        <template x-if="selectedApp.status !== 'COMPLETED' && selectedApp.status !== 'CANCELLED'">
+                            <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all">
+                                Estado
+                            </button>
+                        </template>
                         <button type="button" @click="activeTab = 'clinical'" :class="activeTab === 'clinical' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             <span>Historia</span>
@@ -306,34 +315,36 @@
                     </div>
 
                     <!-- TAB 1: ESTADO DE LA CITA -->
-                    <div x-show="activeTab === 'status'">
-                        <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/estado'" method="POST" class="space-y-4 text-xs">
-                            @csrf
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Nuevo Estado *</label>
-                                <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-3 font-bold focus:border-brand-primary">
-                                    <option value="CONFIRMED" :selected="selectedApp.status === 'CONFIRMED'">CONFIRMED (Confirmar Asistencia / Reserva)</option>
-                                    <option value="COMPLETED" :selected="selectedApp.status === 'COMPLETED'">COMPLETED (Marcar Atendida / Realizada)</option>
-                                    <option value="NO_SHOW" :selected="selectedApp.status === 'NO_SHOW'">NO_SHOW (No se presentó el paciente)</option>
-                                    <option value="CANCELLED" :selected="selectedApp.status === 'CANCELLED'">CANCELLED (Cancelar Cita y Liberar Turno)</option>
-                                </select>
-                            </div>
+                    <template x-if="selectedApp.status !== 'COMPLETED' && selectedApp.status !== 'CANCELLED'">
+                        <div x-show="activeTab === 'status'">
+                            <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/estado'" method="POST" class="space-y-4 text-xs">
+                                @csrf
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Nuevo Estado *</label>
+                                    <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-3 font-bold focus:border-brand-primary">
+                                        <option value="CONFIRMED" :selected="selectedApp.status === 'CONFIRMED'">CONFIRMED (Confirmar Asistencia / Reserva)</option>
+                                        <option value="COMPLETED" :selected="selectedApp.status === 'COMPLETED'">COMPLETED (Marcar Atendida / Realizada)</option>
+                                        <option value="NO_SHOW" :selected="selectedApp.status === 'NO_SHOW'">NO_SHOW (No se presentó el paciente)</option>
+                                        <option value="CANCELLED" :selected="selectedApp.status === 'CANCELLED'">CANCELLED (Cancelar Cita y Liberar Turno)</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Motivo / Notas de Recepción</label>
-                                <textarea name="reason" rows="3" class="w-full rounded-xl border-slate-200 text-xs p-3" placeholder="Observaciones del cambio de estado o asistencia..."></textarea>
-                            </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Motivo / Notas de Recepción</label>
+                                    <textarea name="reason" rows="3" class="w-full rounded-xl border-slate-200 text-xs p-3" placeholder="Observaciones del cambio de estado o asistencia..."></textarea>
+                                </div>
 
-                            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                                <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold">
-                                    Cerrar
-                                </button>
-                                <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-primary text-white font-bold shadow-md shadow-brand-primary/20 hover:bg-brand-primary-dark cursor-pointer">
-                                    Guardar Estado
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                                    <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                                        Cerrar
+                                    </button>
+                                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-primary text-white font-bold shadow-md shadow-brand-primary/20 hover:bg-brand-primary-dark cursor-pointer">
+                                        Guardar Estado
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </template>
 
                     <!-- TAB 2: SUBIR HISTORIA CLÍNICA O PROCEDIMIENTO -->
                     <div x-show="activeTab === 'clinical'" class="space-y-4 text-xs">
@@ -418,12 +429,23 @@
                             </div>
 
                             <div>
-                                <label class="block font-bold text-slate-700 mb-1">4. Actualizar Estado de la Cita</label>
-                                <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-bold focus:border-brand-primary">
-                                    <option value="COMPLETED" selected>COMPLETED (Marcar Consulta como Atendida)</option>
-                                    <option value="CONFIRMED">CONFIRMED (Mantener Confirmada)</option>
-                                    <option value="NO_SHOW">NO_SHOW (No Asistió)</option>
-                                </select>
+                                <label class="block font-bold text-slate-700 mb-1">4. Estado de la Cita</label>
+                                <template x-if="selectedApp.status === 'COMPLETED'">
+                                    <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            <span class="font-black text-emerald-900 text-xs">COMPLETED (Consulta Atendida)</span>
+                                        </div>
+                                        <span class="text-[11px] text-emerald-700 font-semibold italic">Estado cerrado</span>
+                                    </div>
+                                </template>
+                                <template x-if="selectedApp.status !== 'COMPLETED'">
+                                    <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-bold focus:border-brand-primary">
+                                        <option value="COMPLETED" selected>COMPLETED (Marcar Consulta como Atendida)</option>
+                                        <option value="CONFIRMED">CONFIRMED (Mantener Confirmada)</option>
+                                        <option value="NO_SHOW">NO_SHOW (No Asistió)</option>
+                                    </select>
+                                </template>
                             </div>
 
                             <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">

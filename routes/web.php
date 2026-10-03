@@ -81,14 +81,14 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
     Route::get('/valoraciones', [AdminReviewController::class, 'index'])->name('reviews');
     Route::post('/valoraciones/{review}/toggle-visibilidad', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle_visibility');
 
-    // Pacientes CRUD
-    Route::get('/pacientes', [AdminPatientController::class, 'index'])->name('patients');
-    Route::post('/pacientes', [AdminPatientController::class, 'store'])->name('patients.store');
-    Route::put('/pacientes/{patient}', [AdminPatientController::class, 'update'])->name('patients.update');
-    Route::delete('/pacientes/{patient}', [AdminPatientController::class, 'destroy'])->name('patients.destroy');
-
     // Super Admin & Admin / Reception Only Management Routes
     Route::middleware('role:SUPER_ADMIN|ADMIN|RECEPTION')->group(function () {
+        // Pacientes CRUD
+        Route::get('/pacientes', [AdminPatientController::class, 'index'])->name('patients');
+        Route::post('/pacientes', [AdminPatientController::class, 'store'])->name('patients.store');
+        Route::put('/pacientes/{patient}', [AdminPatientController::class, 'update'])->name('patients.update');
+        Route::delete('/pacientes/{patient}', [AdminPatientController::class, 'destroy'])->name('patients.destroy');
+
         // Médicos CRUD & Horarios
         Route::get('/medicos', [AdminDoctorController::class, 'index'])->name('doctors');
         Route::post('/medicos', [AdminDoctorController::class, 'store'])->name('doctors.store');

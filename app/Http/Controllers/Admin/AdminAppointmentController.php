@@ -72,6 +72,11 @@ class AdminAppointmentController extends Controller
             abort(403, 'No tienes permiso para gestionar citas de otros médicos.');
         }
 
+        // Citas atendidas o canceladas no pueden cambiar de estado
+        if (in_array($appointment->status->value, ['COMPLETED', 'CANCELLED'])) {
+            return back()->with('error', "La cita #{$appointment->code} ya se encuentra {$appointment->status->label()} y su estado no puede ser modificado.");
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:CONFIRMED,COMPLETED,CANCELLED,NO_SHOW'],
             'reason' => ['nullable', 'string', 'max:500'],
@@ -124,6 +129,11 @@ class AdminAppointmentController extends Controller
             abort(403, 'No tienes permiso para adjuntar documentos a citas de otros médicos.');
         }
 
+        // Si la cita está cancelada, no permitir adjuntar historia clínica
+        if ($appointment->status->value === 'CANCELLED') {
+            return back()->with('error', 'No se pueden registrar ni adjuntar documentos clínicos a una cita que ha sido cancelada.');
+        }
+
         $validated = $request->validate([
             'clinical_history' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
             'procedure_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
@@ -165,7 +175,10 @@ class AdminAppointmentController extends Controller
             $updates['clinical_notes'] = $validated['clinical_notes'];
         }
 
-        if (!empty($validated['status']) && $validated['status'] !== $appointment->status->value) {
+        // Si ya está atendida (COMPLETED), mantener su estado atendido
+        if ($appointment->status->value === 'COMPLETED') {
+            $updates['status'] = AppointmentStatus::COMPLETED;
+        } elseif (!empty($validated['status']) && $validated['status'] !== $appointment->status->value) {
             $previousStatus = $appointment->status->value;
             $newStatus = AppointmentStatus::from($validated['status']);
             $updates['status'] = $newStatus;

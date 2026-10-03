@@ -16,6 +16,16 @@ use Illuminate\View\View;
 
 class AdminPatientController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (auth()->check() && auth()->user()->isDoctor()) {
+                abort(403, 'El perfil médico no tiene acceso a la administración ni registro directo de pacientes. El paciente debe ser registrado previamente por recepción.');
+            }
+            return $next($request);
+        });
+    }
+
     public function index(Request $request): View
     {
         $search = $request->query('search');

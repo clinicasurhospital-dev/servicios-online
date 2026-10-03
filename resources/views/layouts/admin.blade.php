@@ -66,7 +66,6 @@
                             ['label' => 'Mi Panel', 'route' => 'admin.dashboard', 'icon' => 'home'],
                             ['label' => 'Mi Agenda', 'route' => 'admin.agenda', 'icon' => 'calendar'],
                             ['label' => 'Mis Citas', 'route' => 'admin.appointments', 'icon' => 'clock'],
-                            ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users'],
                             ['label' => 'Mis Valoraciones', 'route' => 'admin.reviews', 'icon' => 'star'],
                         ];
                     } else {

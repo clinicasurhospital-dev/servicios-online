@@ -223,43 +223,60 @@
                             </div>
                         </div>
 
-                        <!-- Upload / Update Form -->
-                        <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/historia-clinica'" method="POST" enctype="multipart/form-data" class="space-y-3 pt-2 border-t border-slate-100">
-                            @csrf
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Subir / Actualizar Historia Clínica</label>
-                                <input type="file" name="clinical_history" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-soft file:text-brand-primary hover:file:bg-brand-primary hover:file:text-white transition-colors" />
+                        <!-- Cancelled Notice -->
+                        <template x-if="selectedApp.status === 'CANCELLED'">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
+                                <span class="font-bold text-slate-700 text-xs block">⚠️ Cita Cancelada</span>
+                                <p class="text-[11px] text-slate-400">Esta cita médica se encuentra cancelada y no permite modificaciones.</p>
                             </div>
+                        </template>
 
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Subir Informe de Procedimiento (Opcional)</label>
-                                <input type="file" name="procedure_document" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-600 hover:file:text-white transition-colors" />
-                            </div>
+                        <!-- Upload / Update Form (Only for non-cancelled) -->
+                        <template x-if="selectedApp.status !== 'CANCELLED'">
+                            <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/historia-clinica'" method="POST" enctype="multipart/form-data" class="space-y-3 pt-2 border-t border-slate-100">
+                                @csrf
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Subir / Actualizar Historia Clínica</label>
+                                    <input type="file" name="clinical_history" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-soft file:text-brand-primary hover:file:bg-brand-primary hover:file:text-white transition-colors" />
+                                </div>
 
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Notas Clínicas / Prescripción</label>
-                                <textarea name="clinical_notes" x-model="selectedApp.clinical_notes" rows="2" class="w-full rounded-xl border-slate-200 text-xs p-2.5" placeholder="Evolución médica o indicaciones..."></textarea>
-                            </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Subir Informe de Procedimiento (Opcional)</label>
+                                    <input type="file" name="procedure_document" accept=".pdf,image/*,.doc,.docx" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-600 hover:file:text-white transition-colors" />
+                                </div>
 
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Estado de la Consulta</label>
-                                <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2 font-bold focus:border-brand-primary">
-                                    <option value="COMPLETED" selected>COMPLETED (Atendida / Realizada)</option>
-                                    <option value="CONFIRMED">CONFIRMED (Confirmada)</option>
-                                    <option value="NO_SHOW">NO_SHOW (No Asistió)</option>
-                                    <option value="CANCELLED">CANCELLED (Cancelada)</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Notas Clínicas / Prescripción</label>
+                                    <textarea name="clinical_notes" x-model="selectedApp.clinical_notes" rows="2" class="w-full rounded-xl border-slate-200 text-xs p-2.5" placeholder="Evolución médica o indicaciones..."></textarea>
+                                </div>
 
-                            <div class="flex justify-end space-x-2 pt-2">
-                                <button type="button" @click="showModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">
-                                    Cerrar
-                                </button>
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-brand-primary text-white font-bold shadow-sm hover:bg-brand-primary-dark">
-                                    Guardar
-                                </button>
-                            </div>
-                        </form>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Estado de la Consulta</label>
+                                    <template x-if="selectedApp.status === 'COMPLETED'">
+                                        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                                            <span class="font-black text-emerald-900 text-xs">COMPLETED (Atendida)</span>
+                                            <span class="text-[10px] text-emerald-600 font-semibold italic">Estado cerrado</span>
+                                        </div>
+                                    </template>
+                                    <template x-if="selectedApp.status !== 'COMPLETED'">
+                                        <select name="status" class="w-full rounded-xl border-slate-200 text-xs p-2 font-bold focus:border-brand-primary">
+                                            <option value="COMPLETED" selected>COMPLETED (Atendida / Realizada)</option>
+                                            <option value="CONFIRMED">CONFIRMED (Confirmada)</option>
+                                            <option value="NO_SHOW">NO_SHOW (No Asistió)</option>
+                                        </select>
+                                    </template>
+                                </div>
+
+                                <div class="flex justify-end space-x-2 pt-2">
+                                    <button type="button" @click="showModal = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                                        Cerrar
+                                    </button>
+                                    <button type="submit" class="px-4 py-2 rounded-xl bg-brand-primary text-white font-bold shadow-sm hover:bg-brand-primary-dark">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </form>
+                        </template>
                     </div>
                 </div>
             </template>
