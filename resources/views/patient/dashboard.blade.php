@@ -20,30 +20,34 @@
 
     <!-- ALERTA AUTOMÁTICA: CONSULTA ATENDIDA PENDIENTE DE VALORACIÓN -->
     @if(isset($pendingReviewAppointment) && $pendingReviewAppointment)
-        <div class="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-brand-primary via-brand-primary-dark to-slate-900 text-white shadow-xl shadow-brand-primary/20 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-blue-400/30 animate-scaleUp">
-            <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl"></div>
-            
-            <div class="flex items-start space-x-4 relative z-10">
-                <div class="w-13 h-13 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-2xl shadow-md shadow-amber-400/20 shrink-0">
-                    ⭐
+        <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/70 border-l-4 border-l-amber-500 border-y border-r border-amber-200/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-scaleUp">
+            <div class="flex items-start space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-amber-100/80 border border-amber-200/80 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
                 </div>
                 <div class="space-y-1">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 inline-block">
-                        Tu opinión es importante
-                    </span>
-                    <h3 class="text-base sm:text-lg font-black text-white leading-snug">
-                        ¿Cómo fue tu consulta con el {{ $pendingReviewAppointment->doctor?->user?->name }}?
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200/60">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>
+                            Tu opinión es importante
+                        </span>
+                        <span class="text-[11px] text-slate-400 font-medium font-mono">#{{ $pendingReviewAppointment->code }}</span>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+                        ¿Cómo fue tu atención médica con {{ $pendingReviewAppointment->doctor?->user?->name ?? 'tu especialista' }}?
                     </h3>
-                    <p class="text-xs text-blue-100">
-                        Atención del {{ $pendingReviewAppointment->start_at->translatedFormat('d \d\e F') }} &bull; {{ $pendingReviewAppointment->specialty?->name }} (#{{ $pendingReviewAppointment->code }}). Déjanos tus sugerencias para mejorar tu servicio de salud.
+                    <p class="text-xs text-slate-600">
+                        Consulta del {{ $pendingReviewAppointment->start_at->translatedFormat('d \d\e F') }} &bull; {{ $pendingReviewAppointment->specialty?->name }}. Déjanos tu valoración y sugerencias para seguir mejorando.
                     </p>
                 </div>
             </div>
 
-            <div class="relative z-10 shrink-0">
-                <a href="{{ route('patient.appointment.show', $pendingReviewAppointment) }}" class="inline-flex items-center justify-center space-x-2 w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/25 transition-all transform hover:scale-105">
-                    <span>⭐ Calificar Atención & Sugerencias</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            <div class="shrink-0">
+                <a href="{{ route('patient.appointment.show', $pendingReviewAppointment) }}" class="inline-flex items-center justify-center space-x-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-xs hover:shadow transition-all">
+                    <span>Calificar Atención</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
             </div>
         </div>
