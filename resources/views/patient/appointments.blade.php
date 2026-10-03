@@ -107,6 +107,12 @@
                         <x-status-badge :status="$app->status" />
 
                         <div class="flex flex-wrap items-center space-x-2">
+                            @if(in_array($app->status->value, ['PENDING', 'PENDING_PAYMENT']))
+                                <a href="{{ route('patient.appointment.show', $app) }}#pago" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5">
+                                    <span>💳 Pagar y Confirmar</span>
+                                </a>
+                            @endif
+
                             @if($app->status->value === 'COMPLETED')
                                 @if($app->review && $app->review->isCompleted())
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">

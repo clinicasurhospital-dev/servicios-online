@@ -191,7 +191,7 @@ class BookingWizard extends Component
 
         $this->isManual = $isManual;
         $this->selectedDate = now()->addDay()->format('Y-m-d');
-        $this->paymentMethod = $isManual ? 'CASH' : 'CREDIT_CARD';
+        $this->paymentMethod = $isManual ? 'PAYMENT_LINK' : 'CREDIT_CARD';
 
         if (!$this->isManual && Auth::check() && Auth::user()->patient) {
             $patient = Auth::user()->patient;
@@ -270,11 +270,47 @@ class BookingWizard extends Component
         $this->errorMessage = null;
         $this->validate();
 
+        if ($this->isManual) {
+            $this->confirmBooking(app(AppointmentBookingService::class), app(AvailabilityService::class));
+            return;
+        }
+
         if (empty($this->cardHolder) && !empty($this->firstName)) {
             $this->cardHolder = strtoupper("{$this->firstName} {$this->lastName}");
         }
 
         $this->step = 4;
+    }
+
+    // Reset Wizard (Para volver a agendar otra cita desde el modal)
+    public function resetWizard(): void
+    {
+        $this->step = 1;
+        $this->specialtyId = null;
+        $this->procedureId = null;
+        $this->doctorId = null;
+        $this->selectedDate = now()->addDay()->format('Y-m-d');
+        $this->selectedTime = '';
+        $this->selectedEndTime = '';
+        $this->firstName = '';
+        $this->lastName = '';
+        $this->identificationType = 'CEDULA';
+        $this->identificationNumber = '';
+        $this->email = '';
+        $this->phone = '';
+        $this->birthDate = '';
+        $this->gender = 'OTHER';
+        $this->password = '';
+        $this->reason = '';
+        $this->paymentMethod = $this->isManual ? 'PAYMENT_LINK' : 'CREDIT_CARD';
+        $this->confirmedAppointmentId = null;
+        $this->confirmedAppointmentCode = null;
+        $this->errorMessage = null;
+        $this->paymentLinkSent = false;
+        $this->generatedPaymentLink = '';
+        $this->uploadedReceiptName = null;
+        $this->uploadedReceiptSize = null;
+        $this->transferReceipt = null;
     }
 
     // Step 4 Actions & Payment Demos
@@ -292,7 +328,7 @@ class BookingWizard extends Component
     {
         $this->paymentMethod = 'PAYMENT_LINK';
         if (empty($this->generatedPaymentLink)) {
-            $this->generatedPaymentLink = 'https://pay.surhospital.net/checkout/sh-' . strtolower(Str::random(8));
+            $this->generatedPaymentLink = url('/paciente/citas/' . ($this->confirmedAppointmentId ?: 'checkout'));
         }
         $this->paymentLinkSent = true;
         $this->errorMessage = null;
@@ -314,7 +350,7 @@ class BookingWizard extends Component
         }
 
         if (empty($this->generatedPaymentLink)) {
-            $this->generatedPaymentLink = 'https://pay.surhospital.net/checkout/sh-' . strtolower(Str::random(8));
+            $this->generatedPaymentLink = $appointment ? route('patient.appointment.show', $appointment) : url('/paciente');
         }
 
         if ($appointment) {
@@ -373,7 +409,10 @@ class BookingWizard extends Component
             return;
         }
 
-        if ($this->paymentMethod === 'CREDIT_CARD' && !$this->isManual) {
+        if ($this->isManual) {
+            $this->paymentMethod = 'PAYMENT_LINK';
+            $this->validate();
+        } elseif ($this->paymentMethod === 'CREDIT_CARD') {
             if (empty($this->cardNumber) || empty($this->cardHolder) || empty($this->cardExpiry) || empty($this->cardCvv)) {
                 $this->errorMessage = 'Por favor completa los datos de la tarjeta de crédito o débito o utiliza el botón de datos de prueba.';
                 return;
@@ -532,11 +571,10 @@ class BookingWizard extends Component
 
             $this->confirmedAppointmentId = $appointment->id;
             $this->confirmedAppointmentCode = $appointment->code;
-
-            // Enviar correo electrónico institucional si el método de pago es LINK DE PAGO
-            if ($this->paymentMethod === 'PAYMENT_LINK' && !empty($this->email)) {
-                if (empty($this->generatedPaymentLink)) {
-                    $this->generatedPaymentLink = 'https://pay.surhospital.net/checkout/sh-' . strtolower(Str::random(8));
+            // Enviar correo electrónico institucional si el método de pago es LINK DE PAGO o creación por recepción
+            if (!empty($this->email)) {
+                if (empty($this->generatedPaymentLink) || str_contains($this->generatedPaymentLink, 'checkout')) {
+                    $this->generatedPaymentLink = route('patient.appointment.show', $appointment);
                 }
                 try {
                     Mail::to($this->email)->send(new PaymentLinkMail(

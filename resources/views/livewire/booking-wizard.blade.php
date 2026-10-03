@@ -1,11 +1,16 @@
 <div class="w-full">
-    <!-- Stepper Header (5 Pasos Optimizados) -->
+    <!-- Stepper Header -->
     <div class="mb-6 sm:mb-8 px-2">
-        <div class="flex items-center justify-between relative max-w-2xl mx-auto">
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 w-full z-0 rounded-full"></div>
-            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-brand-primary transition-all duration-500 z-0 rounded-full" style="width: {{ (($step - 1) / 4) * 100 }}%"></div>
-
-            @php
+        @php
+            if ($isManual) {
+                $steps = [
+                    1 => 'Especialidad & Servicio',
+                    2 => 'Médico & Horario',
+                    3 => 'Datos del Paciente',
+                ];
+                $maxSteps = 3;
+                $progressWidth = min(100, (($step - 1) / 2) * 100);
+            } else {
                 $steps = [
                     1 => 'Especialidad & Servicio',
                     2 => 'Médico & Horario',
@@ -13,7 +18,14 @@
                     4 => 'Método de Pago',
                     5 => 'Confirmación',
                 ];
-            @endphp
+                $maxSteps = 5;
+                $progressWidth = min(100, (($step - 1) / 4) * 100);
+            }
+        @endphp
+
+        <div class="flex items-center justify-between relative max-w-2xl mx-auto">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 w-full z-0 rounded-full"></div>
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-brand-primary transition-all duration-500 z-0 rounded-full" style="width: {{ $progressWidth }}%"></div>
 
             @foreach($steps as $num => $title)
                 <div class="relative z-10 flex flex-col items-center">
@@ -32,7 +44,7 @@
         </div>
         <div class="text-center md:hidden mt-3">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand-primary text-xs font-black uppercase tracking-wider">
-                Paso {{ $step }} de 5: {{ $steps[$step] ?? '' }}
+                Paso {{ min($step, $maxSteps) }} de {{ $maxSteps }}: {{ $steps[min($step, $maxSteps)] ?? '' }}
             </span>
         </div>
     </div>
@@ -340,9 +352,13 @@
                 <!-- Top Header & Action Bar -->
                 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                     <div>
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-brand-primary bg-brand-soft px-3 py-1 rounded-md">Paso 3 de 5</span>
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5">{{ $isManual ? 'Datos del Paciente (Registro Manual)' : 'Datos del Paciente' }}</h2>
-                        <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Ingresa la información personal para generar la historia y reserva clínica.</p>
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-brand-primary bg-brand-soft px-3 py-1 rounded-md">
+                            {{ $isManual ? 'Paso 3 de 3' : 'Paso 3 de 5' }}
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5">{{ $isManual ? 'Datos del Paciente (Registro de Cita)' : 'Datos del Paciente' }}</h2>
+                        <p class="text-slate-500 text-xs sm:text-sm mt-0.5">
+                            {{ $isManual ? 'Ingresa los datos del paciente para generar la reserva pendiente de pago.' : 'Ingresa la información personal para generar la historia y reserva clínica.' }}
+                        </p>
                     </div>
 
                     <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0">
@@ -350,10 +366,18 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                             <span>Atrás</span>
                         </button>
-                        <button type="button" wire:click="proceedToStep4" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-brand-primary hover:bg-brand-primary-dark transition-all shadow-md shadow-brand-primary/20 hover:shadow-brand-primary/35 cursor-pointer flex items-center gap-1.5">
-                            <span>Continuar</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                        </button>
+                        @if($isManual)
+                            <button type="button" wire:click="confirmBooking" wire:loading.attr="disabled" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 cursor-pointer flex items-center gap-1.5">
+                                <span wire:loading.remove wire:target="confirmBooking">Agendar Cita</span>
+                                <span wire:loading wire:target="confirmBooking">Procesando...</span>
+                                <svg wire:loading.remove wire:target="confirmBooking" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                            </button>
+                        @else
+                            <button type="button" wire:click="proceedToStep4" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-brand-primary hover:bg-brand-primary-dark transition-all shadow-md shadow-brand-primary/20 hover:shadow-brand-primary/35 cursor-pointer flex items-center gap-1.5">
+                                <span>Continuar</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -431,16 +455,33 @@
 
                 <div class="mb-5">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Motivo de Consulta u Observaciones Clínicas (Opcional)</label>
-                    <textarea wire:model="reason" rows="2" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Describe brevemente tus síntomas o notas para el médico tratante..."></textarea>
+                    <textarea wire:model="reason" rows="2" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Describe brevemente los síntomas o notas para el médico tratante..."></textarea>
                 </div>
 
                 <!-- Bottom Continue CTA -->
-                <div class="mt-7 pt-5 border-t border-slate-100 flex justify-end">
-                    <button type="button" wire:click="proceedToStep4" class="px-7 py-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-brand-primary hover:bg-brand-primary-dark transition-all shadow-md shadow-brand-primary/20 cursor-pointer flex items-center gap-2">
-                        <span>Continuar al Método de Pago</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                    </button>
-                </div>
+                @if($isManual)
+                    <div class="mt-7 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-center space-x-2.5 w-full sm:w-auto">
+                            <span class="text-base">💳</span>
+                            <span>La cita se guardará como <strong class="font-bold">Pendiente de Pago</strong> para que el paciente complete el pago desde su portal.</span>
+                        </div>
+                        <button type="button" wire:click="confirmBooking" wire:loading.attr="disabled" class="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/25 cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                            <span wire:loading.remove wire:target="confirmBooking">Agendar Cita (Pendiente de Pago)</span>
+                            <span wire:loading wire:target="confirmBooking" class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>Creando reserva...</span>
+                            </span>
+                            <svg wire:loading.remove wire:target="confirmBooking" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                        </button>
+                    </div>
+                @else
+                    <div class="mt-7 pt-5 border-t border-slate-100 flex justify-end">
+                        <button type="button" wire:click="proceedToStep4" class="px-7 py-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-brand-primary hover:bg-brand-primary-dark transition-all shadow-md shadow-brand-primary/20 cursor-pointer flex items-center gap-2">
+                            <span>Continuar al Método de Pago</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                        </button>
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -858,11 +899,19 @@
                     <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 </div>
 
-                <span class="px-3.5 py-1 rounded-full text-xs font-black bg-brand-soft text-brand-primary uppercase tracking-wider">
-                    Cita Médica Agendada Exitosamente
-                </span>
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">¡Tu Reserva ha sido Registrada!</h2>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1.5 max-w-md mx-auto">Código Único de Turno: <strong class="text-slate-900 font-mono text-base sm:text-lg font-bold">#{{ $confirmedAppointmentCode }}</strong></p>
+                @if($isManual)
+                    <span class="px-3.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">
+                        🟡 Cita Creada — Pendiente de Pago por el Paciente
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">¡Cita Registrada en Recepción!</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-1.5 max-w-md mx-auto">Código Único de Turno: <strong class="text-slate-900 font-mono text-base sm:text-lg font-bold">#{{ $confirmedAppointmentCode }}</strong></p>
+                @else
+                    <span class="px-3.5 py-1 rounded-full text-xs font-black bg-brand-soft text-brand-primary uppercase tracking-wider">
+                        Cita Médica Agendada Exitosamente
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">¡Tu Reserva ha sido Registrada!</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-1.5 max-w-md mx-auto">Código Único de Turno: <strong class="text-slate-900 font-mono text-base sm:text-lg font-bold">#{{ $confirmedAppointmentCode }}</strong></p>
+                @endif
 
                 <!-- Digital Voucher Ticket -->
                 <div class="mt-6 max-w-lg mx-auto p-5 sm:p-6 rounded-3xl bg-slate-50 border border-slate-200/80 text-left text-xs sm:text-sm space-y-3 shadow-xs">
@@ -883,21 +932,13 @@
                         <span class="font-bold text-slate-800">{{ $firstName }} {{ $lastName }}</span>
                     </div>
                     <div class="flex justify-between py-1.5 border-b border-slate-200/60">
-                        <span class="text-slate-500 font-medium">Método de Pago:</span>
-                        <span class="font-bold text-slate-800">
-                            @if($paymentMethod === 'CREDIT_CARD')
-                                💳 Tarjeta Débito / Crédito (Simulado)
-                            @elseif($paymentMethod === 'PAYMENT_LINK')
-                                🔗 Link de Pago Enviado al Correo
-                            @elseif($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER')
-                                🏦 Transferencia Bancaria
-                            @else
-                                {{ $paymentMethod }}
-                            @endif
+                        <span class="text-slate-500 font-medium">Estado Inicial:</span>
+                        <span class="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md text-xs">
+                            Pendiente de Pago
                         </span>
                     </div>
                     <div class="flex justify-between py-1.5">
-                        <span class="text-slate-500 font-medium">Monto Total:</span>
+                        <span class="text-slate-500 font-medium">Monto a Pagar:</span>
                         <span class="font-black text-brand-primary text-base">${{ number_format($amount, 0) }} USD</span>
                     </div>
 
@@ -915,8 +956,44 @@
                     @endif
                 </div>
 
-                <!-- Payment Link Highlight Card & Email Notification (if PAYMENT_LINK) -->
-                @if($paymentMethod === 'PAYMENT_LINK')
+                <!-- Payment Link & WhatsApp Share Box for Manual Admin/Reception or Online -->
+                @if($isManual)
+                    <div class="mt-6 max-w-lg mx-auto p-5 rounded-3xl bg-amber-50/70 border border-amber-200/90 text-left space-y-3.5 shadow-xs animate-fadeIn" x-data="{ copied: false }">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                                🔗
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-slate-900 text-sm">Enlace del Portal / Pago para el Paciente</h4>
+                                <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                                    Se ha enviado una notificación a <strong class="text-slate-900">{{ $email }}</strong>. También puedes compartirle el enlace directo por WhatsApp para que complete su pago.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-white border border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                            <div class="text-xs font-mono text-slate-700 truncate w-full sm:max-w-[240px] bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                                {{ $generatedPaymentLink }}
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <button type="button" @click="navigator.clipboard.writeText('{{ $generatedPaymentLink }}'); copied = true; setTimeout(() => copied = false, 2500)" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0">
+                                    <span x-show="!copied">📋 Copiar</span>
+                                    <span x-show="copied" class="text-emerald-600 font-bold">✓ Copiado</span>
+                                </button>
+                                @php
+                                    $waPhone = preg_replace('/[^0-9]/', '', $phone);
+                                    if (str_starts_with($waPhone, '0')) {
+                                        $waPhone = '593' . substr($waPhone, 1);
+                                    }
+                                    $waMsg = rawurlencode("Hola {$firstName} {$lastName}, tu cita médica con {$selectedDoctor->user->name} ha sido reservada para el {$selectedDate} a las {$selectedTime}. Para completar el pago y confirmación de tu cita, por favor ingresa al siguiente enlace: " . $generatedPaymentLink);
+                                @endphp
+                                <a href="https://wa.me/{{ $waPhone }}?text={{ $waMsg }}" target="_blank" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors inline-flex items-center justify-center gap-1.5 shrink-0">
+                                    <span>💬 WhatsApp</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @elseif($paymentMethod === 'PAYMENT_LINK')
                     <div class="mt-6 max-w-lg mx-auto p-5 rounded-3xl bg-purple-50/80 border border-purple-200 text-left space-y-3.5 shadow-sm animate-fadeIn">
                         <div class="flex items-start gap-3">
                             <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
@@ -946,12 +1023,16 @@
                 <!-- Navigation CTAs -->
                 <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                     @if($isManual)
-                        <button type="button" x-on:click="$dispatch('close-modal', 'quick-appointment-modal'); window.location.reload()" class="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 cursor-pointer">
-                            Listo / Cerrar Ventana
+                        <button type="button" wire:click="resetWizard" class="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-xs sm:text-sm text-brand-primary bg-brand-soft hover:bg-brand-primary hover:text-white transition-all cursor-pointer inline-flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            <span>Agendar Otra Cita</span>
                         </button>
-                        <a href="{{ route('admin.appointments') }}" class="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs sm:text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all">
-                            Ver en Listado de Citas
+                        <a href="{{ route('admin.appointments') }}" class="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-xs sm:text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all text-center">
+                            Ver en Gestión de Citas
                         </a>
+                        <button type="button" x-on:click="$dispatch('close-modal', 'quick-appointment-modal'); window.location.reload()" class="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-slate-900 hover:bg-slate-800 transition-all shadow-md cursor-pointer">
+                            Listo / Cerrar
+                        </button>
                     @else
                         <a href="{{ route('patient.dashboard') }}" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-brand-primary hover:bg-brand-primary-dark transition-all shadow-lg shadow-brand-primary/25 cursor-pointer flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>

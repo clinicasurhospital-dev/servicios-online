@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers\Patient;
 
+use App\Domain\Appointments\Enums\AppointmentStatus;
 use App\Domain\Appointments\Services\AppointmentCancellationService;
 use App\Domain\Appointments\Services\AppointmentRescheduleService;
 use App\Domain\Availability\Services\AvailabilityService;
 use App\Domain\Doctors\Services\DoctorReviewService;
+use App\Domain\Payments\Enums\PaymentMethod;
+use App\Domain\Payments\Enums\PaymentStatus;
 use App\Domain\Payments\Services\BankTransferService;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\AppointmentStatusHistory;
+use App\Models\AuditLog;
 use App\Models\BankTransfer;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -45,6 +52,13 @@ class PatientPortalController extends Controller
             ->orderBy('start_at', 'asc')
             ->first();
 
+        // Cita pendiente de pago
+        $pendingPaymentAppointment = Appointment::where('patient_id', $patient->id)
+            ->whereIn('status', ['PENDING', 'PENDING_PAYMENT'])
+            ->with(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer'])
+            ->orderBy('start_at', 'asc')
+            ->first();
+
         // Buscar si tiene alguna cita atendida pendiente de valoración
         $pendingReviewAppointment = Appointment::where('patient_id', $patient->id)
             ->where('status', 'COMPLETED')
@@ -59,7 +73,7 @@ class PatientPortalController extends Controller
             ->take(5)
             ->get();
 
-        return view('patient.dashboard', compact('patient', 'nextAppointment', 'recentAppointments', 'pendingReviewAppointment'));
+        return view('patient.dashboard', compact('patient', 'nextAppointment', 'recentAppointments', 'pendingPaymentAppointment', 'pendingReviewAppointment'));
     }
 
     public function appointments(): View
@@ -206,7 +220,74 @@ class PatientPortalController extends Controller
             receiptFile: $request->file('receipt')
         );
 
-        return back()->with('success', 'Comprobante de transferencia enviado. Nuestro equipo de recepción lo validará a la brevedad.');
+        return back()->with('success', 'Comprobante de transferencia enviado. Nuestro equipo de recepción validará tu pago para confirmar la cita.');
+    }
+
+    public function payWithCard(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $this->authorize('view', $appointment);
+
+        if (!in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT'])) {
+            return back()->with('error', 'Esta cita ya ha sido confirmada, atendida o cancelada.');
+        }
+
+        $validated = $request->validate([
+            'card_holder' => ['required', 'string', 'min:3', 'max:150'],
+            'card_number' => ['required', 'string', 'min:14', 'max:25'],
+            'card_expiry' => ['required', 'string', 'min:4', 'max:7'],
+            'card_cvv' => ['required', 'string', 'min:3', 'max:4'],
+        ], [
+            'card_holder.required' => 'Ingresa el nombre del titular de la tarjeta.',
+            'card_number.required' => 'Ingresa el número de la tarjeta.',
+            'card_expiry.required' => 'Ingresa la fecha de vencimiento (MM/AA).',
+            'card_cvv.required' => 'Ingresa el código CVV.',
+        ]);
+
+        try {
+            DB::transaction(function () use ($appointment, $validated) {
+                $payment = $appointment->payments()->first();
+                if (!$payment) {
+                    $payment = Payment::create([
+                        'appointment_id' => $appointment->id,
+                        'payment_method' => PaymentMethod::CREDIT_CARD,
+                        'amount' => $appointment->price,
+                        'currency' => 'USD',
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                } else {
+                    $payment->update([
+                        'payment_method' => PaymentMethod::CREDIT_CARD,
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                }
+
+                $oldStatus = $appointment->status->value;
+                $appointment->update([
+                    'status' => AppointmentStatus::CONFIRMED,
+                ]);
+
+                AppointmentStatusHistory::create([
+                    'appointment_id' => $appointment->id,
+                    'previous_status' => $oldStatus,
+                    'new_status' => AppointmentStatus::CONFIRMED->value,
+                    'changed_by_user_id' => Auth::id(),
+                    'reason' => 'Pago con tarjeta procesado exitosamente por el paciente en portal web',
+                ]);
+
+                AuditLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'APPOINTMENT_PAID_ONLINE',
+                    'description' => "El paciente pagó y confirmó la cita #{$appointment->code} mediante tarjeta",
+                    'ip_address' => request()->ip(),
+                ]);
+            });
+
+            return back()->with('success', '¡Pago procesado exitosamente! Tu cita médica #' . $appointment->code . ' ha sido confirmada.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al procesar el pago: ' . $e->getMessage());
+        }
     }
 
     public function paymentSuccess(): View

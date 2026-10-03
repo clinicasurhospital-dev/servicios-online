@@ -55,6 +55,7 @@ Route::middleware(['auth', 'role:PATIENT|SUPER_ADMIN|ADMIN'])->prefix('paciente'
     Route::post('/citas/{appointment}/reprogramar', [PatientPortalController::class, 'rescheduleAppointment'])->name('appointment.reschedule');
     Route::post('/citas/{appointment}/cancelar', [PatientPortalController::class, 'cancelAppointment'])->name('appointment.cancel');
     Route::post('/citas/{appointment}/transferencia', [PatientPortalController::class, 'submitTransfer'])->name('transfer.submit');
+    Route::post('/citas/{appointment}/pagar-tarjeta', [PatientPortalController::class, 'payWithCard'])->name('appointment.pay_card');
     Route::get('/citas/{appointment}/historia-clinica/{type}', [PatientPortalController::class, 'downloadClinicalRecord'])->name('appointment.clinical_record');
     Route::post('/citas/{appointment}/valoracion', [PatientPortalController::class, 'storeReview'])->name('appointment.review');
     Route::get('/pago-exitoso', [PatientPortalController::class, 'paymentSuccess'])->name('payment.success');

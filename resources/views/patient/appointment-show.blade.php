@@ -8,6 +8,17 @@
     transferModal: false,
     rescheduleModal: false,
     reviewModal: false,
+    paymentTab: 'card',
+    cardHolder: '{{ strtoupper(auth()->user()->name) }}',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: '',
+    fillDemoCard() {
+        this.cardHolder = '{{ strtoupper(auth()->user()->name) }}' || 'JUAN CARLOS PEREZ';
+        this.cardNumber = '4532 8900 1234 5678';
+        this.cardExpiry = '12/28';
+        this.cardCvv = '842';
+    },
     patientRating: 5,
     patientHoverRating: 0,
     patientAttention: 5,
@@ -314,45 +325,151 @@
             </div>
         @endif
 
-        <!-- PAGO Y COMPROBANTE -->
-        <div class="pt-4 border-t border-slate-100">
-            <h3 class="text-sm font-bold text-slate-900 mb-3">Información del Pago</h3>
+        <!-- PAGO Y CONFIRMACIÓN DE CITA -->
+        @php
+            $latestPayment = $appointment->payments->first();
+            $isPendingPayment = in_array($appointment->status->value, ['PENDING', 'PENDING_PAYMENT']) || ($latestPayment && $latestPayment->status?->value === 'PENDING') || ($latestPayment?->bankTransfer && $latestPayment->bankTransfer->isRejected());
+        @endphp
 
-            @php
-                $latestPayment = $appointment->payments->first();
-            @endphp
-
-            @if($latestPayment)
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-xs text-slate-800">Método: {{ $latestPayment->payment_method?->label() ?? 'No especificado' }}</span>
-                            <span class="text-xs text-slate-400">&bull;</span>
-                            <span class="text-xs font-semibold {{ $latestPayment->status?->value === 'PAID' ? 'text-emerald-600' : ($latestPayment->status?->value === 'REJECTED' ? 'text-rose-600' : 'text-amber-600') }}">
-                                {{ $latestPayment->status?->label() ?? 'Pendiente' }}
-                            </span>
+        <div id="pago" class="pt-4 border-t border-slate-100">
+            @if($isPendingPayment)
+                <div class="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-slate-50 border-2 border-amber-200/90 shadow-sm space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/80">
+                        <div class="flex items-start space-x-3.5">
+                            <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-xl shadow-sm shrink-0">
+                                💳
+                            </div>
+                            <div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300/70">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5 animate-pulse"></span>
+                                    Paso Final para tu Consulta
+                                </span>
+                                <h3 class="text-base sm:text-lg font-black text-slate-900 mt-1">Pagar y Confirmar tu Cita Médica</h3>
+                                <p class="text-xs text-slate-600">Completa tu pago para asegurar y formalizar tu turno médico.</p>
+                            </div>
                         </div>
-                        @if($latestPayment->bankTransfer)
-                            <p class="text-xs text-slate-500 mt-1">Ref Bancaria: {{ $latestPayment->bankTransfer->reference_number }} ({{ $latestPayment->bankTransfer->bank_name }})</p>
-                            @if($latestPayment->bankTransfer->rejection_reason)
-                                <p class="text-xs text-rose-600 mt-1 font-medium">Motivo rechazo: {{ $latestPayment->bankTransfer->rejection_reason }}</p>
-                            @endif
-                        @endif
+
+                        <div class="text-left sm:text-right bg-white px-4 py-2.5 rounded-2xl border border-amber-200 shadow-2xs">
+                            <span class="text-[11px] text-slate-400 font-semibold block">Total a Pagar</span>
+                            <span class="text-xl font-black text-brand-primary">${{ number_format($appointment->total_amount, 2) }} USD</span>
+                        </div>
                     </div>
 
-                    @if($appointment->status->value === 'PENDING_PAYMENT' || ($latestPayment->bankTransfer && $latestPayment->bankTransfer->isRejected()))
-                        <button type="button" @click="transferModal = true" class="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors shadow-sm">
-                            Subir Comprobante de Pago
+                    <!-- Pestañas de Pago -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" @click="paymentTab = 'card'" class="p-3.5 rounded-2xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer" :class="paymentTab === 'card' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
+                            <span>💳</span>
+                            <span>Tarjeta Crédito / Débito</span>
                         </button>
-                    @endif
+                        <button type="button" @click="paymentTab = 'transfer'" class="p-3.5 rounded-2xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer" :class="paymentTab === 'transfer' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
+                            <span>🏦</span>
+                            <span>Transferencia Bancaria</span>
+                        </button>
+                    </div>
+
+                    <!-- Opción 1: Tarjeta Instantánea -->
+                    <div x-show="paymentTab === 'card'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <span class="text-xs font-bold text-slate-800">Pasarela Segura SSL — Confirmación Inmediata</span>
+                            <button type="button" @click="fillDemoCard()" class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
+                                ⚡ Rellenar Datos Demo
+                            </button>
+                        </div>
+
+                        <form action="{{ route('patient.appointment.pay_card', $appointment) }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Titular (como figura en la tarjeta) *</label>
+                                    <input type="text" name="card_holder" x-model="cardHolder" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 uppercase focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="Ej: CARLOS MENDOZA" />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Número de Tarjeta (16 dígitos) *</label>
+                                    <input type="text" name="card_number" x-model="cardNumber" required maxlength="19" class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-mono focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="4532 8900 1234 5678" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Expiración (MM/AA) *</label>
+                                    <input type="text" name="card_expiry" x-model="cardExpiry" required maxlength="5" class="w-full rounded-xl border-slate-200 text-xs p-2.5 text-center font-mono focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="12/28" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Código CVV *</label>
+                                    <input type="password" name="card_cvv" x-model="cardCvv" required maxlength="4" class="w-full rounded-xl border-slate-200 text-xs p-2.5 text-center font-mono focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="842" />
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <span class="text-[11px] text-slate-500 flex items-center gap-1">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    <span>Transacción segura y encriptada</span>
+                                </span>
+                                <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>Pagar ${{ number_format($appointment->total_amount, 2) }} y Confirmar Cita</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Opción 2: Transferencia Bancaria -->
+                    <div x-show="paymentTab === 'transfer'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4" style="display: none;">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
+                            <span class="font-bold text-slate-900 block">Datos Bancarios para Depósito / Transferencia:</span>
+                            <p><strong>Banco:</strong> Banco Pichincha &bull; <strong>Cuenta Corriente:</strong> #2100849201</p>
+                            <p><strong>Titular:</strong> SurHospital S.A. &bull; <strong>RUC:</strong> 0992384756001 &bull; <strong>Correo:</strong> pagos@surhospital.com</p>
+                        </div>
+
+                        <form action="{{ route('patient.transfer.submit', $appointment) }}" method="POST" enctype="multipart/form-data" class="space-y-3.5">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Banco de Origen *</label>
+                                    <input type="text" name="bank_name" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="Ej: Banco Pichincha / Guayaquil / Pacífico" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Número de Referencia / Comprobante *</label>
+                                    <input type="text" name="reference_number" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-mono focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="Ej: 987654321" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de la Transferencia *</label>
+                                    <input type="date" name="transfer_date" required value="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Comprobante de Pago (Imagen o PDF, máx 5MB) *</label>
+                                    <input type="file" name="receipt" required accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-soft file:text-brand-primary hover:file:bg-blue-100" />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Notas u Observaciones (opcional)</label>
+                                    <input type="text" name="notes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white" placeholder="Comentarios adicionales para recepción..." />
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex justify-end">
+                                <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>Enviar Comprobante de Transferencia</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             @else
-                <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between">
-                    <span>Pago no registrado aún para esta consulta.</span>
-                    <button type="button" @click="transferModal = true" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors">
-                        Adjuntar Transferencia
-                    </button>
-                </div>
+                <h3 class="text-sm font-bold text-slate-900 mb-3">Información del Pago</h3>
+                @if($latestPayment)
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-xs text-slate-800">Método: {{ $latestPayment->payment_method?->label() ?? 'No especificado' }}</span>
+                                <span class="text-xs text-slate-400">&bull;</span>
+                                <span class="text-xs font-semibold {{ $latestPayment->status?->value === 'PAID' ? 'text-emerald-600' : ($latestPayment->status?->value === 'REJECTED' ? 'text-rose-600' : 'text-amber-600') }}">
+                                    {{ $latestPayment->status?->label() ?? 'Pendiente' }}
+                                </span>
+                            </div>
+                            @if($latestPayment->bankTransfer)
+                                <p class="text-xs text-slate-500 mt-1">Ref Bancaria: {{ $latestPayment->bankTransfer->reference_number }} ({{ $latestPayment->bankTransfer->bank_name }})</p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             @endif
         </div>
 

@@ -163,36 +163,43 @@
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <!-- Top App Bar -->
-        <header class="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-6 z-10">
-            <div class="flex items-center gap-4">
+        <header class="h-16 sm:h-20 bg-white border-b border-slate-100 flex items-center justify-between px-3 sm:px-6 z-10 gap-2">
+            <div class="flex items-center gap-2 sm:gap-4 min-w-0">
                 <button
                     type="button"
                     x-on:click="sidebarOpen = true"
-                    class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+                    class="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
+                    aria-label="Abrir menú"
                 >
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{ $header ?? (auth()->check() && auth()->user()->isDoctor() ? 'Panel Médico' : 'Panel Administrativo') }}</h1>
+                <h1 class="text-base sm:text-xl font-bold text-slate-900 tracking-tight truncate max-w-[150px] xs:max-w-[220px] sm:max-w-none">
+                    {{ $header ?? (auth()->check() && auth()->user()->isDoctor() ? 'Panel Médico' : 'Panel Administrativo') }}
+                </h1>
             </div>
 
             <!-- Header Quick Actions -->
-            <div class="flex items-center gap-3">
-                <x-button href="{{ route('home') }}" variant="outline" size="sm">
-                    <svg class="h-4 w-4 mr-1.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a href="{{ route('home') }}" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-brand-600 text-xs font-semibold transition-colors">
+                    <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
-                    Ver Sitio Público
-                </x-button>
+                    <span>Ver Sitio Público</span>
+                </a>
 
                 @if(!auth()->user()->isDoctor())
-                    <x-button x-on:click="$dispatch('open-modal', 'quick-appointment-modal')" variant="primary" size="sm">
-                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('open-modal', 'quick-appointment-modal')"
+                        class="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-primary/20 transition-all transform active:scale-95 shrink-0 cursor-pointer"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Nueva Cita
-                    </x-button>
+                        <span>Nueva Cita</span>
+                    </button>
                 @endif
             </div>
         </header>
