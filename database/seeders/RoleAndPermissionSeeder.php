@@ -31,6 +31,8 @@ class RoleAndPermissionSeeder extends Seeder
             'validate_bank_transfers',
             'view_metrics',
             'view_audit_logs',
+            'view_doctor_reviews',
+            'manage_doctor_reviews',
             'view_doctor_own_agenda',
             'patient_portal_access',
         ];
@@ -51,12 +53,12 @@ class RoleAndPermissionSeeder extends Seeder
             'view_dashboard', 'manage_users', 'manage_specialties', 'manage_procedures',
             'manage_doctors', 'manage_schedules', 'manage_patients', 'view_all_appointments',
             'create_appointment_manual', 'manage_payments', 'validate_bank_transfers',
-            'view_metrics', 'view_audit_logs',
+            'view_metrics', 'view_audit_logs', 'view_doctor_reviews', 'manage_doctor_reviews',
         ]);
 
         $reception->syncPermissions([
             'view_dashboard', 'manage_patients', 'view_all_appointments',
-            'create_appointment_manual', 'validate_bank_transfers',
+            'create_appointment_manual', 'validate_bank_transfers', 'view_doctor_reviews',
         ]);
 
         $doctor->syncPermissions([

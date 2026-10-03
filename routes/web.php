@@ -6,10 +6,12 @@ use App\Http\Controllers\Admin\AdminAuditController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDoctorController;
 use App\Http\Controllers\Admin\AdminPatientController;
+use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSpecialtyController;
 use App\Http\Controllers\Admin\AdminTransferController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Patient\PatientPortalController;
+use App\Http\Controllers\Public\DoctorReviewPublicController;
 use App\Http\Controllers\Public\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/agendar', [HomeController::class, 'booking'])->name('booking');
 Route::get('/csrf-token', fn () => response()->json(['token' => csrf_token()]))->name('csrf.token');
+
+// Valoración directa pública por Token (WhatsApp / Correo)
+Route::get('/valorar/{token}', [DoctorReviewPublicController::class, 'show'])->name('reviews.public.show');
+Route::post('/valorar/{token}', [DoctorReviewPublicController::class, 'store'])->name('reviews.public.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +56,7 @@ Route::middleware(['auth', 'role:PATIENT|SUPER_ADMIN|ADMIN'])->prefix('paciente'
     Route::post('/citas/{appointment}/cancelar', [PatientPortalController::class, 'cancelAppointment'])->name('appointment.cancel');
     Route::post('/citas/{appointment}/transferencia', [PatientPortalController::class, 'submitTransfer'])->name('transfer.submit');
     Route::get('/citas/{appointment}/historia-clinica/{type}', [PatientPortalController::class, 'downloadClinicalRecord'])->name('appointment.clinical_record');
+    Route::post('/citas/{appointment}/valoracion', [PatientPortalController::class, 'storeReview'])->name('appointment.review');
     Route::get('/pago-exitoso', [PatientPortalController::class, 'paymentSuccess'])->name('payment.success');
 });
 
@@ -68,6 +75,11 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
     Route::post('/citas/{appointment}/historia-clinica', [AdminAppointmentController::class, 'uploadClinicalRecord'])->name('appointments.upload_history');
     Route::get('/citas/{appointment}/historia-clinica/{type}', [AdminAppointmentController::class, 'downloadClinicalRecord'])->name('appointments.download_history');
     Route::delete('/citas/{appointment}/historia-clinica/{type}', [AdminAppointmentController::class, 'deleteClinicalRecord'])->name('appointments.delete_history');
+    Route::post('/citas/{appointment}/enviar-invitacion-valoracion', [AdminReviewController::class, 'sendInvitation'])->name('appointments.send_review_invitation');
+
+    // Módulo de Sugerencias y Valoraciones Médicas
+    Route::get('/valoraciones', [AdminReviewController::class, 'index'])->name('reviews');
+    Route::post('/valoraciones/{review}/toggle-visibilidad', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle_visibility');
 
     // Pacientes CRUD
     Route::get('/pacientes', [AdminPatientController::class, 'index'])->name('patients');

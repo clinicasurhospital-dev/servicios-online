@@ -7,6 +7,15 @@
     cancelModal: false,
     transferModal: false,
     rescheduleModal: false,
+    reviewModal: false,
+    patientRating: 5,
+    patientHoverRating: 0,
+    patientAttention: 5,
+    patientPunctuality: 5,
+    patientFacilities: 5,
+    patientRecommendation: 10,
+    patientIsAnonymous: false,
+    patientComment: '',
     rescheduleDate: '{{ now()->addDay()->format('Y-m-d') }}',
     rescheduleTime: '',
     rescheduleReason: '',
@@ -209,6 +218,94 @@
                 @endif
             </div>
         </div>
+
+        <!-- SECCIÓN DE VALORACIÓN Y SUGERENCIAS AL DOCTOR (CITAS ATENDIDAS) -->
+        @if($appointment->status->value === 'COMPLETED')
+            <div class="p-6 rounded-3xl bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-slate-50 border border-blue-100 shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-blue-100/80">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-sm shadow-xs">
+                            ⭐
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900">Valoración y Sugerencias de tu Consulta</h3>
+                            <p class="text-[11px] text-slate-500">Tu opinión nos ayuda a mantener y mejorar la calidad de atención médica.</p>
+                        </div>
+                    </div>
+
+                    @if($appointment->review && $appointment->review->isCompleted())
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                            <span>★ {{ $appointment->review->rating }}/5</span>
+                            <span>Valoración Enviada</span>
+                        </span>
+                    @endif
+                </div>
+
+                @if($appointment->review && $appointment->review->isCompleted())
+                    <div class="bg-white p-5 rounded-2xl border border-blue-100/70 space-y-3 shadow-2xs">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold text-slate-700">Calificación al médico:</span>
+                                <div class="flex text-amber-400 text-sm">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $appointment->review->rating)
+                                            <span>★</span>
+                                        @else
+                                            <span class="text-slate-200">★</span>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <span class="text-xs font-black text-slate-800">({{ $appointment->review->rating }}/5)</span>
+                            </div>
+                            <span class="text-[11px] text-slate-400">
+                                Enviado: {{ $appointment->review->submitted_at?->format('d/m/Y H:i') }}
+                                {{ $appointment->review->is_anonymous ? '(Anónimo)' : '' }}
+                            </span>
+                        </div>
+
+                        @if($appointment->review->attention_rating || $appointment->review->punctuality_rating || $appointment->review->facilities_rating)
+                            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+                                <div class="bg-slate-50 p-2 rounded-xl text-center">
+                                    <span class="text-slate-400 block text-[10px]">Trato:</span>
+                                    <span class="font-bold text-slate-800">{{ $appointment->review->attention_rating ?? '-' }}/5 ★</span>
+                                </div>
+                                <div class="bg-slate-50 p-2 rounded-xl text-center">
+                                    <span class="text-slate-400 block text-[10px]">Puntualidad:</span>
+                                    <span class="font-bold text-slate-800">{{ $appointment->review->punctuality_rating ?? '-' }}/5 ★</span>
+                                </div>
+                                <div class="bg-slate-50 p-2 rounded-xl text-center">
+                                    <span class="text-slate-400 block text-[10px]">Instalaciones:</span>
+                                    <span class="font-bold text-slate-800">{{ $appointment->review->facilities_rating ?? '-' }}/5 ★</span>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($appointment->review->comment)
+                            <div class="pt-2 border-t border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-500 block mb-1">Tus sugerencias / comentarios:</span>
+                                <p class="text-xs text-slate-700 italic bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                                    "{{ $appointment->review->comment }}"
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="bg-white p-5 rounded-2xl border border-blue-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                        <div class="space-y-1">
+                            <h4 class="text-xs font-bold text-slate-900">¿Cómo fue tu experiencia con el Dr(a). {{ $appointment->doctor?->user?->name }}?</h4>
+                            <p class="text-xs text-slate-500">Tus sugerencias son leídas por el equipo directivo para garantizar el mejor servicio médico.</p>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="reviewModal = true"
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-indigo-600 hover:from-brand-primary-dark hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105 shrink-0 flex items-center justify-center space-x-1.5"
+                        >
+                            <span>⭐ Calificar Consulta y Dejar Sugerencias</span>
+                        </button>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         @if($appointment->status->value === 'CANCELLED' && $appointment->cancelled_reason)
             <div class="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-rose-900">
@@ -466,5 +563,136 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL CALIFICACIÓN Y SUGERENCIAS AL DOCTOR -->
+    @if($appointment->status->value === 'COMPLETED')
+        <div x-show="reviewModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6" @click.away="reviewModal = false">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-base shadow-xs">
+                            ⭐
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Tu Opinión Cuenta</span>
+                            <h3 class="text-base font-black text-slate-900">Valorar al Especialista</h3>
+                        </div>
+                    </div>
+                    <button type="button" @click="reviewModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-blue-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                        {{ substr($appointment->doctor?->user?->name ?? 'Dr', 0, 2) }}
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-900">{{ $appointment->doctor?->user?->name }}</p>
+                        <p class="text-[11px] text-slate-500">{{ $appointment->specialty?->name }} &bull; Cita #{{ $appointment->code }}</p>
+                    </div>
+                </div>
+
+                <form action="{{ route('patient.appointment.review', $appointment) }}" method="POST" class="space-y-5">
+                    @csrf
+
+                    <!-- Calificación en Estrellas -->
+                    <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center space-y-2">
+                        <label class="block text-xs font-bold text-slate-800">Calificación General *</label>
+                        <input type="hidden" name="rating" :value="patientRating">
+
+                        <div class="flex items-center justify-center space-x-1.5 py-1">
+                            <template x-for="st in [1, 2, 3, 4, 5]" :key="st">
+                                <button 
+                                    type="button" 
+                                    @click="patientRating = st" 
+                                    @mouseenter="patientHoverRating = st" 
+                                    @mouseleave="patientHoverRating = 0"
+                                    class="p-1 transition-transform hover:scale-125 focus:outline-hidden"
+                                >
+                                    <svg 
+                                        class="w-8 h-8 transition-colors duration-150" 
+                                        :class="(patientHoverRating ? patientHoverRating >= st : patientRating >= st) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'"
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor" 
+                                        stroke-width="1"
+                                    >
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                        <span class="text-[11px] font-bold text-brand-primary" x-text="patientRating + ' de 5 estrellas'"></span>
+                    </div>
+
+                    <!-- Aspectos Específicos -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center space-y-1">
+                            <span class="text-[10px] font-bold text-slate-600 block">Trato / Empatía</span>
+                            <input type="hidden" name="attention_rating" :value="patientAttention">
+                            <div class="flex justify-center space-x-0.5">
+                                <template x-for="st in [1, 2, 3, 4, 5]" :key="st">
+                                    <button type="button" @click="patientAttention = st" class="text-xs focus:outline-hidden">
+                                        <span :class="patientAttention >= st ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center space-y-1">
+                            <span class="text-[10px] font-bold text-slate-600 block">Puntualidad</span>
+                            <input type="hidden" name="punctuality_rating" :value="patientPunctuality">
+                            <div class="flex justify-center space-x-0.5">
+                                <template x-for="st in [1, 2, 3, 4, 5]" :key="st">
+                                    <button type="button" @click="patientPunctuality = st" class="text-xs focus:outline-hidden">
+                                        <span :class="patientPunctuality >= st ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center space-y-1">
+                            <span class="text-[10px] font-bold text-slate-600 block">Instalaciones</span>
+                            <input type="hidden" name="facilities_rating" :value="patientFacilities">
+                            <div class="flex justify-center space-x-0.5">
+                                <template x-for="st in [1, 2, 3, 4, 5]" :key="st">
+                                    <button type="button" @click="patientFacilities = st" class="text-xs focus:outline-hidden">
+                                        <span :class="patientFacilities >= st ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sugerencias y Comentarios -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1">Sugerencias y Comentarios (opcional)</label>
+                        <textarea 
+                            name="comment" 
+                            rows="3" 
+                            x-model="patientComment"
+                            placeholder="Escribe tus sugerencias para mejorar el servicio o destaca lo que más te gustó..."
+                            class="w-full rounded-2xl border-slate-200 text-xs p-3 focus:border-brand-primary focus:ring-brand-primary shadow-xs resize-none"
+                        ></textarea>
+                    </div>
+
+                    <!-- Check Anónimo -->
+                    <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                        <input type="checkbox" name="is_anonymous" value="1" x-model="patientIsAnonymous" class="rounded-sm border-slate-300 text-brand-primary focus:ring-brand-primary">
+                        <span>Enviar como comentario anónimo</span>
+                    </label>
+
+                    <div class="flex justify-end space-x-2.5 pt-2 border-t border-slate-100">
+                        <button type="button" @click="reviewModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all">
+                            Guardar Valoración
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection

@@ -69,6 +69,21 @@ class Doctor extends Model
         return $this->hasMany(Appointment::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(DoctorReview::class);
+    }
+
+    public function getAverageRatingAttribute(): float
+    {
+        return (float) round($this->reviews()->whereNotNull('submitted_at')->where('is_visible', true)->avg('rating') ?: 5.0, 1);
+    }
+
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->reviews()->whereNotNull('submitted_at')->where('is_visible', true)->count();
+    }
+
     public function getNameAttribute(): string
     {
         return $this->user ? $this->user->name : 'Médico';

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Patient;
 use App\Domain\Appointments\Services\AppointmentCancellationService;
 use App\Domain\Appointments\Services\AppointmentRescheduleService;
 use App\Domain\Availability\Services\AvailabilityService;
+use App\Domain\Doctors\Services\DoctorReviewService;
 use App\Domain\Payments\Services\BankTransferService;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
@@ -24,7 +25,8 @@ class PatientPortalController extends Controller
         protected AppointmentCancellationService $cancellationService,
         protected AppointmentRescheduleService $rescheduleService,
         protected AvailabilityService $availabilityService,
-        protected BankTransferService $transferService
+        protected BankTransferService $transferService,
+        protected DoctorReviewService $reviewService
     ) {}
 
     public function dashboard(): View
@@ -71,7 +73,7 @@ class PatientPortalController extends Controller
     {
         $this->authorize('view', $appointment);
 
-        $appointment->load(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories.user', 'cancelledBy']);
+        $appointment->load(['doctor.user', 'specialty', 'procedure', 'payments.bankTransfer', 'histories.user', 'cancelledBy', 'review']);
 
         return view('patient.appointment-show', compact('appointment'));
     }
@@ -212,6 +214,34 @@ class PatientPortalController extends Controller
         }
 
         return Storage::disk('medical_records')->download($path, $name);
+    }
+
+    public function storeReview(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $this->authorize('view', $appointment);
+
+        if ($appointment->status->value !== 'COMPLETED') {
+            return back()->with('error', 'Solo es posible calificar y dejar sugerencias para citas médicas que ya hayan sido atendidas.');
+        }
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'attention_rating' => ['nullable', 'integer', 'between:1,5'],
+            'punctuality_rating' => ['nullable', 'integer', 'between:1,5'],
+            'facilities_rating' => ['nullable', 'integer', 'between:1,5'],
+            'recommendation_score' => ['nullable', 'integer', 'between:1,10'],
+            'comment' => ['nullable', 'string', 'max:2000'],
+            'is_anonymous' => ['nullable', 'boolean'],
+        ], [
+            'rating.required' => 'Por favor selecciona una calificación general en estrellas.',
+            'rating.between' => 'La calificación debe ser entre 1 y 5 estrellas.',
+            'comment.max' => 'El comentario no puede superar los 2000 caracteres.',
+        ]);
+
+        $review = $this->reviewService->getOrCreateReviewForAppointment($appointment, 'PORTAL');
+        $this->reviewService->submitReview($review, $validated, 'PORTAL');
+
+        return back()->with('success', '¡Muchas gracias! Tu valoración y sugerencias han sido guardadas exitosamente.');
     }
 }
 

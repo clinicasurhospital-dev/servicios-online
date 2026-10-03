@@ -47,6 +47,11 @@ class Patient extends Model
         return $this->hasMany(Appointment::class)->orderBy('start_at', 'desc');
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(DoctorReview::class);
+    }
+
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";

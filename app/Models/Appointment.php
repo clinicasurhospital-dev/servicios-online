@@ -167,4 +167,14 @@ class Appointment extends Model
     {
         return !empty($this->procedure_document_path);
     }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(DoctorReview::class);
+    }
+
+    public function hasReview(): bool
+    {
+        return $this->review()->whereNotNull('submitted_at')->exists();
+    }
 }

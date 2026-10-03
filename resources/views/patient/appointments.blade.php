@@ -88,6 +88,13 @@
                                     Cancelar
                                 </a>
                             @endif
+
+                            @if($app->status->value === 'COMPLETED')
+                                <a href="{{ route('patient.appointment.show', $app) }}" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition-colors flex items-center gap-1">
+                                    <span>⭐</span>
+                                    <span>Calificar Atención</span>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
