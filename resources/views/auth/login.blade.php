@@ -69,6 +69,9 @@
                     <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
                     <span class="text-slate-600 font-medium">Recordarme</span>
                 </label>
+                <a href="{{ route('password.request') }}" class="font-semibold text-[#0700FF] hover:underline" style="color: #0700FF;">
+                    ¿Olvidaste tu contraseña?
+                </a>
             </div>
 
             <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0700FF] hover:bg-[#0500C9] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer block text-center" style="background-color: #0700FF; color: #FFFFFF;">

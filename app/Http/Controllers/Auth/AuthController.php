@@ -106,4 +106,85 @@ class AuthController extends Controller
 
         return redirect('/')->with('info', 'Has cerrado sesión exitosamente.');
     }
+
+    public function showForgotPassword(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLinkEmail(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'Por favor ingresa tu correo electrónico.',
+            'email.email' => 'Ingresa un formato de correo válido.',
+        ]);
+
+        try {
+            $status = \Illuminate\Support\Facades\Password::sendResetLink(
+                $request->only('email')
+            );
+
+            if ($status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT) {
+                return back()->with('status', 'Hemos enviado un enlace para restablecer tu contraseña a tu correo electrónico. Revisa tu bandeja de entrada o carpeta de spam.');
+            }
+
+            return back()->withErrors([
+                'email' => 'No pudimos encontrar una cuenta registrada con esa dirección de correo.',
+            ])->onlyInput('email');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error al enviar correo de restablecimiento: ' . $e->getMessage(), [
+                'email' => $request->input('email'),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors([
+                'email' => 'Ocurrió un inconveniente al enviar el correo. Por favor intenta nuevamente o contacta a soporte.',
+            ])->onlyInput('email');
+        }
+    }
+
+    public function showResetPassword(Request $request, ?string $token = null): View
+    {
+        return view('auth.reset-password', [
+            'token' => $token ?? $request->route('token'),
+            'email' => $request->query('email', old('email')),
+        ]);
+    }
+
+    public function resetPassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ], [
+            'token.required' => 'El token de seguridad es requerido.',
+            'email.required' => 'El correo electrónico es requerido.',
+            'email.email' => 'El correo ingresado no es válido.',
+            'password.required' => 'Debes ingresar una nueva contraseña.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+        ]);
+
+        $status = \Illuminate\Support\Facades\Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => \Illuminate\Support\Str::random(60),
+                ])->save();
+
+                event(new \Illuminate\Auth\Events\PasswordReset($user));
+            }
+        );
+
+        if ($status === \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+            return redirect()->route('login')->with('status', '¡Tu contraseña ha sido restablecida con éxito! Ya puedes iniciar sesión con tu nueva contraseña.');
+        }
+
+        return back()->withErrors([
+            'email' => 'El enlace de recuperación es inválido o ha caducado. Por favor solicita uno nuevo.',
+        ])->onlyInput('email');
+    }
 }

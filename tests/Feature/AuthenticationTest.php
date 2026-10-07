@@ -81,4 +81,62 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_forgot_password_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/recuperar-contrasena');
+        $response->assertStatus(200);
+        $response->assertSee('Recuperar Contraseña');
+    }
+
+    public function test_password_reset_link_can_be_requested(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $user = User::factory()->create([
+            'email' => 'paciente.recuperar@surhospital.com',
+        ]);
+
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/recuperar-contrasena', [
+                'email' => 'paciente.recuperar@surhospital.com',
+            ]);
+
+        $response->assertSessionHas('status');
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $user,
+            \App\Notifications\ResetPasswordNotification::class
+        );
+    }
+
+    public function test_reset_password_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/restablecer-contrasena/sample-token?email=paciente.recuperar@surhospital.com');
+        $response->assertStatus(200);
+        $response->assertSee('Nueva Contraseña');
+    }
+
+    public function test_password_can_be_reset_with_valid_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'reset.user@surhospital.com',
+            'password' => bcrypt('old-password-123'),
+        ]);
+
+        $token = \Illuminate\Support\Facades\Password::createToken($user);
+
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/restablecer-contrasena', [
+                'token' => $token,
+                'email' => 'reset.user@surhospital.com',
+                'password' => 'new-secure-password-456',
+                'password_confirmation' => 'new-secure-password-456',
+            ]);
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('status');
+
+        $user->refresh();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('new-secure-password-456', $user->password));
+    }
 }

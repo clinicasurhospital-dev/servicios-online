@@ -41,6 +41,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/registro', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/registro', [AuthController::class, 'register'])->middleware('throttle:10,1');
+
+    // Recuperación de Contraseña
+    Route::get('/recuperar-contrasena', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/recuperar-contrasena', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('/restablecer-contrasena/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/restablecer-contrasena', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1')->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
