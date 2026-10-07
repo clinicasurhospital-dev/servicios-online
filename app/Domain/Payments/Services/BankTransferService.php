@@ -17,8 +17,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+use App\Domain\Appointments\Services\AppointmentNotificationDispatcher;
+use App\Notifications\AppointmentSystemNotification;
+use Illuminate\Support\Facades\Notification;
+
 class BankTransferService
 {
+    public function __construct(
+        protected ?AppointmentNotificationDispatcher $notificationDispatcher = null
+    ) {
+        $this->notificationDispatcher = $notificationDispatcher ?? app(AppointmentNotificationDispatcher::class);
+    }
+
     /**
      * Submit a new bank transfer record with receipt stored in private disk.
      */
@@ -27,7 +37,7 @@ class BankTransferService
         array $data,
         UploadedFile $receiptFile
     ): BankTransfer {
-        return DB::transaction(function () use ($appointment, $data, $receiptFile) {
+        $bankTransfer = DB::transaction(function () use ($appointment, $data, $receiptFile) {
             // Find or create payment for this appointment
             $payment = Payment::firstOrCreate(
                 ['appointment_id' => $appointment->id],
@@ -57,6 +67,25 @@ class BankTransferService
 
             return $bankTransfer;
         });
+
+        // Notify staff of submitted voucher
+        try {
+            $staffUsers = $this->notificationDispatcher->getStaffUsers();
+            if ($staffUsers->isNotEmpty()) {
+                $patientName = $appointment->patient?->full_name ?? 'Paciente';
+                Notification::send($staffUsers, new AppointmentSystemNotification(
+                    title: '🏦 Comprobante de Pago Subido',
+                    message: "{$patientName} subió un comprobante de transferencia bancaria para la cita #{$appointment->code} (Ref: {$bankTransfer->reference_number}).",
+                    appointment: $appointment,
+                    type: 'transfer_submitted',
+                    actionUrl: url('/admin/transferencias')
+                ));
+            }
+        } catch (\Throwable $e) {
+            // Ignore failure in log
+        }
+
+        return $bankTransfer;
     }
 
     /**
@@ -137,5 +166,18 @@ class BankTransferService
 
             return $transfer;
         });
+
+        if ($isApproved) {
+            $appointment = $transfer->payment?->appointment;
+            if ($appointment) {
+                $this->notificationDispatcher->dispatchPaymentReceived(
+                    $appointment,
+                    $transfer->payment,
+                    "Transferencia bancaria validada (Banco: {$transfer->bank_name}, Ref: {$transfer->reference_number})"
+                );
+            }
+        }
+
+        return $transfer;
     }
 }

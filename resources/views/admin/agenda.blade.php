@@ -12,17 +12,23 @@
             @php
                 $prevDate = $viewMode === 'week' ? $selectedDate->copy()->subWeek()->format('Y-m-d') : $selectedDate->copy()->subDay()->format('Y-m-d');
                 $nextDate = $viewMode === 'week' ? $selectedDate->copy()->addWeek()->format('Y-m-d') : $selectedDate->copy()->addDay()->format('Y-m-d');
+                $routeParams = fn($date, $view) => array_filter([
+                    'view' => $view,
+                    'date' => $date,
+                    'doctor_id' => $selectedDoctorId,
+                    'specialty_id' => $selectedSpecialtyId,
+                ]);
             @endphp
 
-            <a href="{{ route('admin.agenda', ['view' => $viewMode, 'date' => $prevDate, 'doctor_id' => $selectedDoctorId]) }}" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+            <a href="{{ route('admin.agenda', $routeParams($prevDate, $viewMode)) }}" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors" title="Anterior">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </a>
 
-            <a href="{{ route('admin.agenda', ['view' => $viewMode, 'date' => now()->format('Y-m-d'), 'doctor_id' => $selectedDoctorId]) }}" class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            <a href="{{ route('admin.agenda', $routeParams(now()->format('Y-m-d'), $viewMode)) }}" class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
                 Hoy
             </a>
 
-            <a href="{{ route('admin.agenda', ['view' => $viewMode, 'date' => $nextDate, 'doctor_id' => $selectedDoctorId]) }}" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+            <a href="{{ route('admin.agenda', $routeParams($nextDate, $viewMode)) }}" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors" title="Siguiente">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </a>
 
@@ -37,30 +43,56 @@
             </div>
         </div>
 
-        <!-- View Mode and Doctor Filters -->
+        <!-- View Mode, Specialty and Doctor Filters -->
         <div class="flex flex-wrap items-center gap-3">
             @if(!auth()->user()->isDoctor())
-                <form method="GET" action="{{ route('admin.agenda') }}" class="flex items-center space-x-2">
+                <form method="GET" action="{{ route('admin.agenda') }}" class="flex flex-wrap items-center gap-2">
                     <input type="hidden" name="view" value="{{ $viewMode }}">
                     <input type="hidden" name="date" value="{{ $selectedDate->format('Y-m-d') }}">
                     
-                    <select name="doctor_id" onchange="this.form.submit()" class="rounded-xl border-slate-200 text-xs font-semibold p-2.5 focus:border-brand-primary focus:ring-brand-primary">
-                        <option value="">Todos los Especialistas</option>
-                        @foreach($doctors as $doc)
-                            <option value="{{ $doc->id }}" {{ $selectedDoctorId == $doc->id ? 'selected' : '' }}>
-                                {{ $doc->user->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <!-- Specialty Filter -->
+                    <div class="relative">
+                        <select name="specialty_id" onchange="this.form.submit()" class="rounded-xl border-slate-200 text-xs font-semibold py-2 px-3 pr-8 focus:border-brand-primary focus:ring-brand-primary bg-white shadow-xs">
+                            <option value="">Todas las Especialidades</option>
+                            @foreach($specialties as $spec)
+                                <option value="{{ $spec->id }}" {{ $selectedSpecialtyId == $spec->id ? 'selected' : '' }}>
+                                    {{ $spec->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Doctor Filter -->
+                    <div class="relative">
+                        <select name="doctor_id" onchange="this.form.submit()" class="rounded-xl border-slate-200 text-xs font-semibold py-2 px-3 pr-8 focus:border-brand-primary focus:ring-brand-primary bg-white shadow-xs">
+                            <option value="">Todos los Especialistas / Médicos</option>
+                            @foreach($doctors as $doc)
+                                @php
+                                    $matchesSpec = !$selectedSpecialtyId || $doc->specialties->contains('id', $selectedSpecialtyId);
+                                @endphp
+                                @if($matchesSpec || $selectedDoctorId == $doc->id)
+                                    <option value="{{ $doc->id }}" {{ $selectedDoctorId == $doc->id ? 'selected' : '' }}>
+                                        Dr. {{ $doc->user->name }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($selectedDoctorId || $selectedSpecialtyId)
+                        <a href="{{ route('admin.agenda', ['view' => $viewMode, 'date' => $selectedDate->format('Y-m-d')]) }}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors text-xs font-semibold" title="Limpiar filtros">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </a>
+                    @endif
                 </form>
             @endif
 
             <!-- View Switcher Tabs -->
             <div class="flex p-1 bg-slate-100 rounded-xl">
-                <a href="{{ route('admin.agenda', ['view' => 'day', 'date' => $selectedDate->format('Y-m-d'), 'doctor_id' => $selectedDoctorId]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'day' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                <a href="{{ route('admin.agenda', $routeParams($selectedDate->format('Y-m-d'), 'day')) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'day' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
                     Día
                 </a>
-                <a href="{{ route('admin.agenda', ['view' => 'week', 'date' => $selectedDate->format('Y-m-d'), 'doctor_id' => $selectedDoctorId]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'week' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                <a href="{{ route('admin.agenda', $routeParams($selectedDate->format('Y-m-d'), 'week')) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $viewMode === 'week' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
                     Semana
                 </a>
             </div>

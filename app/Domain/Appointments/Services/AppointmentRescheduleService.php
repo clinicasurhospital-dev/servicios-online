@@ -18,8 +18,11 @@ class AppointmentRescheduleService
 {
     public function __construct(
         protected AvailabilityService $availabilityService,
-        protected BrandingService $brandingService
-    ) {}
+        protected BrandingService $brandingService,
+        protected ?AppointmentNotificationDispatcher $notificationDispatcher = null
+    ) {
+        $this->notificationDispatcher = $notificationDispatcher ?? app(AppointmentNotificationDispatcher::class);
+    }
 
     /**
      * Reschedules an appointment to a new date/time adhering to policy and concurrency rules.
@@ -108,5 +111,15 @@ class AppointmentRescheduleService
 
             return $appointment;
         });
+
+        // Dispatch notifications to patient, doctor, and staff
+        $this->notificationDispatcher->dispatchAppointmentRescheduled(
+            $appointment,
+            $oldStartAt,
+            $newStartAt,
+            $reason
+        );
+
+        return $appointment;
     }
 }

@@ -11,6 +11,12 @@ use InvalidArgumentException;
 
 class AppointmentCancellationService
 {
+    public function __construct(
+        protected ?AppointmentNotificationDispatcher $notificationDispatcher = null
+    ) {
+        $this->notificationDispatcher = $notificationDispatcher ?? app(AppointmentNotificationDispatcher::class);
+    }
+
     /**
      * Cancels an appointment and releases its time slot.
      */
@@ -25,7 +31,7 @@ class AppointmentCancellationService
             );
         }
 
-        return DB::transaction(function () use ($appointment, $reason, $cancelledByUserId) {
+        $result = DB::transaction(function () use ($appointment, $reason, $cancelledByUserId) {
             $beforeState = $appointment->toArray();
             $previousStatus = $appointment->status->value;
 
@@ -64,5 +70,26 @@ class AppointmentCancellationService
 
             return $appointment;
         });
+
+        // Determine who cancelled
+        $cancelledByRole = 'PACIENTE';
+        if (auth()->check()) {
+            if (auth()->user()->isAdmin()) {
+                $cancelledByRole = 'ADMINISTRACIÓN';
+            } elseif (auth()->user()->isReception()) {
+                $cancelledByRole = 'RECEPCIÓN';
+            } elseif (auth()->user()->isDoctor()) {
+                $cancelledByRole = 'MÉDICO';
+            }
+        }
+
+        // Dispatch notifications to patient, doctor, and staff
+        $this->notificationDispatcher->dispatchAppointmentCancelled(
+            $result,
+            $reason,
+            $cancelledByRole
+        );
+
+        return $result;
     }
 }

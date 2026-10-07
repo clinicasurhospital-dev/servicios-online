@@ -19,8 +19,11 @@ use Illuminate\Support\Str;
 class AppointmentBookingService
 {
     public function __construct(
-        protected AvailabilityService $availabilityService
-    ) {}
+        protected AvailabilityService $availabilityService,
+        protected ?AppointmentNotificationDispatcher $notificationDispatcher = null
+    ) {
+        $this->notificationDispatcher = $notificationDispatcher ?? app(AppointmentNotificationDispatcher::class);
+    }
 
     /**
      * Atomically books an appointment with pessimistic concurrency protection.
@@ -130,5 +133,17 @@ class AppointmentBookingService
 
             return $appointment;
         });
+
+        // Dispatch email and internal notifications
+        $this->notificationDispatcher->dispatchAppointmentCreated($appointment);
+
+        if ($dto->paymentMethod === 'CREDIT_CARD') {
+            $payment = $appointment->payments()->first();
+            if ($payment) {
+                $this->notificationDispatcher->dispatchPaymentReceived($appointment, $payment, 'Pago con tarjeta al momento de agendar');
+            }
+        }
+
+        return $appointment;
     }
 }

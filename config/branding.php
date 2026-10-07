@@ -61,6 +61,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Staff & Administrative Notification Channels
+    |--------------------------------------------------------------------------
+    |
+    | Configurable email lists for administrative and reception personnel.
+    | Comma-separated lists in .env (e.g. NOTIFICATION_ADMIN_EMAILS=admin@...,director@...)
+    |
+    */
+    'notifications' => [
+        'admin_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_ADMIN_EMAILS', env('BRAND_EMAIL', 'admin@surhospital.com')))))),
+        'reception_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_RECEPTION_EMAILS', env('BRAND_APPOINTMENTS_EMAIL', 'recepcion@surhospital.com')))))),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Bank Transfer Information
     |--------------------------------------------------------------------------
     */

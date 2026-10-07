@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Domain\Appointments\Enums\AppointmentStatus;
+use App\Domain\Appointments\Services\AppointmentNotificationDispatcher;
 use App\Domain\Appointments\Services\AppointmentCancellationService;
 use App\Domain\Appointments\Services\AppointmentRescheduleService;
 use App\Domain\Availability\Services\AvailabilityService;
@@ -34,8 +35,11 @@ class PatientPortalController extends Controller
         protected AppointmentRescheduleService $rescheduleService,
         protected AvailabilityService $availabilityService,
         protected BankTransferService $transferService,
-        protected DoctorReviewService $reviewService
-    ) {}
+        protected DoctorReviewService $reviewService,
+        protected ?AppointmentNotificationDispatcher $notificationDispatcher = null
+    ) {
+        $this->notificationDispatcher = $notificationDispatcher ?? app(AppointmentNotificationDispatcher::class);
+    }
 
     public function dashboard(): View
     {
@@ -288,6 +292,12 @@ class PatientPortalController extends Controller
                 ]);
             });
 
+            // Dispatch notification
+            $payment = $appointment->payments()->first();
+            if ($payment) {
+                $this->notificationDispatcher->dispatchPaymentReceived($appointment, $payment, 'Pago con tarjeta en línea');
+            }
+
             return back()->with('success', '¡Pago procesado exitosamente! Tu cita médica #' . $appointment->code . ' ha sido confirmada.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al procesar el pago: ' . $e->getMessage());
@@ -353,6 +363,12 @@ class PatientPortalController extends Controller
                     'created_at' => now(),
                 ]);
             });
+
+            // Dispatch notification
+            $payment = $appointment->payments()->first();
+            if ($payment) {
+                $this->notificationDispatcher->dispatchPaymentReceived($appointment, $payment, 'Pago validado vía enlace digital');
+            }
 
             return back()->with('success', '¡Pago mediante enlace validado exitosamente! Tu cita médica #' . $appointment->code . ' ha sido confirmada.');
         } catch (\Exception $e) {

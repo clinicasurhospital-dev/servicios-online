@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminClinicalRecordController;
 use App\Http\Controllers\Admin\AdminClinicalTemplateController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDoctorController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminPatientController;
 use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSpecialtyController;
@@ -79,6 +80,8 @@ Route::middleware(['auth', 'role:PATIENT|SUPER_ADMIN|ADMIN'])->prefix('paciente'
 Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/agenda', [AdminAgendaController::class, 'index'])->name('agenda');
+    Route::post('/notificaciones/marcar-todas', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.mark_all_read');
+    Route::post('/notificaciones/{id}/marcar-leida', [AdminNotificationController::class, 'markAsRead'])->name('notifications.mark_read');
     
     // Citas
     Route::get('/citas', [AdminAppointmentController::class, 'index'])->name('appointments');

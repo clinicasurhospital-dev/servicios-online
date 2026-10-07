@@ -19,19 +19,24 @@ class AdminAgendaController extends Controller
         $viewMode = $request->input('view', 'day'); // 'day' or 'week'
         $selectedDate = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
         $selectedDoctorId = $request->input('doctor_id');
+        $selectedSpecialtyId = $request->input('specialty_id');
 
         // If user is a Doctor, constrain to their own doctor profile
         if ($user->isDoctor() && $user->doctor) {
             $selectedDoctorId = $user->doctor->id;
         }
 
-        $doctors = Doctor::where('is_active', true)->with('user')->get();
-        $specialties = Specialty::where('is_active', true)->get();
+        $doctors = Doctor::where('is_active', true)->with(['user', 'specialties'])->get();
+        $specialties = Specialty::where('is_active', true)->orderBy('name', 'asc')->get();
 
         $query = Appointment::with(['patient', 'doctor.user', 'specialty', 'procedure', 'payments']);
 
         if ($selectedDoctorId) {
             $query->where('doctor_id', $selectedDoctorId);
+        }
+
+        if ($selectedSpecialtyId) {
+            $query->where('specialty_id', $selectedSpecialtyId);
         }
 
         if ($viewMode === 'week') {
@@ -52,7 +57,8 @@ class AdminAgendaController extends Controller
             'specialties',
             'selectedDate',
             'viewMode',
-            'selectedDoctorId'
+            'selectedDoctorId',
+            'selectedSpecialtyId'
         ));
     }
 }
