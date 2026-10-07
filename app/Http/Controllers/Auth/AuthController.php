@@ -121,9 +121,11 @@ class AuthController extends Controller
             'email.email' => 'Ingresa un formato de correo válido.',
         ]);
 
+        $email = strtolower(trim($request->input('email')));
+
         try {
             $status = \Illuminate\Support\Facades\Password::sendResetLink(
-                $request->only('email')
+                ['email' => $email]
             );
 
             if ($status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT) {
@@ -135,7 +137,7 @@ class AuthController extends Controller
             ])->onlyInput('email');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error al enviar correo de restablecimiento: ' . $e->getMessage(), [
-                'email' => $request->input('email'),
+                'email' => $email,
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -153,7 +155,7 @@ class AuthController extends Controller
     {
         return view('auth.reset-password', [
             'token' => $token ?? $request->route('token'),
-            'email' => $request->query('email', old('email')),
+            'email' => strtolower(trim($request->query('email', old('email', '')))),
         ]);
     }
 
@@ -171,8 +173,17 @@ class AuthController extends Controller
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
         ]);
 
+        $email = strtolower(trim($request->input('email')));
+
+        $credentials = [
+            'token' => $request->input('token'),
+            'email' => $email,
+            'password' => $request->input('password'),
+            'password_confirmation' => $request->input('password_confirmation'),
+        ];
+
         $status = \Illuminate\Support\Facades\Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+            $credentials,
             function (User $user, string $password) {
                 $user->forceFill([
                     'password' => Hash::make($password),
