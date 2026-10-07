@@ -139,8 +139,12 @@ class AuthController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            $errorMessage = config('app.debug')
+                ? 'Error al enviar correo (SMTP): ' . $e->getMessage()
+                : 'Ocurrió un inconveniente al enviar el correo. Por favor intenta nuevamente o contacta a soporte.';
+
             return back()->withErrors([
-                'email' => 'Ocurrió un inconveniente al enviar el correo. Por favor intenta nuevamente o contacta a soporte.',
+                'email' => $errorMessage,
             ])->onlyInput('email');
         }
     }
