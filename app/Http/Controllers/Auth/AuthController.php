@@ -124,6 +124,37 @@ class AuthController extends Controller
         $email = strtolower(trim($request->input('email')));
 
         try {
+            $user = User::where('email', $email)->first();
+
+            // Si el usuario no existe en 'users' pero está registrado en 'patients' (ej: por agendamiento)
+            if (!$user) {
+                $patient = Patient::where('email', $email)->first();
+                if ($patient) {
+                    $user = DB::transaction(function () use ($patient, $email) {
+                        $newUser = User::create([
+                            'name' => trim("{$patient->first_name} {$patient->last_name}"),
+                            'email' => $email,
+                            'phone' => $patient->phone,
+                            'password' => Hash::make(\Illuminate\Support\Str::random(32)),
+                            'email_verified_at' => now(),
+                            'is_active' => true,
+                        ]);
+
+                        $newUser->assignRole('PATIENT');
+
+                        $patient->update(['user_id' => $newUser->id]);
+
+                        return $newUser;
+                    });
+                }
+            }
+
+            if (!$user) {
+                return back()->withErrors([
+                    'email' => 'No pudimos encontrar una cuenta registrada con esa dirección de correo.',
+                ])->onlyInput('email');
+            }
+
             $status = \Illuminate\Support\Facades\Password::sendResetLink(
                 ['email' => $email]
             );
@@ -133,7 +164,7 @@ class AuthController extends Controller
             }
 
             return back()->withErrors([
-                'email' => 'No pudimos encontrar una cuenta registrada con esa dirección de correo.',
+                'email' => 'No pudimos procesar la solicitud para esta cuenta. Por favor contacta a soporte.',
             ])->onlyInput('email');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error al enviar correo de restablecimiento: ' . $e->getMessage(), [
