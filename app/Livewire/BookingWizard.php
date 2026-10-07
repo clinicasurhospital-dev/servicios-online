@@ -224,19 +224,18 @@ class BookingWizard extends Component
 
                 if ($result['is_valid']) {
                     $this->cedulaStatus = 'valid';
-                    $this->provinceName = $result['province'] ?? '';
-                    $this->cedulaMessage = $result['message'] ?? 'Cédula válida en Registro Civil';
+                    $this->cedulaMessage = $result['message'] ?? '✓ Cédula verificada';
 
-                    if (!empty($result['first_name']) && empty($this->firstName)) {
+                    if (!empty($result['first_name'])) {
                         $this->firstName = $result['first_name'];
                     }
-                    if (!empty($result['last_name']) && empty($this->lastName)) {
+                    if (!empty($result['last_name'])) {
                         $this->lastName = $result['last_name'];
                     }
-                    if (!empty($result['birth_date']) && empty($this->birthDate)) {
+                    if (!empty($result['birth_date'])) {
                         $this->birthDate = $result['birth_date'];
                     }
-                    if (!empty($result['gender']) && $this->gender === 'OTHER') {
+                    if (!empty($result['gender']) && $result['gender'] !== 'OTHER') {
                         $this->gender = $result['gender'];
                     }
                     if (!empty($result['email']) && empty($this->email)) {
@@ -247,12 +246,11 @@ class BookingWizard extends Component
                     }
                 } else {
                     $this->cedulaStatus = 'invalid';
-                    $this->cedulaMessage = $result['error'] ?? 'Cédula no válida según el algoritmo del Registro Civil.';
+                    $this->cedulaMessage = $result['error'] ?? 'El número de cédula ingresado no es válido.';
                 }
             } else {
                 $this->cedulaStatus = null;
                 $this->cedulaMessage = '';
-                $this->provinceName = '';
             }
         }
     }

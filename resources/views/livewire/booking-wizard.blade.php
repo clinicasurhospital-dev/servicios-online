@@ -399,9 +399,9 @@
                         <!-- 1. Cédula de Identidad -->
                         <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-2">
                             <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">1. Cédula de Identidad (Ecuador) *</label>
-                                @if($provinceName)
-                                    <span class="text-[11px] font-semibold text-brand-primary">Provincia: {{ $provinceName }}</span>
+                                <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">1. Cédula de Identidad *</label>
+                                @if($cedulaStatus === 'valid')
+                                    <span class="text-[11px] font-semibold text-emerald-600">✓ Cédula verificada</span>
                                 @endif
                             </div>
                             <div class="relative">

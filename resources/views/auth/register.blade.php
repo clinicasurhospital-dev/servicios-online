@@ -21,7 +21,6 @@
         loadingCedula: false,
         cedulaStatus: null, // null, 'valid', 'invalid'
         cedulaMessage: '',
-        provinceName: '',
         sourceTag: '',
 
         async checkCedula() {
@@ -42,7 +41,7 @@
 
             this.loadingCedula = true;
             this.cedulaStatus = null;
-            this.cedulaMessage = 'Validando y consultando en Registro Civil...';
+            this.cedulaMessage = 'Consultando en Registro Civil / Base de Datos...';
 
             try {
                 const response = await fetch('/consultar-cedula/' + encodeURIComponent(clean), {
@@ -55,20 +54,19 @@
 
                 if (response.ok && data.is_valid) {
                     this.cedulaStatus = 'valid';
-                    this.provinceName = data.province || '';
-                    this.sourceTag = data.source || 'ALGORITHM';
-                    this.cedulaMessage = data.message || ('Cédula válida (Provincia de ' + data.province + ')');
+                    this.sourceTag = data.source || 'REGISTRO_CIVIL';
+                    this.cedulaMessage = data.message || '✓ Identidad verificada con éxito.';
 
-                    if (data.first_name && !this.firstName) {
+                    if (data.first_name) {
                         this.firstName = data.first_name;
                     }
-                    if (data.last_name && !this.lastName) {
+                    if (data.last_name) {
                         this.lastName = data.last_name;
                     }
-                    if (data.birth_date && !this.birthDate) {
+                    if (data.birth_date) {
                         this.birthDate = data.birth_date;
                     }
-                    if (data.gender && this.gender === 'OTHER') {
+                    if (data.gender && data.gender !== 'OTHER') {
                         this.gender = data.gender;
                     }
                     if (data.phone && !this.phone) {
@@ -86,11 +84,11 @@
                     });
                 } else {
                     this.cedulaStatus = 'invalid';
-                    this.cedulaMessage = data.error || 'La cédula ingresada no es válida según el algoritmo del Registro Civil.';
+                    this.cedulaMessage = data.error || 'El número de cédula ingresado no es válido.';
                 }
             } catch (err) {
                 this.cedulaStatus = 'invalid';
-                this.cedulaMessage = 'Error al validar la cédula. Por favor verifica los 10 dígitos.';
+                this.cedulaMessage = 'Error de conexión al validar la cédula. Por favor verifica los 10 dígitos.';
             } finally {
                 this.loadingCedula = false;
             }
@@ -106,7 +104,7 @@
                 <x-brand.logo height="40" />
             </a>
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Registro de Paciente</h1>
-            <p class="mt-1 text-xs sm:text-sm text-slate-500">Ingresa tu cédula para autocompletar tus datos y crear tu portal médico</p>
+            <p class="mt-1 text-xs sm:text-sm text-slate-500">Ingresa tu cédula de identidad para autocompletar tus datos y crear tu portal médico</p>
         </div>
 
         {{-- Global Validation Errors --}}
@@ -131,9 +129,9 @@
             <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-2">
                 <div class="flex items-center justify-between">
                     <label for="identification_number" class="block text-xs font-bold text-slate-800 uppercase tracking-wider">
-                        1. Cédula de Identidad (Ecuador) *
+                        1. Cédula de Identidad *
                     </label>
-                    <span class="text-[11px] font-semibold text-brand-primary" x-show="provinceName" x-text="'Provincia: ' + provinceName"></span>
+                    <span class="text-[11px] font-semibold text-emerald-600" x-show="cedulaStatus === 'valid'">✓ Cédula verificada</span>
                 </div>
 
                 <div class="relative">
@@ -176,7 +174,7 @@
                 <div x-show="cedulaMessage" x-transition class="text-xs font-semibold flex items-center gap-1.5"
                      :class="cedulaStatus === 'valid' ? 'text-emerald-700' : (cedulaStatus === 'invalid' ? 'text-rose-600' : 'text-slate-500')">
                     <span x-show="loadingCedula">⏳</span>
-                    <span x-show="!loadingCedula && cedulaStatus === 'valid'">🏥</span>
+                    <span x-show="!loadingCedula && cedulaStatus === 'valid'">✓</span>
                     <span x-show="!loadingCedula && cedulaStatus === 'invalid'">⚠️</span>
                     <span x-text="cedulaMessage"></span>
                 </div>
