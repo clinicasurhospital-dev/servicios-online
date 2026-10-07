@@ -29,12 +29,18 @@ class Patient extends Model
         'emergency_contact_phone',
         'allergies',
         'medical_notes',
+        'data_consent_accepted',
+        'data_consent_accepted_at',
+        'data_consent_ip',
+        'data_consent_user_agent',
     ];
 
     protected $casts = [
         'identification_type' => IdentificationType::class,
         'gender' => Gender::class,
         'birth_date' => 'date',
+        'data_consent_accepted' => 'boolean',
+        'data_consent_accepted_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -56,22 +56,53 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request): RedirectResponse
+    public function register(Request $request, \App\Domain\Patients\Services\EcuadorianIdService $idService): RedirectResponse
     {
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'identification_number' => ['required', 'string', 'max:20', 'unique:patients,identification_number'],
-            'phone' => ['required', 'string', 'max:20'],
+            'identification_number' => ['required', 'string', 'digits:10'],
+            'first_name' => ['required', 'string', 'min:2', 'max:100'],
+            'last_name' => ['required', 'string', 'min:2', 'max:100'],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'in:MALE,FEMALE,OTHER'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['required', 'string', 'min:7', 'max:20'],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'data_consent' => ['required', 'accepted'],
+        ], [
+            'identification_number.required' => 'El número de cédula es obligatorio.',
+            'identification_number.digits' => 'La cédula debe contener exactamente 10 dígitos numéricos.',
+            'first_name.required' => 'Los nombres son obligatorios.',
+            'last_name.required' => 'Los apellidos son obligatorios.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.unique' => 'Este correo electrónico ya se encuentra registrado.',
+            'phone.required' => 'El número de teléfono móvil es obligatorio.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+            'data_consent.required' => 'Debes aceptar la Política de Protección de Datos Personales.',
+            'data_consent.accepted' => 'Debes aceptar la Política de Protección de Datos Personales para continuar.',
         ]);
 
-        $user = DB::transaction(function () use ($validated) {
+        // Validate Ecuadorian Cedula algorithm
+        $cedulaCheck = $idService->validateCedula($validated['identification_number']);
+        if (!$cedulaCheck['is_valid']) {
+            return back()->withErrors([
+                'identification_number' => $cedulaCheck['error'],
+            ])->withInput();
+        }
+
+        // Check if cedula already has an associated user account
+        $existingPatient = Patient::where('identification_number', $validated['identification_number'])->first();
+        if ($existingPatient && $existingPatient->user_id) {
+            return back()->withErrors([
+                'identification_number' => 'Ya existe una cuenta registrada con este número de cédula. Por favor inicia sesión.',
+            ])->withInput();
+        }
+
+        $user = DB::transaction(function () use ($validated, $existingPatient, $request) {
             $user = User::create([
-                'name' => "{$validated['first_name']} {$validated['last_name']}",
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'name' => trim("{$validated['first_name']} {$validated['last_name']}"),
+                'email' => strtolower(trim($validated['email'])),
+                'phone' => trim($validated['phone']),
                 'password' => Hash::make($validated['password']),
                 'email_verified_at' => now(),
                 'is_active' => true,
@@ -79,15 +110,37 @@ class AuthController extends Controller
 
             $user->assignRole('PATIENT');
 
-            Patient::create([
-                'user_id' => $user->id,
-                'identification_type' => 'CEDULA',
-                'identification_number' => $validated['identification_number'],
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-            ]);
+            if ($existingPatient) {
+                $existingPatient->update([
+                    'user_id' => $user->id,
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'email' => strtolower(trim($validated['email'])),
+                    'phone' => trim($validated['phone']),
+                    'birth_date' => $validated['birth_date'] ?? $existingPatient->birth_date,
+                    'gender' => $validated['gender'] ?? ($existingPatient->gender?->value ?? 'OTHER'),
+                    'data_consent_accepted' => true,
+                    'data_consent_accepted_at' => now(),
+                    'data_consent_ip' => $request->ip(),
+                    'data_consent_user_agent' => $request->userAgent(),
+                ]);
+            } else {
+                Patient::create([
+                    'user_id' => $user->id,
+                    'identification_type' => 'CEDULA',
+                    'identification_number' => $validated['identification_number'],
+                    'first_name' => $validated['first_name'],
+                    'last_name' => $validated['last_name'],
+                    'email' => strtolower(trim($validated['email'])),
+                    'phone' => trim($validated['phone']),
+                    'birth_date' => $validated['birth_date'] ?? null,
+                    'gender' => $validated['gender'] ?? 'OTHER',
+                    'data_consent_accepted' => true,
+                    'data_consent_accepted_at' => now(),
+                    'data_consent_ip' => $request->ip(),
+                    'data_consent_user_agent' => $request->userAgent(),
+                ]);
+            }
 
             return $user;
         });
@@ -95,7 +148,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect('/paciente')->with('success', '¡Bienvenido a SurHospital! Tu cuenta ha sido creada exitosamente.');
+        return redirect('/paciente')->with('success', '¡Bienvenido a SurHospital! Tu cuenta de paciente ha sido creada exitosamente.');
     }
 
     public function logout(Request $request): RedirectResponse

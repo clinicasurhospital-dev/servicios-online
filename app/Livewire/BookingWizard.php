@@ -61,6 +61,10 @@ class BookingWizard extends Component
     public string $gender = 'OTHER';
     public string $password = '';
     public string $reason = '';
+    public bool $dataConsent = true;
+    public ?string $cedulaStatus = null;
+    public string $cedulaMessage = '';
+    public string $provinceName = '';
 
     // Step 4: Payment Selection & Gateway Demo Data
     public string $paymentMethod = 'CREDIT_CARD'; // CREDIT_CARD, PAYMENT_LINK, BANK_TRANSFER, CASH, CARD_ONSITE
@@ -108,6 +112,7 @@ class BookingWizard extends Component
 
             if (!$this->isManual && !Auth::check()) {
                 $rules['password'] = 'required|string|min:8';
+                $rules['dataConsent'] = 'accepted';
             }
 
             return $rules;
@@ -204,6 +209,51 @@ class BookingWizard extends Component
             $this->birthDate = $patient->birth_date?->format('Y-m-d') ?? '';
             $this->gender = $patient->gender->value ?? 'OTHER';
             $this->cardHolder = strtoupper(Auth::user()->name);
+        }
+    }
+
+    public function updatedIdentificationNumber($value): void
+    {
+        if ($this->identificationType === 'CEDULA') {
+            $clean = preg_replace('/\D/', '', (string) $value);
+            $this->identificationNumber = substr($clean, 0, 10);
+
+            if (strlen($this->identificationNumber) === 10) {
+                $idService = app(\App\Domain\Patients\Services\EcuadorianIdService::class);
+                $result = $idService->lookup($this->identificationNumber);
+
+                if ($result['is_valid']) {
+                    $this->cedulaStatus = 'valid';
+                    $this->provinceName = $result['province'] ?? '';
+                    $this->cedulaMessage = $result['message'] ?? 'Cédula válida en Registro Civil';
+
+                    if (!empty($result['first_name']) && empty($this->firstName)) {
+                        $this->firstName = $result['first_name'];
+                    }
+                    if (!empty($result['last_name']) && empty($this->lastName)) {
+                        $this->lastName = $result['last_name'];
+                    }
+                    if (!empty($result['birth_date']) && empty($this->birthDate)) {
+                        $this->birthDate = $result['birth_date'];
+                    }
+                    if (!empty($result['gender']) && $this->gender === 'OTHER') {
+                        $this->gender = $result['gender'];
+                    }
+                    if (!empty($result['email']) && empty($this->email)) {
+                        $this->email = $result['email'];
+                    }
+                    if (!empty($result['phone']) && empty($this->phone)) {
+                        $this->phone = $result['phone'];
+                    }
+                } else {
+                    $this->cedulaStatus = 'invalid';
+                    $this->cedulaMessage = $result['error'] ?? 'Cédula no válida según el algoritmo del Registro Civil.';
+                }
+            } else {
+                $this->cedulaStatus = null;
+                $this->cedulaMessage = '';
+                $this->provinceName = '';
+            }
         }
     }
 
@@ -451,6 +501,10 @@ class BookingWizard extends Component
                         'phone' => $this->phone,
                         'birth_date' => $this->birthDate ?: '1990-01-01',
                         'gender' => Gender::tryFrom($this->gender) ?? Gender::OTHER,
+                        'data_consent_accepted' => true,
+                        'data_consent_accepted_at' => now(),
+                        'data_consent_ip' => request()->ip(),
+                        'data_consent_user_agent' => request()->userAgent(),
                     ]);
                 }
             } elseif (Auth::check() && Auth::user()->patient) {
@@ -488,6 +542,17 @@ class BookingWizard extends Component
                         'phone' => $this->phone,
                         'birth_date' => $this->birthDate ?: '1990-01-01',
                         'gender' => Gender::tryFrom($this->gender) ?? Gender::OTHER,
+                        'data_consent_accepted' => true,
+                        'data_consent_accepted_at' => now(),
+                        'data_consent_ip' => request()->ip(),
+                        'data_consent_user_agent' => request()->userAgent(),
+                    ]);
+                } else {
+                    $patient->update([
+                        'data_consent_accepted' => true,
+                        'data_consent_accepted_at' => now(),
+                        'data_consent_ip' => request()->ip(),
+                        'data_consent_user_agent' => request()->userAgent(),
                     ]);
                 }
 

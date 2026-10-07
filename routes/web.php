@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminSpecialtyController;
 use App\Http\Controllers\Admin\AdminTransferController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Patient\PatientPortalController;
+use App\Http\Controllers\Public\CedulaLookupController;
 use App\Http\Controllers\Public\DoctorReviewPublicController;
 use App\Http\Controllers\Public\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/agendar', [HomeController::class, 'booking'])->name('booking');
 Route::get('/csrf-token', fn () => response()->json(['token' => csrf_token()]))->name('csrf.token');
+Route::get('/consultar-cedula/{cedula}', [CedulaLookupController::class, 'lookup'])->name('cedula.lookup');
 
 // Valoración directa pública por Token (WhatsApp / Correo)
 Route::get('/valorar/{token}', [DoctorReviewPublicController::class, 'show'])->name('reviews.public.show');

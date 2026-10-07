@@ -395,59 +395,103 @@
                         </div>
                     </div>
                 @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Nombres *</label>
-                            <input type="text" wire:model="firstName" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Ej: Carlos Alfredo" />
-                            @error('firstName') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Apellidos *</label>
-                            <input type="text" wire:model="lastName" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Ej: Mendoza Vera" />
-                            @error('lastName') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Tipo de Documento *</label>
-                            <select wire:model="identificationType" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white font-medium shadow-xs">
-                                <option value="CEDULA">Cédula de Identidad (Ecuador)</option>
-                                <option value="PASAPORTE">Pasaporte Extranjero</option>
-                                <option value="RUC">RUC</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Número de Cédula / Documento *</label>
-                            <input type="text" wire:model="identificationNumber" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white font-mono shadow-xs" placeholder="0928374651" />
+                    <div class="space-y-4 mb-4">
+                        <!-- 1. Cédula de Identidad -->
+                        <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">1. Cédula de Identidad (Ecuador) *</label>
+                                @if($provinceName)
+                                    <span class="text-[11px] font-semibold text-brand-primary">Provincia: {{ $provinceName }}</span>
+                                @endif
+                            </div>
+                            <div class="relative">
+                                <input type="text" wire:model.live.debounce.400ms="identificationNumber" maxlength="10" class="w-full rounded-xl border-slate-200 text-base font-mono font-bold p-3 pr-12 focus:border-brand-primary focus:ring-brand-primary tracking-widest bg-white shadow-xs" placeholder="0912345678" />
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <div wire:loading wire:target="identificationNumber">
+                                        <svg class="animate-spin h-5 w-5 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                        </svg>
+                                    </div>
+                                    @if($cedulaStatus === 'valid')
+                                        <div wire:loading.remove wire:target="identificationNumber" class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">✓</div>
+                                    @elseif($cedulaStatus === 'invalid')
+                                        <div wire:loading.remove wire:target="identificationNumber" class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">✕</div>
+                                    @endif
+                                </div>
+                            </div>
+                            @if($cedulaMessage)
+                                <div class="text-xs font-semibold flex items-center gap-1.5 {{ $cedulaStatus === 'valid' ? 'text-emerald-700' : 'text-rose-600' }}">
+                                    <span>{{ $cedulaStatus === 'valid' ? '🏥' : '⚠️' }}</span>
+                                    <span>{{ $cedulaMessage }}</span>
+                                </div>
+                            @endif
                             @error('identificationNumber') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Correo Electrónico *</label>
-                            <input type="email" wire:model="email" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="paciente@correo.com" />
-                            @error('email') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+
+                        <!-- 2. Nombres y Apellidos -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Nombres *</label>
+                                <input type="text" wire:model="firstName" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Ej: Carlos Alfredo" />
+                                @error('firstName') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Apellidos *</label>
+                                <input type="text" wire:model="lastName" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Ej: Mendoza Vera" />
+                                @error('lastName') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Teléfono / WhatsApp *</label>
-                            <input type="tel" wire:model="phone" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="0991234567" />
-                            @error('phone') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+
+                        <!-- 3. Fecha de Nacimiento y Género -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Fecha de Nacimiento *</label>
+                                <input type="date" wire:model="birthDate" max="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" />
+                                @error('birthDate') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Género *</label>
+                                <select wire:model="gender" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white font-medium shadow-xs">
+                                    <option value="MALE">Masculino</option>
+                                    <option value="FEMALE">Femenino</option>
+                                    <option value="OTHER">Otro / No Especificar</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Fecha de Nacimiento *</label>
-                            <input type="date" wire:model="birthDate" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" />
-                            @error('birthDate') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+
+                        <!-- 4. Correo Electrónico y Teléfono -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Correo Electrónico *</label>
+                                <input type="email" wire:model="email" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="paciente@correo.com" />
+                                @error('email') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Teléfono / WhatsApp *</label>
+                                <input type="tel" wire:model="phone" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="0991234567" />
+                                @error('phone') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Género *</label>
-                            <select wire:model="gender" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white font-medium shadow-xs">
-                                <option value="MALE">Masculino</option>
-                                <option value="FEMALE">Femenino</option>
-                                <option value="OTHER">Otro / No Especificar</option>
-                            </select>
-                        </div>
+
+                        <!-- 5. Contraseña (para usuarios nuevos) -->
                         @if(!$isManual && !Auth::check())
-                            <div class="sm:col-span-2">
+                            <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Crear Contraseña para tu Portal Paciente *</label>
                                 <input type="password" wire:model="password" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50/50 focus:bg-white shadow-xs" placeholder="Mínimo 8 caracteres" />
                                 <p class="text-[11px] text-slate-500 mt-1">Podrás iniciar sesión con tu correo y esta clave para ver recetas, certificados y tus citas agendadas.</p>
                                 @error('password') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- 6. Protección de Datos Personales (LOPDP) -->
+                            <div class="p-3.5 rounded-2xl bg-brand-soft/30 border border-brand-primary/20">
+                                <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                    <input type="checkbox" wire:model="dataConsent" class="mt-0.5 h-4 w-4 rounded text-brand-primary focus:ring-brand-primary cursor-pointer" />
+                                    <span class="text-xs text-slate-700">
+                                        Autorizo el tratamiento de mis datos personales y de salud conforme a la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador.
+                                    </span>
+                                </label>
+                                @error('dataConsent') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         @endif
                     </div>
