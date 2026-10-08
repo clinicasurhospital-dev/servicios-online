@@ -42,7 +42,9 @@ class BookingWizard extends Component
 
     // Step 1: Specialty & Procedure
     public ?int $specialtyId = null;
-    public ?int $procedureId = null; // null or 0 = Consulta base, >0 = Procedimiento específico
+    public ?int $procedureId = null; // Legacy single selection
+    public array $selectedProceduresList = [];
+    public array $selectedSubproceduresList = [];
 
     // Step 2: Doctor & Time Slot
     public ?int $doctorId = null;
@@ -62,6 +64,7 @@ class BookingWizard extends Component
     public string $password = '';
     public string $reason = '';
     public bool $dataConsent = true;
+    public bool $patientExists = false;
     public ?string $cedulaStatus = null;
     public string $cedulaMessage = '';
     public string $provinceName = '';
@@ -111,7 +114,7 @@ class BookingWizard extends Component
                 'reason' => 'nullable|string|max:500',
             ];
 
-            if (!$this->isManual && !Auth::check()) {
+            if (!$this->isManual && !Auth::check() && !$this->patientExists) {
                 $rules['password'] = 'required|string|min:8';
                 $rules['dataConsent'] = 'accepted';
             }
@@ -220,6 +223,28 @@ class BookingWizard extends Component
             $this->identificationNumber = substr($clean, 0, 10);
 
             if (strlen($this->identificationNumber) === 10) {
+                $existingPatient = \App\Models\Patient::where('identification_number', $this->identificationNumber)->first();
+                if ($existingPatient) {
+                    $this->patientExists = true;
+                    $this->firstName = $existingPatient->first_name;
+                    $this->lastName = $existingPatient->last_name;
+                    $this->email = $existingPatient->email ?? ($existingPatient->user->email ?? '');
+                    $this->phone = $existingPatient->phone;
+                    $this->birthDate = $existingPatient->birth_date?->format('Y-m-d') ?? '';
+                    $this->gender = $existingPatient->gender->value ?? 'OTHER';
+                    
+                    $this->cedulaStatus = 'valid';
+                    $this->cedulaMessage = 'Ya el paciente se encuentra registrado.';
+                    
+                    session()->flash('toast_message', 'Ya el paciente se encuentra registrado.');
+                    session()->flash('toast_type', 'success');
+                    
+                    $this->proceedToStep4();
+                    return;
+                } else {
+                    $this->patientExists = false;
+                }
+
                 $idService = app(\App\Domain\Patients\Services\EcuadorianIdService::class);
                 $result = $idService->lookup($this->identificationNumber);
 
@@ -261,15 +286,46 @@ class BookingWizard extends Component
     {
         $this->specialtyId = $id;
         $this->procedureId = 0; // default to general consultation
+        $this->selectedProceduresList = [];
+        $this->selectedSubproceduresList = [];
         $this->doctorId = null;
         $this->selectedTime = '';
         $this->selectedEndTime = '';
         $this->errorMessage = null;
     }
 
+    public function toggleProcedure(int $id): void
+    {
+        $this->procedureId = null; // Si elige un procedimiento, ya no es consulta general (0)
+
+        if (in_array($id, $this->selectedProceduresList)) {
+            $this->selectedProceduresList = array_diff($this->selectedProceduresList, [$id]);
+            // Deseleccionar subprocedimientos relacionados si es necesario, pero es más fácil dejarlo
+        } else {
+            $this->selectedProceduresList[] = $id;
+        }
+        $this->errorMessage = null;
+    }
+
+    public function toggleSubprocedure(int $id): void
+    {
+        $this->procedureId = null;
+        
+        if (in_array($id, $this->selectedSubproceduresList)) {
+            $this->selectedSubproceduresList = array_diff($this->selectedSubproceduresList, [$id]);
+        } else {
+            $this->selectedSubproceduresList[] = $id;
+        }
+        $this->errorMessage = null;
+    }
+
     public function selectProcedure(int $id): void
     {
         $this->procedureId = $id > 0 ? $id : 0;
+        if ($this->procedureId === 0) {
+            $this->selectedProceduresList = [];
+            $this->selectedSubproceduresList = [];
+        }
         $this->errorMessage = null;
     }
 
@@ -314,12 +370,35 @@ class BookingWizard extends Component
     }
 
     // Step 3 Actions
+    public function calculateTotalAmount(): float
+    {
+        $amount = 0;
+        if ($this->specialtyId) {
+            $spec = Specialty::find($this->specialtyId);
+            
+            if (!empty($this->selectedSubproceduresList)) {
+                $amount = \App\Models\Subprocedure::whereIn('id', $this->selectedSubproceduresList)->sum('price');
+            } elseif (!empty($this->selectedProceduresList)) {
+                $amount = \App\Models\Procedure::whereIn('id', $this->selectedProceduresList)->sum('price');
+            } elseif ($this->procedureId && $this->procedureId > 0) {
+                $proc = Procedure::find($this->procedureId);
+                $amount = $proc ? $proc->price : 0;
+            } else {
+                $amount = $spec ? $spec->base_price : 45;
+            }
+        }
+        return (float) $amount;
+    }
+
     public function proceedToStep4(): void
     {
         $this->errorMessage = null;
         $this->validate();
 
-        if ($this->isManual) {
+        if ($this->isManual || $this->calculateTotalAmount() <= 0) {
+            if ($this->calculateTotalAmount() <= 0) {
+                $this->paymentMethod = 'CASH'; // For 0$ appointments, mark as CASH or similar bypass method
+            }
             $this->confirmBooking(app(AppointmentBookingService::class), app(AvailabilityService::class));
             return;
         }
@@ -351,6 +430,7 @@ class BookingWizard extends Component
         $this->gender = 'OTHER';
         $this->password = '';
         $this->reason = '';
+        $this->patientExists = false;
         $this->paymentMethod = $this->isManual ? 'PAYMENT_LINK' : 'CREDIT_CARD';
         $this->confirmedAppointmentId = null;
         $this->confirmedAppointmentCode = null;
@@ -391,12 +471,7 @@ class BookingWizard extends Component
         }
 
         $appointment = $this->confirmedAppointmentId ? Appointment::find($this->confirmedAppointmentId) : null;
-        $amount = 0;
-        if ($this->specialtyId) {
-            $proc = ($this->procedureId && $this->procedureId > 0) ? Procedure::find($this->procedureId) : null;
-            $spec = Specialty::find($this->specialtyId);
-            $amount = $proc ? $proc->price : ($spec ? $spec->base_price : 45);
-        }
+        $amount = $this->calculateTotalAmount();
 
         if (empty($this->generatedPaymentLink)) {
             $this->generatedPaymentLink = $appointment ? route('patient.appointment.show', $appointment) : url('/paciente');
@@ -570,10 +645,22 @@ class BookingWizard extends Component
             $procedure = ($this->procedureId && $this->procedureId > 0) ? Procedure::find($this->procedureId) : null;
 
             $startAt = Carbon::parse("{$this->selectedDate} {$this->selectedTime}");
-            $duration = $procedure ? $procedure->duration_minutes : ($doctor->consultation_duration_minutes ?? $specialty->default_duration_minutes ?? 30);
+            
+            // Calculate total duration based on selected items
+            $duration = $specialty->default_duration_minutes ?? 30;
+            if (!empty($this->selectedSubproceduresList)) {
+                $duration = \App\Models\Subprocedure::whereIn('id', $this->selectedSubproceduresList)->sum('duration_minutes') ?: $duration;
+            } elseif (!empty($this->selectedProceduresList)) {
+                $duration = \App\Models\Procedure::whereIn('id', $this->selectedProceduresList)->sum('duration_minutes') ?: $duration;
+            } elseif ($procedure) {
+                $duration = $procedure->duration_minutes;
+            } else {
+                $duration = $doctor->consultation_duration_minutes ?? $duration;
+            }
+            
             $endAt = (clone $startAt)->addMinutes($duration);
 
-            $amount = $procedure ? $procedure->price : $specialty->base_price;
+            $amount = $this->calculateTotalAmount();
 
             $paymentMethodValue = match ($this->paymentMethod) {
                 'CREDIT_CARD' => 'CREDIT_CARD',
@@ -603,6 +690,13 @@ class BookingWizard extends Component
             );
 
             $appointment = $bookingService->book($dto);
+            
+            if (!empty($this->selectedProceduresList)) {
+                $appointment->selectedProcedures()->sync($this->selectedProceduresList);
+            }
+            if (!empty($this->selectedSubproceduresList)) {
+                $appointment->selectedSubprocedures()->sync($this->selectedSubproceduresList);
+            }
 
             // Registrar transferencia bancaria si se adjuntó comprobante o datos de transferencia
             if ($this->transferReceipt || ($this->paymentMethod === 'BANK_TRANSFER' && !empty($this->transferReference))) {
@@ -637,7 +731,7 @@ class BookingWizard extends Component
             $this->confirmedAppointmentId = $appointment->id;
             $this->confirmedAppointmentCode = $appointment->code;
             // Enviar correo electrónico institucional si el método de pago es LINK DE PAGO o creación por recepción
-            if (!empty($this->email)) {
+            if (!empty($this->email) && $this->paymentMethod === 'PAYMENT_LINK') {
                 if (empty($this->generatedPaymentLink) || str_contains($this->generatedPaymentLink, 'checkout')) {
                     $this->generatedPaymentLink = route('patient.appointment.show', $appointment);
                 }
@@ -669,7 +763,7 @@ class BookingWizard extends Component
 
         $procedures = collect();
         if ($this->specialtyId) {
-            $procedures = Procedure::where('specialty_id', $this->specialtyId)->where('is_active', true)->orderBy('name')->get();
+            $procedures = Procedure::with('subprocedures')->where('specialty_id', $this->specialtyId)->where('is_active', true)->orderBy('name')->get();
         }
 
         $doctors = collect();
@@ -702,12 +796,7 @@ class BookingWizard extends Component
         $selectedProcedure = ($this->procedureId && $this->procedureId > 0) ? Procedure::find($this->procedureId) : null;
         $selectedDoctor = $this->doctorId ? Doctor::with('user')->find($this->doctorId) : null;
 
-        $amount = 0;
-        if ($selectedProcedure) {
-            $amount = $selectedProcedure->price;
-        } elseif ($selectedSpecialty) {
-            $amount = $selectedSpecialty->base_price;
-        }
+        $amount = $this->calculateTotalAmount();
 
         return view('livewire.booking-wizard', [
             'specialties' => $specialties,

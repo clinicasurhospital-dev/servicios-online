@@ -21,6 +21,7 @@ class Procedure extends Model
         'price',
         'duration_minutes',
         'is_active',
+        'has_subprocedures',
     ];
 
     protected $casts = [
@@ -54,5 +55,10 @@ class Procedure extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function subprocedures(): HasMany
+    {
+        return $this->hasMany(Subprocedure::class);
     }
 }

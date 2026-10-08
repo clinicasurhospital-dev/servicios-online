@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -83,6 +84,20 @@ class Appointment extends Model
     public function procedure(): BelongsTo
     {
         return $this->belongsTo(Procedure::class);
+    }
+
+    public function selectedProcedures(): BelongsToMany
+    {
+        return $this->belongsToMany(Procedure::class, 'appointment_procedure')
+            ->withPivot('price')
+            ->withTimestamps();
+    }
+
+    public function selectedSubprocedures(): BelongsToMany
+    {
+        return $this->belongsToMany(Subprocedure::class, 'appointment_subprocedure')
+            ->withPivot('price')
+            ->withTimestamps();
     }
 
     public function cancelledBy(): BelongsTo

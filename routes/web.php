@@ -166,6 +166,12 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
         Route::post('/procedimientos/{procedure}/toggle', [AdminSpecialtyController::class, 'toggleProcedureActive'])->name('procedures.toggle');
         Route::delete('/procedimientos/{procedure}', [AdminSpecialtyController::class, 'destroyProcedure'])->name('procedures.destroy');
 
+        // Subprocedimientos CRUD
+        Route::post('/procedimientos/{procedure}/subprocedimientos', [AdminSpecialtyController::class, 'storeSubprocedure'])->name('procedures.subprocedures.store');
+        Route::put('/subprocedimientos/{subprocedure}', [AdminSpecialtyController::class, 'updateSubprocedure'])->name('subprocedures.update');
+        Route::post('/subprocedimientos/{subprocedure}/toggle', [AdminSpecialtyController::class, 'toggleSubprocedureActive'])->name('subprocedures.toggle');
+        Route::delete('/subprocedimientos/{subprocedure}', [AdminSpecialtyController::class, 'destroySubprocedure'])->name('subprocedures.destroy');
+
         // Pagos / Transferencias
         Route::get('/transferencias', [AdminTransferController::class, 'index'])->name('transfers');
         Route::post('/transferencias/{transfer}/validar', [AdminTransferController::class, 'validateTransfer'])->name('transfers.validate');

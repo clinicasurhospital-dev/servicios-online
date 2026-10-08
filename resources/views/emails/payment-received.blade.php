@@ -48,7 +48,7 @@
                                     Estimado(a) <strong>{{ $appointment->patient?->full_name ?: 'Paciente' }}</strong>,
                                 </p>
                                 <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
-                                    Confirmamos la recepción de tu pago para la cita médica <strong>#{{ $appointment->code }}</strong> en <strong>{{ $brandName }}</strong>. Tu cita se encuentra formalizada.
+                                    El pago de su cita médica <strong>#{{ $appointment->code }}</strong> en <strong>{{ $brandName }}</strong> ha sido confirmado. Tu cita se encuentra formalizada.
                                 </p>
                             @endif
 

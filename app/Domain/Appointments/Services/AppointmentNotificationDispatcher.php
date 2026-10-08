@@ -103,6 +103,26 @@ class AppointmentNotificationDispatcher
     }
 
     /**
+     * Dispatch notification when appointment is confirmed by admin.
+     */
+    public function dispatchAppointmentConfirmed(Appointment $appointment): void
+    {
+        $appointment->loadMissing(['patient', 'doctor.user', 'specialty', 'procedure']);
+        $patientEmail = $appointment->patient?->email;
+
+        if (!empty($patientEmail)) {
+            try {
+                Mail::to($patientEmail)->send(new \App\Mail\AppointmentConfirmedMail($appointment));
+            } catch (\Throwable $e) {
+                Log::error('Error enviando correo de confirmación de cita al paciente: ' . $e->getMessage(), [
+                    'appointment_id' => $appointment->id,
+                    'email' => $patientEmail,
+                ]);
+            }
+        }
+    }
+
+    /**
      * Dispatch notifications when a payment is received (card, link, transfer).
      */
     public function dispatchPaymentReceived(Appointment $appointment, Payment $payment, ?string $note = null): void

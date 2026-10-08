@@ -48,7 +48,7 @@
                                     Estimado(a) <strong>{{ $appointment->patient?->full_name ?: 'Paciente' }}</strong>,
                                 </p>
                                 <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
-                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido registrada satisfactoriamente. A continuación te presentamos el resumen de tu consulta:
+                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido generada exitosamente y se encuentra en estado <strong>{{ $appointment->status->label() }}</strong>. A continuación te presentamos el resumen de tu consulta:
                                 </p>
                             @endif
 

@@ -162,34 +162,65 @@
                                 </div>
                             </button>
 
-                            <!-- Specific procedures with Radio Indicators -->
+                            <!-- Specific procedures with Checkbox Indicators -->
                             @foreach($procedures as $proc)
-                                <button type="button" wire:key="proc-{{ $proc->id }}" wire:click="selectProcedure({{ $proc->id }})" wire:loading.class="opacity-70 animate-pulse" wire:target="selectProcedure({{ $proc->id }})" class="w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 flex items-center justify-between cursor-pointer group {{ $procedureId == $proc->id ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/20 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300' }}">
-                                    <div class="flex items-center gap-3.5">
-                                        <!-- Radio Option Indicator -->
-                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all {{ $procedureId == $proc->id ? 'border-brand-primary bg-brand-primary ring-4 ring-brand-primary/20 shadow-xs' : 'border-slate-300 bg-white group-hover:border-slate-400' }}">
-                                            @if($procedureId == $proc->id)
-                                                <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                                <div class="w-full rounded-2xl border-2 text-left transition-all duration-200 overflow-hidden {{ in_array($proc->id, $selectedProceduresList) ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/20 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300' }}">
+                                    <button type="button" wire:key="proc-{{ $proc->id }}" wire:click="toggleProcedure({{ $proc->id }})" wire:loading.class="opacity-70 animate-pulse" wire:target="toggleProcedure({{ $proc->id }})" class="w-full p-4 flex items-center justify-between cursor-pointer group">
+                                        <div class="flex items-center gap-3.5">
+                                            <!-- Checkbox Option Indicator -->
+                                            <div class="w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-all {{ in_array($proc->id, $selectedProceduresList) ? 'border-brand-primary bg-brand-primary shadow-xs' : 'border-slate-300 bg-white group-hover:border-slate-400' }}">
+                                                @if(in_array($proc->id, $selectedProceduresList))
+                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                @endif
+                                            </div>
+                                            <div class="w-9 h-9 rounded-xl shadow-xs border flex items-center justify-center shrink-0 {{ in_array($proc->id, $selectedProceduresList) ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-brand-primary border-slate-100' }}">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-900 text-sm">{{ $proc->name }}</div>
+                                                <div class="text-xs text-slate-500">{{ $proc->description ?: 'Estudio / Procedimiento' }} ({{ $proc->duration_minutes }} min)</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right flex items-center gap-3">
+                                            @if(in_array($proc->id, $selectedProceduresList))
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-brand-primary bg-white px-2 py-0.5 rounded-md border border-brand-primary/20 shadow-xs">✓ Sel.</span>
                                             @endif
+                                            <div>
+                                                <span class="block font-black text-brand-primary text-base">${{ number_format($proc->price, 0) }}</span>
+                                                <span class="text-[10px] text-slate-400 uppercase font-bold">Procedimiento</span>
+                                            </div>
                                         </div>
-                                        <div class="w-9 h-9 rounded-xl shadow-xs border flex items-center justify-center shrink-0 {{ $procedureId == $proc->id ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-brand-primary border-slate-100' }}">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                    </button>
+
+                                    <!-- Subprocedures if they exist -->
+                                    @if($proc->subprocedures && $proc->subprocedures->count() > 0 && in_array($proc->id, $selectedProceduresList))
+                                        <div class="px-5 pb-5 pt-2 ml-9 border-t border-slate-100">
+                                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Subprocedimientos Disponibles</h4>
+                                            <div class="space-y-2">
+                                                @foreach($proc->subprocedures as $sub)
+                                                    <button type="button" wire:key="sub-{{ $sub->id }}" wire:click="toggleSubprocedure({{ $sub->id }})" class="w-full p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all {{ in_array($sub->id, $selectedSubproceduresList) ? 'border-brand-primary bg-white ring-1 ring-brand-primary/30 shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-white' }}">
+                                                        <div class="flex items-center gap-3">
+                                                            <div class="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 {{ in_array($sub->id, $selectedSubproceduresList) ? 'border-brand-primary bg-brand-primary' : 'border-slate-300' }}">
+                                                                @if(in_array($sub->id, $selectedSubproceduresList))
+                                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                                @endif
+                                                            </div>
+                                                            <div class="text-left">
+                                                                <div class="text-sm font-semibold text-slate-800">{{ $sub->name }}</div>
+                                                                @if($sub->duration_minutes)
+                                                                    <div class="text-[10px] text-slate-500">{{ $sub->duration_minutes }} min</div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="font-bold text-brand-primary text-sm">
+                                                            ${{ number_format($sub->price, 0) }}
+                                                        </div>
+                                                    </button>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="font-bold text-slate-900 text-sm">{{ $proc->name }}</div>
-                                            <div class="text-xs text-slate-500">{{ $proc->description ?: 'Estudio / Procedimiento' }} ({{ $proc->duration_minutes }} min)</div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right flex items-center gap-3">
-                                        @if($procedureId == $proc->id)
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-brand-primary bg-white px-2 py-0.5 rounded-md border border-brand-primary/20 shadow-xs">✓ Seleccionado</span>
-                                        @endif
-                                        <div>
-                                            <span class="block font-black text-brand-primary text-base">${{ number_format($proc->price, 0) }}</span>
-                                            <span class="text-[10px] text-slate-400 uppercase font-bold">Procedimiento</span>
-                                        </div>
-                                    </div>
-                                </button>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
 
@@ -488,7 +519,11 @@
                                 <label class="flex items-start gap-2.5 cursor-pointer select-none">
                                     <input type="checkbox" wire:model="dataConsent" class="mt-0.5 h-4 w-4 rounded text-brand-primary focus:ring-brand-primary cursor-pointer" />
                                     <span class="text-xs text-slate-700">
-                                        Autorizo el tratamiento de mis datos personales y de salud conforme a la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador.
+                                        He leído y autorizo el tratamiento de mis datos personales y de salud conforme a la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador.
+                                        <a href="{{ asset('documents/politica-proteccion-datos.pdf') }}" target="_blank" download class="text-brand-primary font-bold hover:underline inline-flex items-center gap-1">
+                                            Descargar Política de Datos
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        </a>
                                     </span>
                                 </label>
                                 @error('dataConsent') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror

@@ -41,7 +41,7 @@
                                 </p>
                             @else
                                 <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
-                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido <strong>generada y está pendiente de confirmación de pago</strong>. Por favor completa el proceso de pago con el enlace o adjuntando tu comprobante en la plataforma.
+                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido generada y está pendiente de confirmación de pago por parte de la administración de la clinica...
                                 </p>
                             @endif
 
@@ -101,7 +101,7 @@
                             <!-- Payment Action Button -->
                             <div style="text-align: center; margin-bottom: 28px;">
                                 <a href="{{ $paymentLink }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 14px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center; letter-spacing: 0.3px;">
-                                    💳 Ver Detalles de Pago (${{ number_format($amount, 0) }}) &rarr;
+                                    📅 Ver detalle de la cita
                                 </a>
                                 @if($paymentMethod === 'PAYMENT_LINK')
                                 <p style="font-size: 11px; color: #94A3B8; margin-top: 10px;">

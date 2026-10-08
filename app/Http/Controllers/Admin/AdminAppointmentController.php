@@ -96,6 +96,25 @@ class AdminAppointmentController extends Controller
 
         if ($newStatus === AppointmentStatus::COMPLETED) {
             app(\App\Domain\Doctors\Services\DoctorReviewService::class)->getOrCreateReviewForAppointment($appointment);
+        } elseif ($newStatus === AppointmentStatus::CONFIRMED && in_array($previousStatus, ['PENDING', 'PENDING_PAYMENT'])) {
+            $payment = $appointment->payments()->first();
+            if ($payment && $payment->status->value !== 'PAID' && $payment->amount > 0) {
+                $payment->update([
+                    'status' => \App\Domain\Payments\Enums\PaymentStatus::PAID,
+                    'paid_at' => now(),
+                ]);
+                app(\App\Domain\Appointments\Services\AppointmentNotificationDispatcher::class)
+                    ->dispatchPaymentReceived($appointment, $payment, 'Pago confirmado manualmente en recepción');
+            } else {
+                if ($payment && $payment->status->value !== 'PAID') {
+                    $payment->update([
+                        'status' => \App\Domain\Payments\Enums\PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                }
+                app(\App\Domain\Appointments\Services\AppointmentNotificationDispatcher::class)
+                    ->dispatchAppointmentConfirmed($appointment);
+            }
         }
 
         AppointmentStatusHistory::create([

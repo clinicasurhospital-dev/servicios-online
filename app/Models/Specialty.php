@@ -21,6 +21,7 @@ class Specialty extends Model
         'base_price',
         'default_duration_minutes',
         'is_active',
+        'has_procedures',
     ];
 
     protected $casts = [

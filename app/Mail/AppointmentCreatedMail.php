@@ -27,9 +27,14 @@ class AppointmentCreatedMail extends Mailable
         $code = $this->appointment->code;
         $patientName = $this->appointment->patient?->full_name ?? 'Paciente';
 
+        $status = $this->appointment->status->value;
+        $isPending = $status === 'PENDING' || $status === 'PENDING_PAYMENT';
+        
         $subject = $this->isForStaff
             ? "🔔 Nueva Cita Agendada #{$code} — {$patientName} ({$brandName})"
-            : "📅 Confirmación de Agendamiento de Cita Médica #{$code} — {$brandName}";
+            : ($isPending 
+                ? "📅 Tu Cita Médica #{$code} ha sido generada y está Pendiente de Confirmación — {$brandName}" 
+                : "📅 Confirmación de Agendamiento de Cita Médica #{$code} — {$brandName}");
 
         return new Envelope(
             from: new Address(
