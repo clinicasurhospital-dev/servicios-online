@@ -1,0 +1,17 @@
+name: Test de Despliegue a Servidor Local
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Copiar archivos a IIS wwwroot
+        run: |
+          xcopy . C:\inetpub\wwwroot /E /H /Y
