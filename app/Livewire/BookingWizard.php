@@ -72,6 +72,7 @@ class BookingWizard extends Component
     public string $cardNumber = '';
     public string $cardExpiry = '';
     public string $cardCvv = '';
+    public string $cardGateway = 'payphone'; // payphone or kushki
     public string $generatedPaymentLink = '';
     public bool $paymentLinkSent = false;
     public string $transferBank = 'Banco Pichincha';
@@ -407,7 +408,8 @@ class BookingWizard extends Component
                     appointment: $appointment,
                     paymentLink: $this->generatedPaymentLink,
                     amount: (float) $amount,
-                    patientName: "{$this->firstName} {$this->lastName}"
+                    patientName: "{$this->firstName} {$this->lastName}",
+                    paymentMethod: $this->paymentMethod
                 ));
                 $this->paymentLinkSent = true;
                 $this->errorMessage = null;
@@ -644,7 +646,8 @@ class BookingWizard extends Component
                         appointment: $appointment,
                         paymentLink: $this->generatedPaymentLink,
                         amount: (float) $amount,
-                        patientName: "{$this->firstName} {$this->lastName}"
+                        patientName: "{$this->firstName} {$this->lastName}",
+                        paymentMethod: $this->paymentMethod
                     ));
                     $this->paymentLinkSent = true;
                 } catch (\Throwable $mailException) {

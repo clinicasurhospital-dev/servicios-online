@@ -35,9 +35,15 @@
                             <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; color: #1E293B;">
                                 Estimado(a) <strong>{{ $patientName ?: 'Paciente' }}</strong>,
                             </p>
-                            <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
-                                Hemos generado el enlace de pago digital para tu cita médica programada en <strong>{{ $brandName }}</strong>. Completa tu pago para formalizar y confirmar tu turno de atención.
-                            </p>
+                            @if($paymentMethod === 'CREDIT_CARD')
+                                <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
+                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido <strong>creada y generada con éxito</strong>. A continuación puedes ver el resumen de tu reserva.
+                                </p>
+                            @else
+                                <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; color: #475569;">
+                                    Tu cita médica en <strong>{{ $brandName }}</strong> ha sido <strong>generada y está pendiente de confirmación de pago</strong>. Por favor completa el proceso de pago con el enlace o adjuntando tu comprobante en la plataforma.
+                                </p>
+                            @endif
 
                             <!-- Appointment Summary Box -->
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; margin-bottom: 28px; overflow: hidden;">
@@ -91,26 +97,30 @@
                                 </tr>
                             </table>
 
+                            @if($paymentMethod !== 'CREDIT_CARD')
                             <!-- Payment Action Button -->
                             <div style="text-align: center; margin-bottom: 28px;">
                                 <a href="{{ $paymentLink }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 14px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center; letter-spacing: 0.3px;">
-                                    💳 Pagar Consulta en Línea (${{ number_format($amount, 0) }}) &rarr;
+                                    💳 Ver Detalles de Pago (${{ number_format($amount, 0) }}) &rarr;
                                 </a>
+                                @if($paymentMethod === 'PAYMENT_LINK')
                                 <p style="font-size: 11px; color: #94A3B8; margin-top: 10px;">
                                     Vigencia del enlace: <strong>{{ $expiresIn }}</strong> | Pasarela de Pago Segura SSL
                                 </p>
+                                @endif
                             </div>
 
                             <!-- Direct Link Fallback -->
                             <div style="background-color: #F1F5F9; border-radius: 12px; padding: 14px; margin-bottom: 24px;">
-                                <p style="font-size: 11px; color: #64748B; margin: 0 0 6px 0;">O copia y pega el siguiente enlace directo en tu navegador:</p>
+                                <p style="font-size: 11px; color: #64748B; margin: 0 0 6px 0;">O copia y pega el siguiente enlace directo en tu navegador para continuar:</p>
                                 <a href="{{ $paymentLink }}" style="font-size: 12px; color: #0700FF; word-break: break-all; font-family: monospace; font-weight: 600;">{{ $paymentLink }}</a>
                             </div>
+                            @endif
 
                             <!-- Additional Instructions -->
                             <div style="border-left: 3px solid #0700FF; padding-left: 14px; margin-bottom: 20px;">
                                 <p style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5;">
-                                    <strong>Importante:</strong> Al completar el pago digital, recibirás automáticamente la confirmación de tu turno y tu comprobante electrónico. Si tienes dudas, contáctanos a través de nuestros canales oficiales.
+                                    <strong>Importante:</strong> @if($paymentMethod === 'CREDIT_CARD') Puedes revisar los detalles de tu cita y tu comprobante electrónico en tu portal de paciente. @else Al completar el pago, recibirás automáticamente la confirmación de tu turno y tu comprobante electrónico. @endif Si tienes dudas, contáctanos a través de nuestros canales oficiales.
                                 </p>
                             </div>
                         </td>

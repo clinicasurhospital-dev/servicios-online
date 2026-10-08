@@ -627,10 +627,10 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <h4 class="font-bold {{ $paymentMethod === 'PAYMENT_LINK' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Generar Link de Pago</h4>
+                            <h4 class="font-bold {{ $paymentMethod === 'PAYMENT_LINK' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Enlace de Pago (Datalink)</h4>
                         </div>
-                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 mt-1">Email / Link</span>
-                        <p class="text-[11px] text-slate-500 mt-1.5">Recibe el link en tu correo para pagar con app móvil.</p>
+                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 mt-1">Datalink / Email</span>
+                        <p class="text-[11px] text-slate-500 mt-1.5">Recibe un enlace para pagar fácilmente con tu app móvil.</p>
                     </button>
 
                     <!-- Opción 3: Transferencia Bancaria -->
@@ -663,69 +663,74 @@
 
                 <!-- 1. FORMULARIO PASARELA TARJETA (MODO PRUEBA) -->
                 @if($paymentMethod === 'CREDIT_CARD')
-                    <div class="p-5 sm:p-6 rounded-3xl bg-slate-900 text-white shadow-xl animate-fadeIn relative overflow-hidden">
-                        <!-- Background glow effect -->
-                        <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-brand-primary/30 blur-3xl pointer-events-none"></div>
-
-                        <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-800 relative z-10">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    Modo Prueba / Gateway Simulator
-                                </span>
+                    <div class="p-5 sm:p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm animate-fadeIn relative">
+                        <div class="mb-5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Elige la Pasarela de Pago:</label>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button type="button" wire:click="$set('cardGateway', 'payphone')" class="flex-1 flex items-center justify-between p-3 rounded-xl border-2 transition-all {{ $cardGateway === 'payphone' ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">P</div>
+                                        <span class="font-bold text-sm {{ $cardGateway === 'payphone' ? 'text-orange-700' : 'text-slate-700' }}">Payphone</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all {{ $cardGateway === 'payphone' ? 'border-orange-500 bg-orange-500' : 'border-slate-300 bg-white' }}">
+                                        @if($cardGateway === 'payphone') <span class="w-2 h-2 rounded-full bg-white"></span> @endif
+                                    </div>
+                                </button>
+                                <button type="button" wire:click="$set('cardGateway', 'kushki')" class="flex-1 flex items-center justify-between p-3 rounded-xl border-2 transition-all {{ $cardGateway === 'kushki' ? 'border-brand-primary bg-brand-soft ring-2 ring-brand-primary/20' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">K</div>
+                                        <span class="font-bold text-sm {{ $cardGateway === 'kushki' ? 'text-brand-primary' : 'text-slate-700' }}">Kushki</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all {{ $cardGateway === 'kushki' ? 'border-brand-primary bg-brand-primary' : 'border-slate-300 bg-white' }}">
+                                        @if($cardGateway === 'kushki') <span class="w-2 h-2 rounded-full bg-white"></span> @endif
+                                    </div>
+                                </button>
                             </div>
-                            <button type="button" wire:click="fillDemoCard" class="text-xs font-bold text-brand-soft hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 transition-colors cursor-pointer flex items-center gap-1.5">
-                                <span>⚡ Llenar Datos de Prueba</span>
-                            </button>
                         </div>
 
-                        <!-- Card preview UI -->
-                        <div class="max-w-sm mx-auto mb-6 p-5 rounded-2xl bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-600 shadow-2xl text-white relative">
-                            <div class="flex justify-between items-center mb-6">
-                                <span class="text-xs font-black tracking-widest text-slate-300 uppercase">SURHOSPITAL PAY</span>
-                                <span class="text-lg font-black tracking-wider italic text-amber-400">VISA / MC</span>
+                        <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden mt-2">
+                            <!-- Background glow effect -->
+                            <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-brand-primary/30 blur-3xl pointer-events-none"></div>
+
+                            <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-800 relative z-10">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        Modo Prueba / Simulator ({{ ucfirst($cardGateway) }})
+                                    </span>
+                                </div>
+                                <button type="button" wire:click="fillDemoCard" class="text-xs font-bold text-brand-soft hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 transition-colors cursor-pointer flex items-center gap-1.5">
+                                    <span>⚡ Llenar Datos de Prueba</span>
+                                </button>
                             </div>
-                            <div class="font-mono text-base sm:text-lg tracking-widest text-slate-100 mb-4 font-bold">
-                                {{ $cardNumber ?: '•••• •••• •••• ••••' }}
-                            </div>
-                            <div class="flex justify-between items-end text-xs">
+
+                            <!-- Card Form Inputs -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-10 text-slate-900">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Nombre en la Tarjeta *</label>
+                                    <input type="text" wire:model="cardHolder" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="Ej: CARLOS A MENDOZA" />
+                                    @error('cardHolder') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Número de Tarjeta (16 Dígitos) *</label>
+                                    <input type="text" wire:model="cardNumber" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="4532 8900 1234 5678" />
+                                    @error('cardNumber') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
                                 <div>
-                                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-bold">Titular</span>
-                                    <span class="font-bold tracking-wider text-slate-200 truncate max-w-[180px] block">{{ $cardHolder ?: 'NOMBRE DEL TITULAR' }}</span>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Fecha de Expiración *</label>
+                                    <input type="text" wire:model="cardExpiry" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="MM/AA (Ej: 12/28)" />
+                                    @error('cardExpiry') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-bold">Vence</span>
-                                    <span class="font-mono font-bold text-slate-200">{{ $cardExpiry ?: 'MM/AA' }}</span>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Código de Seguridad CVV *</label>
+                                    <input type="password" maxlength="4" wire:model="cardCvv" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="•••" />
+                                    @error('cardCvv') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Card Form Inputs -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-10 text-slate-900">
-                            <div class="sm:col-span-2">
-                                <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Nombre en la Tarjeta *</label>
-                                <input type="text" wire:model="cardHolder" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="Ej: CARLOS A MENDOZA" />
-                                @error('cardHolder') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                            <div class="mt-4 flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800 relative z-10">
+                                <span class="flex items-center gap-1">🔒 Encriptación TLS 256-bit y Cumplimiento PCI-DSS</span>
+                                <span class="text-emerald-400 font-bold">Simulación 100% segura</span>
                             </div>
-                            <div class="sm:col-span-2">
-                                <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Número de Tarjeta (16 Dígitos) *</label>
-                                <input type="text" wire:model="cardNumber" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="4532 8900 1234 5678" />
-                                @error('cardNumber') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Fecha de Expiración *</label>
-                                <input type="text" wire:model="cardExpiry" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="MM/AA (Ej: 12/28)" />
-                                @error('cardExpiry') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Código de Seguridad CVV *</label>
-                                <input type="password" maxlength="4" wire:model="cardCvv" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="•••" />
-                                @error('cardCvv') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800 relative z-10">
-                            <span class="flex items-center gap-1">🔒 Encriptación TLS 256-bit y Cumplimiento PCI-DSS</span>
-                            <span class="text-emerald-400 font-bold">Simulación 100% segura</span>
                         </div>
                     </div>
                 @endif
@@ -768,50 +773,67 @@
 
                 <!-- 3. TRANSFERENCIA BANCARIA -->
                 @if($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER')
-                    <div class="p-6 rounded-3xl bg-amber-50/60 border border-amber-200/80 animate-fadeIn space-y-6">
-                        <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-md shadow-amber-600/20">
-                                🏦
+                    <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200 animate-fadeIn space-y-6">
+                        <div class="flex items-start gap-3.5 pb-5 border-b border-slate-200">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-lg shadow-brand-primary/20">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
                             </div>
                             <div>
-                                <h3 class="text-base font-bold text-amber-950">Datos Bancarios para Transferencia</h3>
-                                <p class="text-xs text-amber-800 mt-0.5">Realiza la transferencia desde tu banca en línea e ingresa el comprobante o referencia de pago.</p>
+                                <h3 class="text-lg font-bold text-slate-900">Transferencia Bancaria o Depósito</h3>
+                                <p class="text-sm text-slate-500 mt-0.5">Realiza el pago a una de nuestras cuentas y sube el comprobante para confirmar tu cita.</p>
                             </div>
                         </div>
 
                         <!-- Cuentas Bancarias Institucionales -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div class="p-4 rounded-2xl bg-white border border-amber-200 shadow-xs relative overflow-hidden group hover:border-amber-300 transition-colors">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-black text-amber-700 uppercase tracking-wider">Banco Pichincha</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">Cta. Corriente</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Banco Pichincha -->
+                            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-brand-primary transition-colors">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                            <span class="text-sm font-black text-slate-700">BP</span>
+                                        </div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 uppercase tracking-wider">Cta. Corriente</span>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-slate-800">Banco Pichincha</h4>
+                                    <div class="text-lg font-black text-brand-primary mt-1 font-mono tracking-widest">2100849201</div>
                                 </div>
-                                <div class="text-sm font-black text-slate-900 mt-1 font-mono">2100849201</div>
-                                <div class="text-xs text-slate-600 mt-0.5 font-medium">Titular: SurHospital C.A.</div>
-                                <div class="text-xs text-slate-500 font-mono mt-0.5">RUC: 0992384756001</div>
+                                <div class="mt-4 pt-3 border-t border-slate-100">
+                                    <div class="text-xs text-slate-500 font-medium">Titular: <strong class="text-slate-700">SurHospital C.A.</strong></div>
+                                    <div class="text-xs text-slate-500 font-medium mt-0.5">RUC: <strong class="text-slate-700 font-mono">0992384756001</strong></div>
+                                </div>
                             </div>
-                            <div class="p-4 rounded-2xl bg-white border border-amber-200 shadow-xs relative overflow-hidden group hover:border-blue-300 transition-colors">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-black text-blue-700 uppercase tracking-wider">Banco Guayaquil</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">Cta. Corriente</span>
+
+                            <!-- Banco Guayaquil -->
+                            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-brand-primary transition-colors">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                            <span class="text-sm font-black text-slate-700">BG</span>
+                                        </div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 uppercase tracking-wider">Cta. Corriente</span>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-slate-800">Banco Guayaquil</h4>
+                                    <div class="text-lg font-black text-brand-primary mt-1 font-mono tracking-widest">1004829102</div>
                                 </div>
-                                <div class="text-sm font-black text-slate-900 mt-1 font-mono">1004829102</div>
-                                <div class="text-xs text-slate-600 mt-0.5 font-medium">Titular: SurHospital C.A.</div>
-                                <div class="text-xs text-slate-500 font-mono mt-0.5">RUC: 0992384756001</div>
+                                <div class="mt-4 pt-3 border-t border-slate-100">
+                                    <div class="text-xs text-slate-500 font-medium">Titular: <strong class="text-slate-700">SurHospital C.A.</strong></div>
+                                    <div class="text-xs text-slate-500 font-medium mt-0.5">RUC: <strong class="text-slate-700 font-mono">0992384756001</strong></div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Datos del Comprobante / Formulario de Transferencia -->
-                        <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-4">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                <span>Registro del Comprobante de Pago</span>
+                        <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm mt-4">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 flex items-center gap-2 pb-3 border-b border-slate-100">
+                                <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                <span>Registro de Comprobante</span>
                             </h4>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Banco Emisor *</label>
-                                    <select wire:model="transferBank" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-amber-500 focus:ring-amber-500 bg-slate-50 focus:bg-white font-medium shadow-xs">
+                                    <select wire:model="transferBank" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50 focus:bg-white font-medium shadow-xs transition-colors">
                                         <option value="Banco Pichincha">Banco Pichincha</option>
                                         <option value="Banco Guayaquil">Banco Guayaquil</option>
                                         <option value="Banco del Pacífico">Banco del Pacífico</option>
@@ -828,26 +850,26 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Nº de Comprobante / Referencia</label>
-                                    <input type="text" wire:model="transferReference" class="w-full rounded-xl border-slate-200 text-sm p-3 font-mono focus:border-amber-500 focus:ring-amber-500 bg-slate-50 focus:bg-white shadow-xs" placeholder="Ej: 98347102" />
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Nº de Referencia / Doc.</label>
+                                    <input type="text" wire:model="transferReference" class="w-full rounded-xl border-slate-200 text-sm p-3 font-mono focus:border-brand-primary focus:ring-brand-primary bg-slate-50 focus:bg-white shadow-xs transition-colors" placeholder="Ej: 98347102" />
                                     @error('transferReference') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Fecha de Transferencia</label>
-                                    <input type="date" wire:model="transferDate" max="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-amber-500 focus:ring-amber-500 bg-slate-50 focus:bg-white shadow-xs" />
+                                    <input type="date" wire:model="transferDate" max="{{ now()->format('Y-m-d') }}" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50 focus:bg-white shadow-xs transition-colors" />
                                     @error('transferDate') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Notas Adicionales (Opcional)</label>
-                                    <input type="text" wire:model="transferNotes" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-amber-500 focus:ring-amber-500 bg-slate-50 focus:bg-white shadow-xs" placeholder="Ej: Pago realizado por cuenta de familiar" />
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Notas Adicionales</label>
+                                    <input type="text" wire:model="transferNotes" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50 focus:bg-white shadow-xs transition-colors" placeholder="Ej: Pago realizado por familiar" />
                                 </div>
                             </div>
 
                             <!-- File Upload Zone for Comprobante -->
-                            <div class="pt-2">
-                                <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+                            <div class="mt-5 pt-5 border-t border-slate-100">
+                                <label class="block text-xs font-bold text-slate-700 mb-3 uppercase tracking-wider">
                                     Adjuntar Comprobante de Pago (Imagen o PDF)
                                 </label>
 

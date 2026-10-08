@@ -19,7 +19,8 @@ class PaymentLinkMail extends Mailable
         public string $paymentLink,
         public float $amount,
         public ?string $patientName = null,
-        public string $expiresIn = '2 horas'
+        public string $expiresIn = '2 horas',
+        public string $paymentMethod = 'PAYMENT_LINK'
     ) {
         if (!$this->patientName && $this->appointment->patient) {
             $this->patientName = $this->appointment->patient->full_name;
@@ -31,12 +32,16 @@ class PaymentLinkMail extends Mailable
         $brandName = config('branding.client_name', 'Clínica Sur Hospital');
         $code = $this->appointment->code;
 
+        $subject = $this->paymentMethod === 'CREDIT_CARD' 
+            ? "✅ Cita Generada con Éxito #{$code} — {$brandName}" 
+            : "⏳ Cita Generada Pendiente de Confirmación #{$code} — {$brandName}";
+
         return new Envelope(
             from: new Address(
                 config('mail.from.address', 'notificaciones@surhospital.com'),
                 config('mail.from.name', 'SurHospital Citas')
             ),
-            subject: "💳 Enlace de Pago para tu Cita Médica #{$code} — {$brandName}",
+            subject: $subject,
         );
     }
 
@@ -50,6 +55,7 @@ class PaymentLinkMail extends Mailable
                 'amount' => $this->amount,
                 'patientName' => $this->patientName,
                 'expiresIn' => $this->expiresIn,
+                'paymentMethod' => $this->paymentMethod,
                 'brandName' => config('branding.client_name', 'Clínica Sur Hospital'),
                 'brandPhone' => config('branding.contact.phone_display', '042 590670 Ext. 100 / 0'),
                 'brandWhatsapp' => config('branding.contact.whatsapp_display', '+593 99 778 3576'),
