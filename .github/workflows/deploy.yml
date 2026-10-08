@@ -14,4 +14,5 @@ jobs:
 
       - name: Copiar archivos a IIS wwwroot
         run: |
-          xcopy . C:\inetpub\wwwroot /E /H /Y
+          robocopy . C:\inetpub\wwwroot /MIR /XD .git .github /XF .gitignore
+          if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
