@@ -7,10 +7,13 @@ use App\Domain\Patients\Enums\IdentificationType;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\User;
+use App\Notifications\NewPatientWelcomeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -65,25 +68,27 @@ class AdminPatientController extends Controller
             'phone.required' => 'El número de teléfono móvil es obligatorio.',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        $genericPassword = 'SurHospital2026!';
+
+        return DB::transaction(function () use ($validated, $genericPassword) {
             $user = User::create([
                 'name' => trim($validated['first_name'] . ' ' . $validated['last_name']),
-                'email' => $validated['email'],
+                'email' => strtolower(trim($validated['email'])),
                 'phone' => $validated['phone'],
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($genericPassword),
                 'email_verified_at' => now(),
                 'is_active' => true,
             ]);
 
             $user->assignRole('PATIENT');
 
-            Patient::create([
+            $patient = Patient::create([
                 'user_id' => $user->id,
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'identification_type' => $validated['identification_type'],
                 'identification_number' => $validated['identification_number'],
-                'email' => $validated['email'],
+                'email' => strtolower(trim($validated['email'])),
                 'phone' => $validated['phone'],
                 'birth_date' => $validated['birth_date'] ?? null,
                 'gender' => $validated['gender'] ?? Gender::OTHER->value,
@@ -91,7 +96,21 @@ class AdminPatientController extends Controller
                 'medical_notes' => $validated['medical_notes'] ?? null,
             ]);
 
-            return back()->with('success', "Paciente {$user->name} registrado exitosamente.");
+            // Enviar correo de bienvenida con clave genérica y enlace para crear su nueva contraseña
+            $emailSent = false;
+            try {
+                $token = Password::broker()->createToken($user);
+                $user->notify(new NewPatientWelcomeNotification($token, $genericPassword));
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                Log::warning("No se pudo enviar correo de bienvenida con enlace a {$user->email}: " . $e->getMessage());
+            }
+
+            $emailNotice = $emailSent
+                ? "Se ha generado la clave genérica '{$genericPassword}' y se envió el correo a {$user->email} con el enlace para generar su nueva clave."
+                : "Se generó la clave genérica '{$genericPassword}'. (Aviso: No se pudo enviar el correo de activación por configuración SMTP local).";
+
+            return back()->with('success', "Paciente {$user->name} registrado exitosamente. {$emailNotice}");
         });
     }
 
@@ -120,7 +139,7 @@ class AdminPatientController extends Controller
             if ($patient->user) {
                 $patient->user->update([
                     'name' => $fullName,
-                    'email' => $validated['email'],
+                    'email' => strtolower(trim($validated['email'])),
                     'phone' => $validated['phone'],
                 ]);
             }
@@ -130,7 +149,7 @@ class AdminPatientController extends Controller
                 'last_name' => $validated['last_name'],
                 'identification_type' => $validated['identification_type'],
                 'identification_number' => $validated['identification_number'],
-                'email' => $validated['email'],
+                'email' => strtolower(trim($validated['email'])),
                 'phone' => $validated['phone'],
                 'birth_date' => $validated['birth_date'] ?? null,
                 'gender' => $validated['gender'] ?? Gender::OTHER->value,

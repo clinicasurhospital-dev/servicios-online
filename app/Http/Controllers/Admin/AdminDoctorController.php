@@ -60,6 +60,7 @@ class AdminDoctorController extends Controller
             'name' => 'required|string|max:150',
             'email' => 'required|email|max:150|unique:users,email',
             'phone' => 'nullable|string|max:30',
+            'role' => 'nullable|string|in:DOCTOR,SPECIALIST',
             'password' => 'nullable|string|min:8',
             'license_number' => 'required|string|max:50|unique:doctors,license_number',
             'room_office' => 'nullable|string|max:100',
@@ -69,22 +70,37 @@ class AdminDoctorController extends Controller
             'specialty_ids' => 'required|array|min:1',
             'specialty_ids.*' => 'exists:specialties,id',
         ], [
+            'name.required' => 'El nombre del especialista es obligatorio.',
+            'name.max' => 'El nombre no puede tener más de 150 caracteres.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico no es válido.',
             'email.unique' => 'El correo electrónico ya está registrado para otro usuario.',
+            'phone.max' => 'El teléfono no puede tener más de 30 caracteres.',
+            'license_number.required' => 'El número de registro médico / MSP es obligatorio.',
+            'license_number.max' => 'El registro médico no puede tener más de 50 caracteres.',
             'license_number.unique' => 'El número de registro médico / MSP ya se encuentra registrado.',
             'specialty_ids.required' => 'Debes asignar al menos una especialidad al médico.',
+            'specialty_ids.min' => 'Debes seleccionar al menos una especialidad.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'bio.max' => 'La biografía o perfil no puede tener más de 1000 caracteres.',
+            'room_office.max' => 'El consultorio no puede tener más de 100 caracteres.',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        $genericPassword = $request->filled('password') ? $request->input('password') : 'SurHospital2026!';
+        $roleToAssign = in_array($request->input('role'), ['DOCTOR', 'SPECIALIST']) ? $request->input('role') : 'DOCTOR';
+        $roleLabel = $roleToAssign === 'SPECIALIST' ? 'Especialista' : 'Médico General';
+
+        return DB::transaction(function () use ($validated, $genericPassword, $roleToAssign, $roleLabel) {
             $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+                'name' => trim($validated['name']),
+                'email' => strtolower(trim($validated['email'])),
                 'phone' => $validated['phone'] ?? null,
-                'password' => Hash::make($validated['password'] ?: 'password123'),
+                'password' => Hash::make($genericPassword),
                 'email_verified_at' => now(),
                 'is_active' => true,
             ]);
 
-            $user->assignRole('DOCTOR');
+            $user->assignRole($roleToAssign);
 
             $firstSpecialty = Specialty::find($validated['specialty_ids'][0]);
 
@@ -113,7 +129,7 @@ class AdminDoctorController extends Controller
                 ]);
             }
 
-            return back()->with('success', "Médico Dr(a). {$user->name} registrado exitosamente con horario inicial de Lun a Vie.");
+            return back()->with('success', "{$roleLabel} Dr(a). {$user->name} registrado exitosamente directamente en usuarios con clave genérica: '{$genericPassword}'.");
         });
     }
 
@@ -130,6 +146,7 @@ class AdminDoctorController extends Controller
             'name' => 'required|string|max:150',
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($doctor->user_id)],
             'phone' => 'nullable|string|max:30',
+            'role' => 'nullable|string|in:DOCTOR,SPECIALIST',
             'password' => 'nullable|string|min:8',
             'license_number' => ['required', 'string', 'max:50', Rule::unique('doctors', 'license_number')->ignore($doctor->id)],
             'room_office' => 'nullable|string|max:100',
@@ -144,15 +161,26 @@ class AdminDoctorController extends Controller
         }
 
         $validated = $request->validate($rules, [
+            'name.required' => 'El nombre del especialista es obligatorio.',
+            'name.max' => 'El nombre no puede tener más de 150 caracteres.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico no es válido.',
             'email.unique' => 'El correo electrónico ya está en uso por otro usuario.',
+            'phone.max' => 'El teléfono no puede tener más de 30 caracteres.',
+            'license_number.required' => 'El número de registro médico es obligatorio.',
+            'license_number.max' => 'El registro médico no puede tener más de 50 caracteres.',
             'license_number.unique' => 'El registro médico ya pertenece a otro especialista.',
             'specialty_ids.required' => 'Debes asignar al menos una especialidad.',
+            'specialty_ids.min' => 'Debes seleccionar al menos una especialidad.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'bio.max' => 'La biografía no puede tener más de 1000 caracteres.',
+            'room_office.max' => 'El consultorio no puede tener más de 100 caracteres.',
         ]);
 
-        return DB::transaction(function () use ($doctor, $validated, $isDoctor) {
+        return DB::transaction(function () use ($doctor, $validated, $isDoctor, $request) {
             $userUpdateData = [
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+                'name' => trim($validated['name']),
+                'email' => strtolower(trim($validated['email'])),
                 'phone' => $validated['phone'] ?? null,
             ];
 
@@ -161,6 +189,10 @@ class AdminDoctorController extends Controller
             }
 
             $doctor->user->update($userUpdateData);
+
+            if (!$isDoctor && $request->filled('role')) {
+                $doctor->user->syncRoles([$request->input('role')]);
+            }
 
             $firstSpecialty = Specialty::find($validated['specialty_ids'][0]);
 

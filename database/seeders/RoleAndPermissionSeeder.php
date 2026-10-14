@@ -18,23 +18,31 @@ class RoleAndPermissionSeeder extends Seeder
         // Define Permissions
         $permissions = [
             'view_dashboard',
+            'view_metrics',
             'manage_users',
+            'view_users',
             'manage_roles',
+            'view_roles',
             'manage_specialties',
             'manage_procedures',
             'manage_doctors',
             'manage_schedules',
             'manage_patients',
+            'view_patients',
             'view_all_appointments',
             'create_appointment_manual',
+            'manage_appointments',
             'manage_payments',
             'validate_bank_transfers',
-            'view_metrics',
             'view_audit_logs',
             'view_doctor_reviews',
             'manage_doctor_reviews',
             'view_doctor_own_agenda',
             'patient_portal_access',
+            'clinical_template_view',
+            'clinical_template_manage',
+            'view_clinical_records',
+            'manage_clinical_encounters',
         ];
 
         foreach ($permissions as $perm) {
@@ -46,23 +54,44 @@ class RoleAndPermissionSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'ADMIN', 'guard_name' => 'web']);
         $reception = Role::firstOrCreate(['name' => 'RECEPTION', 'guard_name' => 'web']);
         $doctor = Role::firstOrCreate(['name' => 'DOCTOR', 'guard_name' => 'web']);
+        $specialist = Role::firstOrCreate(['name' => 'SPECIALIST', 'guard_name' => 'web']);
         $patient = Role::firstOrCreate(['name' => 'PATIENT', 'guard_name' => 'web']);
 
         // Assign Permissions
         $admin->syncPermissions([
-            'view_dashboard', 'manage_users', 'manage_specialties', 'manage_procedures',
-            'manage_doctors', 'manage_schedules', 'manage_patients', 'view_all_appointments',
-            'create_appointment_manual', 'manage_payments', 'validate_bank_transfers',
-            'view_metrics', 'view_audit_logs', 'view_doctor_reviews', 'manage_doctor_reviews',
+            'view_dashboard', 'view_metrics',
+            'manage_users', 'view_users',
+            'manage_roles', 'view_roles',
+            'manage_specialties', 'manage_procedures',
+            'manage_doctors', 'manage_schedules',
+            'manage_patients', 'view_patients',
+            'view_all_appointments', 'create_appointment_manual', 'manage_appointments',
+            'manage_payments', 'validate_bank_transfers',
+            'view_audit_logs', 'view_doctor_reviews', 'manage_doctor_reviews',
+            'clinical_template_view', 'clinical_template_manage',
+            'view_clinical_records',
         ]);
 
         $reception->syncPermissions([
-            'view_dashboard', 'manage_patients', 'view_all_appointments',
-            'create_appointment_manual', 'validate_bank_transfers', 'view_doctor_reviews',
+            'view_dashboard', 'manage_patients', 'view_patients',
+            'view_all_appointments', 'create_appointment_manual',
+            'validate_bank_transfers', 'view_doctor_reviews',
         ]);
 
         $doctor->syncPermissions([
+            'view_dashboard',
             'view_doctor_own_agenda',
+            'view_clinical_records',
+            'manage_clinical_encounters',
+            'view_doctor_reviews',
+        ]);
+
+        $specialist->syncPermissions([
+            'view_dashboard',
+            'view_doctor_own_agenda',
+            'view_clinical_records',
+            'manage_clinical_encounters',
+            'view_doctor_reviews',
         ]);
 
         $patient->syncPermissions([
@@ -80,7 +109,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $adminUser->assignRole('SUPER_ADMIN');
+        $adminUser->syncRoles(['SUPER_ADMIN']);
 
         $receptionUser = User::firstOrCreate(
             ['email' => 'recepcion@surhospital.com'],
@@ -92,6 +121,6 @@ class RoleAndPermissionSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $receptionUser->assignRole('RECEPTION');
+        $receptionUser->syncRoles(['RECEPTION']);
     }
 }

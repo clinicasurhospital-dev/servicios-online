@@ -30,13 +30,19 @@ class AdminSpecialtyController extends Controller
         $hasProcedures = $request->boolean('has_procedures');
         
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:specialties,name',
-            'description' => 'nullable|string|max:500',
+            'name' => 'required|string|max:150|unique:specialties,name',
+            'description' => 'nullable|string|max:3000',
             'base_price' => $hasProcedures ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'default_duration_minutes' => 'required|integer|min:10|max:240',
             'has_procedures' => 'boolean',
         ], [
+            'name.required' => 'El nombre de la especialidad es obligatorio.',
+            'name.max' => 'El nombre de la especialidad no puede superar los 150 caracteres.',
             'name.unique' => 'La especialidad ya se encuentra registrada.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'base_price.required' => 'El precio de consulta base es obligatorio cuando no se gestionan procedimientos individuales.',
+            'base_price.numeric' => 'El precio debe ser un valor numérico.',
+            'default_duration_minutes.required' => 'La duración en minutos es obligatoria.',
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -63,11 +69,19 @@ class AdminSpecialtyController extends Controller
         $hasProcedures = $request->boolean('has_procedures');
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', Rule::unique('specialties', 'name')->ignore($specialty->id)],
-            'description' => 'nullable|string|max:500',
+            'name' => ['required', 'string', 'max:150', Rule::unique('specialties', 'name')->ignore($specialty->id)],
+            'description' => 'nullable|string|max:3000',
             'base_price' => $hasProcedures ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'default_duration_minutes' => 'required|integer|min:10|max:240',
             'has_procedures' => 'boolean',
+        ], [
+            'name.required' => 'El nombre de la especialidad es obligatorio.',
+            'name.max' => 'El nombre de la especialidad no puede superar los 150 caracteres.',
+            'name.unique' => 'Ya existe otra especialidad con este nombre.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'base_price.required' => 'El precio de consulta base es obligatorio cuando no se gestionan procedimientos individuales.',
+            'base_price.numeric' => 'El precio debe ser un valor numérico.',
+            'default_duration_minutes.required' => 'La duración en minutos es obligatoria.',
         ]);
 
         $specialty->update([
@@ -112,10 +126,17 @@ class AdminSpecialtyController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:3000',
             'price' => $hasSubprocedures ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'duration_minutes' => 'required|integer|min:10|max:240',
             'has_subprocedures' => 'boolean',
+        ], [
+            'name.required' => 'El nombre del procedimiento es obligatorio.',
+            'name.max' => 'El nombre del procedimiento no puede superar los 150 caracteres.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'price.required' => 'El precio del procedimiento es obligatorio.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'duration_minutes.required' => 'La duración es obligatoria.',
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -144,10 +165,17 @@ class AdminSpecialtyController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:3000',
             'price' => $hasSubprocedures ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'duration_minutes' => 'required|integer|min:10|max:240',
             'has_subprocedures' => 'boolean',
+        ], [
+            'name.required' => 'El nombre del procedimiento es obligatorio.',
+            'name.max' => 'El nombre del procedimiento no puede superar los 150 caracteres.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'price.required' => 'El precio del procedimiento es obligatorio.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'duration_minutes.required' => 'La duración es obligatoria.',
         ]);
 
         $procedure->update([
@@ -188,9 +216,16 @@ class AdminSpecialtyController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:3000',
             'price' => 'required|numeric|min:0',
             'duration_minutes' => 'required|integer|min:10|max:240',
+        ], [
+            'name.required' => 'El nombre del subprocedimiento es obligatorio.',
+            'name.max' => 'El nombre del subprocedimiento no puede superar los 150 caracteres.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'price.required' => 'El precio es obligatorio.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'duration_minutes.required' => 'La duración es obligatoria.',
         ]);
 
         $slug = Str::slug($validated['name']);
@@ -216,9 +251,16 @@ class AdminSpecialtyController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:3000',
             'price' => 'required|numeric|min:0',
             'duration_minutes' => 'required|integer|min:10|max:240',
+        ], [
+            'name.required' => 'El nombre del subprocedimiento es obligatorio.',
+            'name.max' => 'El nombre del subprocedimiento no puede superar los 150 caracteres.',
+            'description.max' => 'La descripción no puede superar los 3000 caracteres.',
+            'price.required' => 'El precio es obligatorio.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'duration_minutes.required' => 'La duración es obligatoria.',
         ]);
 
         $subprocedure->update([

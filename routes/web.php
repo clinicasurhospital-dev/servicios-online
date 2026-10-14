@@ -11,8 +11,10 @@ use App\Http\Controllers\Admin\AdminDoctorController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminPatientController;
 use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminSecurityController;
 use App\Http\Controllers\Admin\AdminSpecialtyController;
 use App\Http\Controllers\Admin\AdminTransferController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Patient\PatientPortalController;
 use App\Http\Controllers\Public\CedulaLookupController;
@@ -76,10 +78,10 @@ Route::middleware(['auth', 'role:PATIENT|SUPER_ADMIN|ADMIN'])->prefix('paciente'
 
 /*
 |--------------------------------------------------------------------------
-| Admin / Reception / Doctor Backoffice Routes
+| Admin / Reception / Doctor / Specialist Backoffice Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR|SPECIALIST'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/agenda', [AdminAgendaController::class, 'index'])->name('agenda');
     Route::post('/notificaciones/marcar-todas', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.mark_all_read');
@@ -178,8 +180,22 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR'])->prefix('
         Route::get('/transferencias/{transfer}/comprobante', [AdminTransferController::class, 'downloadReceipt'])->name('transfers.receipt');
     });
 
-    // Auditoría (Admin / Super Admin only)
+    // Módulos Exclusivos de Seguridad y Administración (Super Admin & Admin)
     Route::middleware('role:SUPER_ADMIN|ADMIN')->group(function () {
+        // Módulo General de Usuarios
+        Route::get('/usuarios', [AdminUserController::class, 'index'])->name('users');
+        Route::post('/usuarios', [AdminUserController::class, 'store'])->name('users.store');
+        Route::put('/usuarios/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::post('/usuarios/{user}/toggle', [AdminUserController::class, 'toggleActive'])->name('users.toggle');
+        Route::post('/usuarios/{user}/enviar-clave', [AdminUserController::class, 'sendPasswordReset'])->name('users.send_reset');
+        Route::delete('/usuarios/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+        // Módulo de Seguridad y Roles
+        Route::get('/seguridad', [AdminSecurityController::class, 'index'])->name('security');
+        Route::put('/seguridad/roles/{role}/permisos', [AdminSecurityController::class, 'updateRolePermissions'])->name('security.role_permissions');
+        Route::post('/seguridad/usuarios/{user}/rol', [AdminSecurityController::class, 'assignUserRole'])->name('security.assign_role');
+
+        // Auditoría
         Route::get('/auditoria', [AdminAuditController::class, 'index'])->name('audit');
     });
 });

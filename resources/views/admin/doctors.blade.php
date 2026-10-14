@@ -21,6 +21,7 @@
         room_office: '',
         default_slot_duration_minutes: 30,
         default_consultation_price: 35,
+        role: 'DOCTOR',
         bio: '',
         specialty_ids: []
     },
@@ -55,6 +56,7 @@
             room_office: doc.room_office || '',
             default_slot_duration_minutes: doc.default_slot_duration_minutes || 30,
             default_consultation_price: doc.default_consultation_price || 35,
+            role: (doc.user?.roles && doc.user.roles.length > 0) ? doc.user.roles[0].name : 'DOCTOR',
             bio: doc.bio || '',
             specialty_ids: (doc.specialties || []).map(s => s.id)
         };
@@ -267,6 +269,20 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Rol / Categoría Profesional *</label>
+                            <select name="role" class="w-full rounded-xl border-slate-200 text-xs p-3 font-bold bg-white focus:border-brand-primary">
+                                <option value="DOCTOR">🩺 Médico General</option>
+                                <option value="SPECIALIST" selected>🔬 Médico Especialista</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Clave Genérica de Acceso Inicial</label>
+                            <input type="text" name="password" value="SurHospital2026!" class="w-full rounded-xl border-slate-200 text-xs p-3 font-mono font-bold text-brand-primary bg-slate-50 focus:bg-white" />
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Especialidades Asignadas *</label>
                         <div class="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-3 rounded-2xl bg-slate-50 border border-slate-200/80 custom-scrollbar">
@@ -349,6 +365,16 @@
                         <input type="number" name="default_slot_duration_minutes" x-model="editDoctorData.default_slot_duration_minutes" required min="10" step="5" class="w-full rounded-xl border-slate-200 text-xs p-3 focus:border-brand-primary" />
                     </div>
                 </div>
+
+                @if(!auth()->user()->isDoctor())
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Rol / Categoría Profesional</label>
+                        <select name="role" x-model="editDoctorData.role" class="w-full rounded-xl border-slate-200 text-xs p-3 font-bold bg-white focus:border-brand-primary">
+                            <option value="DOCTOR">🩺 Médico General</option>
+                            <option value="SPECIALIST">🔬 Médico Especialista</option>
+                        </select>
+                    </div>
+                @endif
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Especialidades Asignadas *</label>

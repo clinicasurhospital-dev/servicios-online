@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Subprocedure extends Model
 {
@@ -24,6 +25,16 @@ class Subprocedure extends Model
         'is_active' => 'boolean',
         'price' => 'decimal:2',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($subprocedure) {
+            if (empty($subprocedure->slug)) {
+                $subprocedure->slug = Str::slug($subprocedure->name);
+            }
+        });
+    }
 
     public function procedure(): BelongsTo
     {
