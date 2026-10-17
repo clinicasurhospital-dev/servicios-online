@@ -38,7 +38,7 @@ NUL
 Thumbs.db
 
 # Permitir archivos .env y .htaccess
-!.env
+.env
 !.env.*
 !.htaccess
 !public/.htaccess

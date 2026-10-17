@@ -1,4 +1,4 @@
-name: Test de Despliegue a Servidor Local
+name: Despliegue a Servidor Local IIS
 
 on:
   push:
@@ -9,10 +9,37 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Configurar Git en PATH si existe en el sistema
+        shell: powershell
+        run: |
+          $gitPaths = @(
+            "C:\Program Files\Git\cmd",
+            "C:\Program Files\Git\bin",
+            "C:\Program Files (x86)\Git\cmd",
+            "C:\Git\cmd"
+          )
+          foreach ($p in $gitPaths) {
+            if (Test-Path "$p\git.exe") {
+              Write-Host "Git detectado en $p. Agregando al PATH del runner..."
+              Add-Content -Path $env:GITHUB_PATH -Value $p
+              break
+            }
+          }
+
       - name: Descargar código del repositorio
         uses: actions/checkout@v4
 
       - name: Copiar archivos a IIS wwwroot
+        shell: powershell
         run: |
-          robocopy . C:\inetpub\wwwroot /MIR /XD .git .github /XF .gitignore
+          # Si no existe .env en el servidor, creamos uno base desde .env.example
+          if (-not (Test-Path "C:\inetpub\wwwroot\.env") -and (Test-Path ".env.example")) {
+            Copy-Item ".env.example" "C:\inetpub\wwwroot\.env"
+            Write-Host "Se creo C:\inetpub\wwwroot\.env a partir de .env.example"
+          }
+
+          # Copiar archivos excluyendo .git, .github, .gitignore y el archivo .env del servidor
+          robocopy . C:\inetpub\wwwroot /MIR /XD .git .github /XF .gitignore .env
+
+          # Robocopy retorna códigos entre 0 y 7 para operaciones exitosas
           if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
