@@ -200,7 +200,7 @@ class PatientAndAppointmentSeeder extends Seeder
             $spec = $doc->specialties->first() ?? $doc->specialties()->first();
 
             $startAt = $data['appointment_time'];
-            $endAt = $startAt->copy()->addMinutes($doc->consultation_duration_minutes ?: 30);
+            $endAt = $startAt->copy()->addMinutes((int) ($doc->default_slot_duration_minutes ?: 30));
 
             $appointmentStatus = match ($data['transfer_status']) {
                 BankTransferStatus::APPROVED => AppointmentStatus::CONFIRMED,

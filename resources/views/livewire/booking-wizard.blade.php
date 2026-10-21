@@ -505,7 +505,7 @@
                             </div>
                         </div>
 
-                        <!-- 5. Contraseña (para usuarios nuevos) -->
+                        <!-- 5. Contraseña (solo para usuarios nuevos del portal público) -->
                         @if(!$isManual && !Auth::check())
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Crear Contraseña para tu Portal Paciente *</label>
@@ -513,16 +513,46 @@
                                 <p class="text-[11px] text-slate-500 mt-1">Podrás iniciar sesión con tu correo y esta clave para ver recetas, certificados y tus citas agendadas.</p>
                                 @error('password') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                             </div>
+                        @endif
 
-                            <!-- 6. Protección de Datos Personales (LOPDP) -->
+                        <!-- 6. Protección y Tratamiento de Datos Personales (LOPDP) -->
+                        @if($isManual)
+                            <!-- Consentimiento informado registrado por Recepción / Admin -->
+                            <div class="p-4 rounded-2xl bg-brand-soft/40 border border-brand-primary/25 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
+                                        <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                        Tratamiento de Datos Personales (LOPDP) *
+                                    </span>
+                                    @if($patientExists && $dataConsent)
+                                        <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-0.5 rounded-md flex items-center gap-1">
+                                            <span>✓</span>
+                                            <span>Consentimiento previo registrado</span>
+                                        </span>
+                                    @endif
+                                </div>
+                                <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                    <input type="checkbox" wire:model="dataConsent" class="mt-0.5 h-4 w-4 rounded text-brand-primary focus:ring-brand-primary cursor-pointer" />
+                                    <span class="text-xs text-slate-700 leading-relaxed">
+                                        El paciente ha sido informado y <strong>autoriza el tratamiento de sus datos personales y de salud</strong> conforme a la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador para la gestión de su cita médica y ficha clínica institucional.
+                                        <a href="https://www.abogadoslatam.com/politicas/surhospital/salud" target="_blank" rel="noopener noreferrer" class="text-brand-primary font-bold hover:underline inline-flex items-center gap-1 ml-1">
+                                            Ver Políticas de Privacidad
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        </a>
+                                    </span>
+                                </label>
+                                @error('dataConsent') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        @elseif(!Auth::check())
+                            <!-- Flujo Público de Agendamiento Online -->
                             <div class="p-3.5 rounded-2xl bg-brand-soft/30 border border-brand-primary/20">
                                 <label class="flex items-start gap-2.5 cursor-pointer select-none">
                                     <input type="checkbox" wire:model="dataConsent" class="mt-0.5 h-4 w-4 rounded text-brand-primary focus:ring-brand-primary cursor-pointer" />
-                                    <span class="text-xs text-slate-700">
+                                    <span class="text-xs text-slate-700 leading-relaxed">
                                         He leído y autorizo el tratamiento de mis datos personales y de salud conforme a la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador.
-                                        <a href="{{ asset('documents/politica-proteccion-datos.pdf') }}" target="_blank" download class="text-brand-primary font-bold hover:underline inline-flex items-center gap-1">
-                                            Descargar Política de Datos
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        <a href="https://www.abogadoslatam.com/politicas/surhospital/salud" target="_blank" rel="noopener noreferrer" class="text-brand-primary font-bold hover:underline inline-flex items-center gap-1 ml-1">
+                                            Ver Políticas de Privacidad
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                         </a>
                                     </span>
                                 </label>
@@ -617,18 +647,20 @@
                 </div>
 
                 <!-- Tabs / Opciones de Pago con Radio Indicator -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <!-- Tabs / Opciones de Pago con Radio Indicator -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
                     <!-- Opción 1: Tarjeta de Débito/Crédito -->
-                    <button type="button" wire:click="$set('paymentMethod', 'CREDIT_CARD')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'CREDIT_CARD' ? 'border-brand-primary bg-brand-soft/50 ring-2 ring-brand-primary/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">💳</span>
+                    <button type="button" wire:click="$set('paymentMethod', 'CREDIT_CARD')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'CREDIT_CARD' ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/25 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                                💳
+                            </div>
                             <div class="flex items-center gap-1.5">
                                 @if($paymentMethod === 'CREDIT_CARD')
                                     <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-brand-primary bg-white px-2 py-0.5 rounded-md border border-brand-primary/20 shadow-xs">
-                                        ✓ Seleccionado
+                                        ✓ Activo
                                     </span>
                                 @endif
-                                <!-- Radio Option Indicator -->
                                 <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all {{ $paymentMethod === 'CREDIT_CARD' ? 'border-brand-primary bg-brand-primary ring-2 ring-brand-primary/20' : 'border-slate-300 bg-white group-hover:border-slate-400' }}">
                                     @if($paymentMethod === 'CREDIT_CARD')
                                         <span class="w-2 h-2 rounded-full bg-white"></span>
@@ -636,24 +668,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-bold {{ $paymentMethod === 'CREDIT_CARD' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Tarjeta Débito / Crédito</h4>
-                        </div>
-                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mt-1">Inmediato</span>
-                        <p class="text-[11px] text-slate-500 mt-1.5">Pasarela segura Visa, Mastercard, Diners.</p>
+                        <h4 class="font-bold {{ $paymentMethod === 'CREDIT_CARD' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Tarjeta Débito / Crédito</h4>
+                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mt-1">En Línea • Inmediato</span>
+                        <p class="text-[11px] text-slate-500 mt-1.5 leading-snug">Pasarela segura con confirmación directa y automática de tu turno.</p>
                     </button>
 
-                    <!-- Opción 2: Generar Link de Pago -->
-                    <button type="button" wire:click="$set('paymentMethod', 'PAYMENT_LINK')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'PAYMENT_LINK' ? 'border-brand-primary bg-brand-soft/50 ring-2 ring-brand-primary/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">🔗</span>
+                    <!-- Opción 2: Enlace de Pago DataLink (Manual Asistido) -->
+                    <button type="button" wire:click="$set('paymentMethod', 'PAYMENT_LINK')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'PAYMENT_LINK' ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/25 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-violet-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                                🔗
+                            </div>
                             <div class="flex items-center gap-1.5">
                                 @if($paymentMethod === 'PAYMENT_LINK')
                                     <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-brand-primary bg-white px-2 py-0.5 rounded-md border border-brand-primary/20 shadow-xs">
-                                        ✓ Seleccionado
+                                        ✓ Activo
                                     </span>
                                 @endif
-                                <!-- Radio Option Indicator -->
                                 <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all {{ $paymentMethod === 'PAYMENT_LINK' ? 'border-brand-primary bg-brand-primary ring-2 ring-brand-primary/20' : 'border-slate-300 bg-white group-hover:border-slate-400' }}">
                                     @if($paymentMethod === 'PAYMENT_LINK')
                                         <span class="w-2 h-2 rounded-full bg-white"></span>
@@ -661,24 +692,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-bold {{ $paymentMethod === 'PAYMENT_LINK' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Enlace de Pago (Datalink)</h4>
-                        </div>
-                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 mt-1">Datalink / Email</span>
-                        <p class="text-[11px] text-slate-500 mt-1.5">Recibe un enlace para pagar fácilmente con tu app móvil.</p>
+                        <h4 class="font-bold {{ $paymentMethod === 'PAYMENT_LINK' ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Enlace de Pago DataLink</h4>
+                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 mt-1">Datafast • Asistido</span>
+                        <p class="text-[11px] text-slate-500 mt-1.5 leading-snug">Emisión personalizada por recepción enviada a tu WhatsApp y correo.</p>
                     </button>
 
                     <!-- Opción 3: Transferencia Bancaria -->
-                    <button type="button" wire:click="$set('paymentMethod', 'BANK_TRANSFER')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ ($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER') ? 'border-brand-primary bg-brand-soft/50 ring-2 ring-brand-primary/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">🏦</span>
+                    <button type="button" wire:click="$set('paymentMethod', 'BANK_TRANSFER')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ ($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER') ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/25 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                                🏦
+                            </div>
                             <div class="flex items-center gap-1.5">
                                 @if($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER')
                                     <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-brand-primary bg-white px-2 py-0.5 rounded-md border border-brand-primary/20 shadow-xs">
-                                        ✓ Seleccionado
+                                        ✓ Activo
                                     </span>
                                 @endif
-                                <!-- Radio Option Indicator -->
                                 <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all {{ ($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER') ? 'border-brand-primary bg-brand-primary ring-2 ring-brand-primary/20' : 'border-slate-300 bg-white group-hover:border-slate-400' }}">
                                     @if($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER')
                                         <span class="w-2 h-2 rounded-full bg-white"></span>
@@ -686,123 +716,269 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-bold {{ ($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER') ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Transferencia Bancaria</h4>
-                        </div>
-                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 mt-1">Banca Móvil</span>
-                        <p class="text-[11px] text-slate-500 mt-1.5">Depósito o transferencia con número de comprobante.</p>
+                        <h4 class="font-bold {{ ($paymentMethod === 'BANK_TRANSFER' || $paymentMethod === 'TRANSFER') ? 'text-brand-primary' : 'text-slate-900' }} text-sm">Transferencia Bancaria</h4>
+                        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 mt-1">Banca Móvil • Voucher</span>
+                        <p class="text-[11px] text-slate-500 mt-1.5 leading-snug">Depósito o transferencia con número de referencia o foto de recibo.</p>
                     </button>
                 </div>
 
                 <!-- CONTENIDO SEGÚN MÉTODO DE PAGO SELECCIONADO -->
 
-                <!-- 1. FORMULARIO PASARELA TARJETA (MODO PRUEBA) -->
+                <!-- 1. PASARELA TARJETA CON DISEÑO PROFESIONAL Y VIRTUAL CARD PREVIEW -->
                 @if($paymentMethod === 'CREDIT_CARD')
-                    <div class="p-5 sm:p-6 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm animate-fadeIn relative">
-                        <div class="mb-5">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Elige la Pasarela de Pago:</label>
-                            <div class="flex flex-col sm:flex-row gap-4">
-                                <button type="button" wire:click="$set('cardGateway', 'payphone')" class="flex-1 flex items-center justify-between p-3 rounded-xl border-2 transition-all {{ $cardGateway === 'payphone' ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200' : 'border-slate-200 bg-white hover:border-slate-300' }}">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm">P</div>
-                                        <span class="font-bold text-sm {{ $cardGateway === 'payphone' ? 'text-orange-700' : 'text-slate-700' }}">Payphone</span>
-                                    </div>
-                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all {{ $cardGateway === 'payphone' ? 'border-orange-500 bg-orange-500' : 'border-slate-300 bg-white' }}">
-                                        @if($cardGateway === 'payphone') <span class="w-2 h-2 rounded-full bg-white"></span> @endif
-                                    </div>
+                    <div class="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm animate-fadeIn space-y-6">
+                        <!-- Selector de Pasarela Integrada -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pasarela de Procesamiento</span>
+                                <p class="text-xs text-slate-400">Selecciona el procesador autorizado para esta transacción</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="$set('cardGateway', 'payphone')" class="px-3.5 py-2 rounded-xl border-2 transition-all flex items-center gap-2 cursor-pointer {{ $cardGateway === 'payphone' ? 'border-orange-500 bg-orange-50/70 text-orange-800 shadow-xs ring-1 ring-orange-200' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
+                                    <span class="w-5 h-5 rounded-md bg-orange-500 text-white flex items-center justify-center font-bold text-[10px]">P</span>
+                                    <span class="text-xs font-bold">Payphone</span>
+                                    @if($cardGateway === 'payphone') <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> @endif
                                 </button>
-                                <button type="button" wire:click="$set('cardGateway', 'kushki')" class="flex-1 flex items-center justify-between p-3 rounded-xl border-2 transition-all {{ $cardGateway === 'kushki' ? 'border-brand-primary bg-brand-soft ring-2 ring-brand-primary/20' : 'border-slate-200 bg-white hover:border-slate-300' }}">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">K</div>
-                                        <span class="font-bold text-sm {{ $cardGateway === 'kushki' ? 'text-brand-primary' : 'text-slate-700' }}">Kushki</span>
-                                    </div>
-                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all {{ $cardGateway === 'kushki' ? 'border-brand-primary bg-brand-primary' : 'border-slate-300 bg-white' }}">
-                                        @if($cardGateway === 'kushki') <span class="w-2 h-2 rounded-full bg-white"></span> @endif
-                                    </div>
+                                <button type="button" wire:click="$set('cardGateway', 'kushki')" class="px-3.5 py-2 rounded-xl border-2 transition-all flex items-center gap-2 cursor-pointer {{ $cardGateway === 'kushki' ? 'border-brand-primary bg-brand-soft text-brand-primary shadow-xs ring-1 ring-brand-primary/20' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
+                                    <span class="w-5 h-5 rounded-md bg-brand-primary text-white flex items-center justify-center font-bold text-[10px]">K</span>
+                                    <span class="text-xs font-bold">Kushki</span>
+                                    @if($cardGateway === 'kushki') <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span> @endif
                                 </button>
                             </div>
                         </div>
 
-                        <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden mt-2">
-                            <!-- Background glow effect -->
-                            <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-brand-primary/30 blur-3xl pointer-events-none"></div>
+                        <!-- Card Visualizer & Form Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                            <!-- Left: Interactive Virtual Credit Card -->
+                            <div class="lg:col-span-5 flex flex-col items-center">
+                                <div class="w-full max-w-[340px] aspect-[1.586/1] rounded-2xl p-5 text-white shadow-2xl relative overflow-hidden transition-transform transform hover:scale-[1.02] duration-300 flex flex-col justify-between"
+                                     style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #047857 100%);">
+                                    <!-- Glossy Sheen Overlay -->
+                                    <div class="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/10 pointer-events-none"></div>
 
-                            <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-800 relative z-10">
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                        Modo Prueba / Simulator ({{ ucfirst($cardGateway) }})
+                                    <!-- Top Card Row: EMV Chip & Contactless -->
+                                    <div class="flex items-center justify-between relative z-10">
+                                        <div class="flex items-center gap-3">
+                                            <!-- Gold EMV Chip Graphic -->
+                                            <div class="w-11 h-8 rounded-md bg-gradient-to-tr from-amber-300 via-amber-200 to-yellow-400 p-1 shadow-md border border-amber-400/80 flex flex-col justify-between">
+                                                <div class="w-full h-px bg-amber-700/30"></div>
+                                                <div class="flex justify-between w-full h-full items-center">
+                                                    <div class="w-2.5 h-3 border border-amber-700/30 rounded-xs"></div>
+                                                    <div class="w-2.5 h-3 border border-amber-700/30 rounded-xs"></div>
+                                                </div>
+                                                <div class="w-full h-px bg-amber-700/30"></div>
+                                            </div>
+                                            <!-- Contactless Waves Icon -->
+                                            <svg class="w-5 h-5 text-slate-300/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 7a7 7 0 010 10m4-12a10 10 0 010 14m4-16a13 13 0 010 18" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-right">
+                                            @php
+                                                $cardFirst = substr(preg_replace('/[^0-9]/', '', $cardNumber), 0, 1);
+                                                $isVisa = $cardFirst === '4';
+                                                $isMastercard = $cardFirst === '5';
+                                                $isAmex = $cardFirst === '3';
+                                            @endphp
+                                            @if($isVisa)
+                                                <span class="font-black italic text-lg tracking-wider text-blue-300">VISA</span>
+                                            @elseif($isMastercard)
+                                                <div class="flex -space-x-2 justify-end">
+                                                    <span class="w-5 h-5 rounded-full bg-rose-500 opacity-90 inline-block"></span>
+                                                    <span class="w-5 h-5 rounded-full bg-amber-400 opacity-90 inline-block"></span>
+                                                </div>
+                                            @elseif($isAmex)
+                                                <span class="font-black text-xs tracking-wider text-cyan-300 border border-cyan-400/50 px-1 py-0.5 rounded">AMEX</span>
+                                            @else
+                                                <span class="text-xs font-black uppercase tracking-wider text-slate-300/80">DEBIT / CREDIT</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- Middle Card Row: 16 Digits Number -->
+                                    <div class="my-auto py-2 relative z-10">
+                                        <div class="font-mono text-base sm:text-lg tracking-widest text-white/95 font-black drop-shadow-sm">
+                                            @php
+                                                $cleanNum = preg_replace('/[^0-9]/', '', $cardNumber);
+                                                $paddedNum = str_pad($cleanNum, 16, '•');
+                                                $formattedNum = implode(' ', str_split(substr($paddedNum, 0, 16), 4));
+                                            @endphp
+                                            {{ $cardNumber ? $formattedNum : '•••• •••• •••• ••••' }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Card Row: Cardholder & Expiry -->
+                                    <div class="flex items-end justify-between relative z-10 text-[11px]">
+                                        <div class="min-w-0 pr-2">
+                                            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">Titular</span>
+                                            <span class="font-bold tracking-wider uppercase text-white truncate block max-w-[190px]">
+                                                {{ !empty($cardHolder) ? $cardHolder : 'NOMBRE DEL TITULAR' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-semibold">Vence</span>
+                                            <span class="font-mono font-bold tracking-wider text-white">
+                                                {{ !empty($cardExpiry) ? $cardExpiry : 'MM/AA' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Trust & Security Badges -->
+                                <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-500">
+                                    <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600 font-medium">
+                                        🔒 TLS 256-Bit SSL
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600 font-medium">
+                                        🛡️ PCI-DSS Level 1
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600 font-medium">
+                                        ✓ 3D Secure 2.0
                                     </span>
                                 </div>
-                                <button type="button" wire:click="fillDemoCard" class="text-xs font-bold text-brand-soft hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 transition-colors cursor-pointer flex items-center gap-1.5">
-                                    <span>⚡ Llenar Datos de Prueba</span>
-                                </button>
                             </div>
 
-                            <!-- Card Form Inputs -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-10 text-slate-900">
-                                <div class="sm:col-span-2">
-                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Nombre en la Tarjeta *</label>
-                                    <input type="text" wire:model="cardHolder" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="Ej: CARLOS A MENDOZA" />
-                                    @error('cardHolder') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
+                            <!-- Right: Card Form Inputs -->
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Datos de la Tarjeta</span>
+                                    <button type="button" wire:click="fillDemoCard" class="text-xs font-bold text-brand-primary hover:text-brand-primary-dark bg-brand-soft hover:bg-brand-soft/80 px-3 py-1.5 rounded-xl border border-brand-primary/20 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                        <span>⚡ Llenar Datos de Prueba</span>
+                                    </button>
                                 </div>
-                                <div class="sm:col-span-2">
-                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Número de Tarjeta (16 Dígitos) *</label>
-                                    <input type="text" wire:model="cardNumber" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="4532 8900 1234 5678" />
-                                    @error('cardNumber') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Fecha de Expiración *</label>
-                                    <input type="text" wire:model="cardExpiry" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="MM/AA (Ej: 12/28)" />
-                                    @error('cardExpiry') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">Código de Seguridad CVV *</label>
-                                    <input type="password" maxlength="4" wire:model="cardCvv" class="w-full rounded-xl border-slate-700 bg-slate-800 text-white text-sm p-3 font-mono focus:border-brand-soft focus:ring-brand-soft shadow-xs" placeholder="•••" />
-                                    @error('cardCvv') <span class="text-xs text-rose-400 mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
 
-                            <div class="mt-4 flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800 relative z-10">
-                                <span class="flex items-center gap-1">🔒 Encriptación TLS 256-bit y Cumplimiento PCI-DSS</span>
-                                <span class="text-emerald-400 font-bold">Simulación 100% segura</span>
+                                <div class="space-y-3.5">
+                                    <!-- Titular -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Nombre del Titular (como figura en la tarjeta) *</label>
+                                        <input type="text" wire:model.live="cardHolder" class="w-full rounded-xl border-slate-200 text-sm p-3 font-semibold text-slate-800 bg-slate-50/70 focus:bg-white focus:border-brand-primary focus:ring-brand-primary shadow-xs transition-colors" placeholder="Ej: CARLOS A MENDOZA" />
+                                        @error('cardHolder') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <!-- Número Tarjeta -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Número de Tarjeta (16 Dígitos) *</label>
+                                        <div class="relative">
+                                            <input type="text" wire:model.live="cardNumber" maxlength="19" class="w-full rounded-xl border-slate-200 text-sm p-3 font-mono font-bold text-slate-800 bg-slate-50/70 focus:bg-white focus:border-brand-primary focus:ring-brand-primary shadow-xs transition-colors pr-10" placeholder="4532 8900 1234 5678" />
+                                            <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                💳
+                                            </div>
+                                        </div>
+                                        @error('cardNumber') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3.5">
+                                        <!-- Fecha Expiración -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Expiración *</label>
+                                            <input type="text" wire:model.live="cardExpiry" maxlength="5" class="w-full rounded-xl border-slate-200 text-sm p-3 font-mono font-bold text-slate-800 bg-slate-50/70 focus:bg-white focus:border-brand-primary focus:ring-brand-primary shadow-xs transition-colors" placeholder="MM/AA (Ej: 12/28)" />
+                                            @error('cardExpiry') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <!-- CVV -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Código CVV / CVC *</label>
+                                            <div class="relative">
+                                                <input type="password" maxlength="4" wire:model.live="cardCvv" class="w-full rounded-xl border-slate-200 text-sm p-3 font-mono font-bold text-slate-800 bg-slate-50/70 focus:bg-white focus:border-brand-primary focus:ring-brand-primary shadow-xs transition-colors" placeholder="•••" />
+                                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">3-4 Díg.</span>
+                                            </div>
+                                            @error('cardCvv') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                                    <span class="font-medium">Total a debitar:</span>
+                                    <span class="font-black text-brand-primary text-base">${{ number_format($amount, 0) }} USD</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 @endif
 
-                <!-- 2. GENERAR LINK DE PAGO (MODO PRUEBA) -->
+                <!-- 2. ENLACE DE PAGO DATALINK (MANUAL POR RECEPCIÓN / ADMISIONES) -->
                 @if($paymentMethod === 'PAYMENT_LINK')
-                    <div class="p-6 rounded-3xl bg-purple-50/70 border border-purple-200/80 animate-fadeIn">
-                        <div class="flex items-start gap-3.5 mb-5">
-                            <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-md shadow-purple-600/20">
-                                🔗
+                    <div class="p-6 sm:p-7 rounded-3xl bg-purple-50/50 border-2 border-purple-200/90 shadow-sm animate-fadeIn space-y-5">
+                        <!-- Header with Datafast / DataLink Branding -->
+                        <div class="flex items-start justify-between gap-4 pb-4 border-b border-purple-200/70">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-md shadow-purple-600/20">
+                                    🔗
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-base sm:text-lg font-bold text-purple-950">Pago Asistido con Enlace DataLink (Datafast)</h3>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md">
+                                            ✓ Seleccionado
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-purple-900 mt-0.5 leading-relaxed">
+                                        Emisión y gestión directa por nuestro personal de admisiones a través del portal oficial de pagos Datafast.
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-base font-bold text-purple-950">Pasarela Digital con Enlace de Pago</h3>
-                                <p class="text-xs text-purple-800 mt-0.5">Se generará un link protegido para pagar desde tu teléfono celular o reenviarlo por WhatsApp/correo.</p>
+                            <span class="hidden sm:inline-block px-3 py-1 rounded-xl text-xs font-black bg-purple-200 text-purple-900 uppercase tracking-wider shrink-0">
+                                Generación Manual
+                            </span>
+                        </div>
+
+                        <!-- Info Callout: How it works -->
+                        <div class="p-4 sm:p-5 rounded-2xl bg-white border border-purple-200/80 shadow-xs space-y-3.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                                <span>📋 ¿Cómo funciona este método de pago?</span>
+                            </h4>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                                <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2">1</div>
+                                    <div class="font-bold text-purple-950">Reserva Tu Cita</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">El turno queda formalizado temporalmente a tu nombre.</p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2">2</div>
+                                    <div class="font-bold text-purple-950">Recepción Emite Link</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">El personal de clínica crea el enlace en Datafast.</p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2">3</div>
+                                    <div class="font-bold text-purple-950">Recibes Link</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">Te contactamos por WhatsApp y correo con el enlace seguro.</p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center mb-2">4</div>
+                                    <div class="font-bold text-purple-950">Confirmación Total</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">Pagas con tarjeta y tu cita se confirma automáticamente.</p>
+                                </div>
                             </div>
                         </div>
 
-                        @if($paymentLinkSent)
-                            <div class="p-4 rounded-2xl bg-white border border-purple-200 shadow-xs space-y-3 mb-4">
-                                <div class="flex items-center gap-2 text-xs font-bold text-emerald-700">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-                                    <span>¡Link de pago generado exitosamente y enviado a <strong>{{ $email ?: 'tu correo' }}</strong>!</span>
+                        <!-- Canales de Envío Registrados -->
+                        <div class="p-4 rounded-2xl bg-white border border-purple-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div class="space-y-1">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Canales para el envío del DataLink:</span>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <span class="inline-flex items-center gap-1.5 font-bold text-slate-800 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                                        ✉️ {{ $email ?: 'Correo registrado del paciente' }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 font-bold text-slate-800 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                                        📱 {{ $phone ?: 'Teléfono / WhatsApp' }}
+                                    </span>
                                 </div>
-                                <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 break-all select-all">
-                                    <span>{{ $generatedPaymentLink }}</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500">Haz clic en <strong>Confirmar Cita</strong> para guardar tu turno; el estado quedará registrado pendiente de acreditación.</p>
                             </div>
-                        @else
-                            <div class="p-5 rounded-2xl bg-white border border-purple-100 text-center space-y-3">
-                                <p class="text-xs text-slate-600">Presiona el botón a continuación para generar tu enlace en modo prueba.</p>
-                                <button type="button" wire:click="generateDemoPaymentLink" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition-colors cursor-pointer inline-flex items-center gap-2">
-                                    <span>Generar Enlace de Pago Demo</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                </button>
+                            <div class="text-right sm:border-l sm:border-slate-100 sm:pl-4">
+                                <span class="text-[11px] text-slate-400 block font-semibold">Valor a emitir:</span>
+                                <span class="text-base font-black text-purple-950">${{ number_format($amount, 0) }} USD</span>
                             </div>
-                        @endif
+                        </div>
+
+                        <!-- Aviso Legal y de Seguimiento -->
+                        <div class="p-3.5 rounded-xl bg-purple-100/70 border border-purple-200 text-purple-900 text-xs flex items-start gap-2.5">
+                            <span class="text-base">📌</span>
+                            <div class="leading-relaxed">
+                                <strong>Importante:</strong> Al presionar <strong>Confirmar Cita</strong>, se notificará a recepción y admisiones de la clínica para que generen el enlace de pago DataLink y te lo compartan a la brevedad posible.
+                            </div>
+                        </div>
                     </div>
                 @endif
 
@@ -1095,26 +1271,51 @@
                         </div>
                     </div>
                 @elseif($paymentMethod === 'PAYMENT_LINK')
-                    <div class="mt-6 max-w-lg mx-auto p-5 rounded-3xl bg-purple-50/80 border border-purple-200 text-left space-y-3.5 shadow-sm animate-fadeIn">
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
-                                ✉️
+                    <div class="mt-6 max-w-lg mx-auto p-5 sm:p-6 rounded-3xl bg-purple-50/90 border-2 border-purple-200 text-left space-y-4 shadow-sm animate-fadeIn">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-md shadow-purple-600/20">
+                                🔗
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-purple-950 text-sm">Enlace de Pago Enviado por Correo</h4>
-                                <p class="text-xs text-purple-800 mt-0.5 leading-relaxed">
-                                    Hemos enviado el enlace seguro a <strong class="text-purple-950">{{ $email }}</strong>. Tu cita quedará confirmada tan pronto se procese el pago.
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-purple-950 text-base">Enlace DataLink en Gestión</h4>
+                                    <span class="inline-flex items-center text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
+                                        Seguimiento Activo
+                                    </span>
+                                </div>
+                                <p class="text-xs text-purple-900 mt-1 leading-relaxed">
+                                    Tu cita quedó reservada con éxito. Nuestro personal de recepción y admisiones ha recibido la alerta y está preparando tu <strong>Enlace de Pago DataLink personalizado</strong> a través de Datafast.
                                 </p>
                             </div>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-white border border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <a href="{{ $generatedPaymentLink }}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm transition-colors text-center inline-flex items-center justify-center gap-2">
-                                <span>💳 Abrir Enlace de Pago</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <div class="p-4 rounded-2xl bg-white border border-purple-100 space-y-2 text-xs text-slate-700">
+                            <div class="flex items-center justify-between py-0.5">
+                                <span class="text-slate-500">Notificación al paciente:</span>
+                                <strong class="font-semibold text-slate-900 font-mono">{{ $email }}</strong>
+                            </div>
+                            <div class="flex items-center justify-between py-0.5">
+                                <span class="text-slate-500">Contacto WhatsApp:</span>
+                                <strong class="font-semibold text-slate-900 font-mono">{{ $phone }}</strong>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                <span class="text-slate-500">Estado de turno:</span>
+                                <span class="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md text-[11px]">Reservado — Esperando Pago DataLink</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                            @php
+                                $clinicPhone = config('branding.phone', '593987654321');
+                                $clinicWa = preg_replace('/[^0-9]/', '', $clinicPhone);
+                                if (str_starts_with($clinicWa, '0')) { $clinicWa = '593' . substr($clinicWa, 1); }
+                                $patientWaMsg = rawurlencode("Hola recepción SurHospital, acabé de reservar mi cita médica (#{$confirmedAppointmentCode}) y seleccioné Enlace de Pago DataLink. ¿Me podrían ayudar por favor con el link para realizar el pago?");
+                            @endphp
+                            <a href="https://wa.me/{{ $clinicWa }}?text={{ $patientWaMsg }}" target="_blank" class="w-full sm:w-auto flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors text-center inline-flex items-center justify-center gap-2 cursor-pointer">
+                                <span>💬 Consultar a Recepción por WhatsApp</span>
                             </a>
                             <button type="button" wire:click="resendPaymentLinkEmail" wire:loading.attr="disabled" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs transition-colors cursor-pointer text-center inline-flex items-center justify-center gap-1.5">
-                                <span wire:loading.remove wire:target="resendPaymentLinkEmail">📩 Reenviar Correo</span>
+                                <span wire:loading.remove wire:target="resendPaymentLinkEmail">📩 Reenviar Alerta</span>
                                 <span wire:loading wire:target="resendPaymentLinkEmail">Enviando...</span>
                             </button>
                         </div>

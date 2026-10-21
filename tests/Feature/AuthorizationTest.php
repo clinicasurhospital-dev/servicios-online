@@ -51,4 +51,38 @@ class AuthorizationTest extends TestCase
         $this->actingAs($user)->get('/admin/citas')->assertStatus(200);
         $this->actingAs($user)->get('/admin/auditoria')->assertStatus(200);
     }
+
+    public function test_public_booking_disabled_restricts_guest_and_patient_but_allows_admin_and_reception(): void
+    {
+        config(['branding.enable_patient_booking' => false]);
+
+        // Guest is redirected
+        $this->get('/agendar')->assertRedirect('/')->assertSessionHas('info');
+
+        // Patient is redirected
+        $patientUser = User::factory()->create();
+        $patientUser->assignRole('PATIENT');
+        $this->actingAs($patientUser)->get('/agendar')->assertRedirect('/')->assertSessionHas('info');
+
+        // Admin can access
+        $adminUser = User::factory()->create();
+        $adminUser->assignRole('ADMIN');
+        $this->actingAs($adminUser)->get('/agendar')->assertStatus(200);
+
+        // Receptionist can access
+        $receptionUser = User::factory()->create();
+        $receptionUser->assignRole('RECEPTION');
+        $this->actingAs($receptionUser)->get('/agendar')->assertStatus(200);
+    }
+
+    public function test_public_booking_enabled_allows_everyone_to_access_and_see_button(): void
+    {
+        config(['branding.enable_patient_booking' => true]);
+
+        // Guest can access
+        $this->get('/agendar')->assertStatus(200);
+
+        // Guest sees the button on home
+        $this->get('/')->assertSee('Agendar Cita en Línea');
+    }
 }

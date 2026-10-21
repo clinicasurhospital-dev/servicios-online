@@ -35,9 +35,11 @@
                     <a href="{{ route('patient.appointments') }}" class="text-sm font-semibold {{ request()->routeIs('patient.appointments') ? 'text-brand-600' : 'text-slate-600 hover:text-slate-900' }} transition-colors">
                         Mis Citas
                     </a>
-                    <a href="{{ route('booking') }}" class="text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors flex items-center gap-1">
-                        <span>+</span> Agendar Cita
-                    </a>
+                    @if($branding->canShowBookingButton())
+                        <a href="{{ route('booking') }}" class="text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors flex items-center gap-1">
+                            <span>+</span> Agendar Cita
+                        </a>
+                    @endif
                 </nav>
 
                 <!-- User Dropdown / Logout -->
@@ -59,7 +61,7 @@
         </div>
 
         <!-- Mobile Bottom Nav Bar -->
-        <div class="sm:hidden border-t border-slate-100 bg-white grid grid-cols-3 py-2 text-center text-xs">
+        <div class="sm:hidden border-t border-slate-100 bg-white grid {{ $branding->canShowBookingButton() ? 'grid-cols-3' : 'grid-cols-2' }} py-2 text-center text-xs">
             <a href="{{ route('patient.dashboard') }}" class="py-1.5 flex flex-col items-center gap-1 {{ request()->routeIs('patient.dashboard') ? 'text-brand-600 font-bold' : 'text-slate-600' }}">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -72,12 +74,14 @@
                 </svg>
                 <span>Mis Citas</span>
             </a>
-            <a href="{{ route('booking') }}" class="py-1.5 flex flex-col items-center gap-1 text-brand-600 font-bold">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span>Agendar</span>
-            </a>
+            @if($branding->canShowBookingButton())
+                <a href="{{ route('booking') }}" class="py-1.5 flex flex-col items-center gap-1 text-brand-600 font-bold">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Agendar</span>
+                </a>
+            @endif
         </div>
     </header>
 

@@ -90,6 +90,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Patient Online Booking Availability Flag
+    |--------------------------------------------------------------------------
+    |
+    | Controls whether the public appointment booking button is visible to
+    | general visitors and patients. When false, it is only visible and
+    | accessible to Administrator and Receptionist staff.
+    |
+    */
+    'enable_patient_booking' => (bool) env('ENABLE_PATIENT_BOOKING', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | White-Label Display Rules
     |--------------------------------------------------------------------------
     */

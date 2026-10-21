@@ -29,7 +29,11 @@
         <p>El enlace al que intentas acceder no existe o fue movido en la plataforma.</p>
         <div class="actions">
             <a href="/" class="btn btn-primary">Ir al Inicio</a>
-            <a href="/agendar" class="btn btn-secondary">Agendar Cita</a>
+            @if(app(\App\Domain\Branding\BrandingService::class)->canShowBookingButton())
+                <a href="/agendar" class="btn btn-secondary">Agendar Cita</a>
+            @else
+                <a href="/#contacto" class="btn btn-secondary">Contactar Clínica</a>
+            @endif
         </div>
     </div>
 </body>

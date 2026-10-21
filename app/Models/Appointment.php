@@ -120,6 +120,11 @@ class Appointment extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
     public function latestPayment(): HasOne
     {
         return $this->hasOne(Payment::class)->latestOfMany();

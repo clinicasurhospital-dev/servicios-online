@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Appointments\Enums\AppointmentStatus;
+use App\Domain\Appointments\Services\AppointmentNotificationDispatcher;
+use App\Domain\Payments\Enums\PaymentMethod;
+use App\Domain\Payments\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentStatusHistory;
 use App\Models\AuditLog;
 use App\Models\Doctor;
+use App\Models\Payment;
 use App\Models\Specialty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -280,5 +285,131 @@ class AdminAppointmentController extends Controller
         }
 
         return back()->with('success', "{$label} eliminada de la cita #{$appointment->code}.");
+    }
+
+    public function sendDataLinkEmail(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $request->validate([
+            'datalink_url' => 'required|url|max:500',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $payment = $appointment->payments()->where('payment_method', PaymentMethod::PAYMENT_LINK)->first()
+                ?? $appointment->payments()->first();
+
+            if (! $payment) {
+                $payment = Payment::create([
+                    'appointment_id' => $appointment->id,
+                    'payment_method' => PaymentMethod::PAYMENT_LINK,
+                    'amount' => $appointment->price,
+                    'currency' => 'USD',
+                    'status' => PaymentStatus::PENDING,
+                ]);
+            }
+
+            $url = $request->input('datalink_url');
+            $notes = $request->input('notes');
+
+            $payload = is_array($payment->payload_response) ? $payment->payload_response : [];
+            $payload['datalink_url'] = $url;
+            $payload['datalink_sent_at'] = now()->toIso8601String();
+            $payload['notes'] = $notes;
+
+            $payment->update([
+                'datalink_url' => $url,
+                'datalink_sent_at' => now(),
+                'payload_response' => $payload,
+            ]);
+
+            app(AppointmentNotificationDispatcher::class)->dispatchDataLinkSent(
+                appointment: $appointment,
+                payment: $payment,
+                dataLinkUrl: $url,
+                notes: $notes
+            );
+
+            AuditLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'datalink_email_sent',
+                'auditable_type' => Appointment::class,
+                'auditable_id' => (string) $appointment->id,
+                'after_state' => [
+                    'appointment_code' => $appointment->code,
+                    'datalink_url' => $url,
+                    'patient_email' => $appointment->patient?->email ?: $appointment->patient?->user?->email,
+                ],
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+
+            return back()->with('success', 'Enlace DataLink enviado al paciente por correo exitosamente.');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Error al enviar enlace DataLink: ' . $e->getMessage());
+        }
+    }
+
+    public function markDataLinkPaid(Request $request, Appointment $appointment): RedirectResponse
+    {
+        try {
+            DB::transaction(function () use ($appointment, $request) {
+                $payment = $appointment->payments()->where('payment_method', PaymentMethod::PAYMENT_LINK)->first()
+                    ?? $appointment->payments()->first();
+
+                if ($payment) {
+                    $payment->update([
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                }
+
+                $previousStatus = $appointment->status->value;
+                $appointment->update([
+                    'status' => AppointmentStatus::CONFIRMED,
+                ]);
+
+                AppointmentStatusHistory::create([
+                    'appointment_id' => $appointment->id,
+                    'previous_status' => $previousStatus,
+                    'new_status' => AppointmentStatus::CONFIRMED->value,
+                    'changed_by_user_id' => Auth::id(),
+                    'reason' => 'Pago por Enlace DataLink confirmado desde gestión de citas',
+                    'metadata' => [
+                        'payment_id' => $payment?->id,
+                        'method' => 'PAYMENT_LINK',
+                    ],
+                    'created_at' => now(),
+                ]);
+
+                $dispatcher = app(AppointmentNotificationDispatcher::class);
+                if ($payment) {
+                    $dispatcher->dispatchPaymentReceived(
+                        appointment: $appointment,
+                        payment: $payment,
+                        note: 'Pago por Enlace DataLink verificado exitosamente.'
+                    );
+                }
+                $dispatcher->dispatchAppointmentConfirmed($appointment);
+
+                AuditLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'datalink_marked_paid',
+                    'auditable_type' => Appointment::class,
+                    'auditable_id' => (string) $appointment->id,
+                    'after_state' => [
+                        'code' => $appointment->code,
+                        'payment_id' => $payment?->id,
+                    ],
+                    'ip_address' => $request->ip(),
+                    'created_at' => now(),
+                ]);
+            });
+
+            return back()->with('success', 'El pago DataLink ha sido marcado como PAGADO y la cita médica ha sido confirmada.');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Error al marcar pago como completado: ' . $e->getMessage());
+        }
     }
 }

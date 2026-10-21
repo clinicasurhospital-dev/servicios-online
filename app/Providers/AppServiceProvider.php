@@ -36,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
         Model::unguard();
 
         \Illuminate\Support\Facades\View::share('branding', $this->app->make(\App\Domain\Branding\BrandingService::class));
+
+        \Illuminate\Support\Facades\Blade::if('canBook', function () {
+            return app(\App\Domain\Branding\BrandingService::class)->canShowBookingButton();
+        });
     }
 }

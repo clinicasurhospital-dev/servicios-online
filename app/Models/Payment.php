@@ -18,6 +18,8 @@ class Payment extends Model
         'payment_method',
         'gateway_name',
         'gateway_transaction_id',
+        'datalink_url',
+        'datalink_sent_at',
         'amount',
         'currency',
         'status',
@@ -30,6 +32,7 @@ class Payment extends Model
         'status' => PaymentStatus::class,
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'datalink_sent_at' => 'datetime',
         'payload_response' => 'array',
     ];
 

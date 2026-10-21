@@ -298,4 +298,108 @@ class BookingWizardTest extends TestCase
         $this->assertNotNull($transfer->receipt_path);
         Storage::disk('receipts')->assertExists($transfer->receipt_path);
     }
+
+    public function test_manual_booking_with_existing_patient_cedula_autocompletes_without_crashing(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('SUPER_ADMIN');
+
+        $user = User::factory()->create();
+        $doctor = Doctor::create([
+            'user_id' => $user->id,
+            'license_number' => 'DOC-TEST-CED-1',
+            'default_slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $specialty = Specialty::create([
+            'name' => 'Medicina General',
+            'slug' => 'medicina-general-test',
+            'base_price' => 45.00,
+            'default_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $doctor->specialties()->attach($specialty->id);
+
+        $patientUser = User::factory()->create(['email' => 'paciente.existente@test.com']);
+        $existingPatient = Patient::create([
+            'user_id' => $patientUser->id,
+            'first_name' => 'Maria',
+            'last_name' => 'González',
+            'identification_type' => \App\Domain\Patients\Enums\IdentificationType::CEDULA,
+            'identification_number' => '0912345678',
+            'email' => 'paciente.existente@test.com',
+            'phone' => '0998877665',
+            'birth_date' => '1988-04-12',
+            'gender' => \App\Domain\Patients\Enums\Gender::FEMALE,
+            'data_consent_accepted' => true,
+        ]);
+
+        DoctorSchedule::create([
+            'doctor_id' => $doctor->id,
+            'day_of_week' => now()->addDays(2)->dayOfWeek,
+            'start_time' => '08:00:00',
+            'end_time' => '17:00:00',
+            'slot_duration_minutes' => 30,
+            'is_active' => true,
+        ]);
+
+        $date = now()->addDays(2)->format('Y-m-d');
+
+        $this->actingAs($admin);
+
+        Livewire::test(BookingWizard::class, ['isManual' => true])
+            ->assertSet('step', 1)
+            ->call('selectSpecialty', $specialty->id)
+            ->call('selectProcedure', 0)
+            ->call('proceedToStep2')
+            ->assertSet('step', 2)
+            ->call('selectDoctor', $doctor->id)
+            ->set('selectedDate', $date)
+            ->call('selectSlot', '10:00', '10:30')
+            ->call('proceedToStep3')
+            ->assertSet('step', 3)
+            // Enter existing patient cedula
+            ->set('identificationNumber', '0912345678')
+            // Must stay on step 3!
+            ->assertSet('step', 3)
+            ->assertSet('patientExists', true)
+            ->assertSet('firstName', 'Maria')
+            ->assertSet('lastName', 'González')
+            ->assertSet('phone', '0998877665')
+            ->assertSet('cedulaStatus', 'valid')
+            // Now confirm manual booking
+            ->call('confirmBooking')
+            ->assertSet('step', 5)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('appointments', [
+            'patient_id' => $existingPatient->id,
+            'doctor_id' => $doctor->id,
+            'specialty_id' => $specialty->id,
+        ]);
+
+        // If dataConsent is false, validation fails on manual booking
+        Livewire::test(BookingWizard::class, ['isManual' => true])
+            ->assertSet('step', 1)
+            ->call('selectSpecialty', $specialty->id)
+            ->call('selectProcedure', 0)
+            ->call('proceedToStep2')
+            ->call('selectDoctor', $doctor->id)
+            ->set('selectedDate', $date)
+            ->call('selectSlot', '11:00', '11:30')
+            ->call('proceedToStep3')
+            ->set('firstName', 'Juan')
+            ->set('lastName', 'Pérez')
+            ->set('identificationType', 'CEDULA')
+            ->set('identificationNumber', '0998877665')
+            ->set('email', 'juan.perez@test.com')
+            ->set('phone', '0991122334')
+            ->set('birthDate', '1992-05-15')
+            ->set('gender', 'MALE')
+            ->set('dataConsent', false)
+            ->call('confirmBooking')
+            ->assertHasErrors(['dataConsent' => 'accepted']);
+    }
 }

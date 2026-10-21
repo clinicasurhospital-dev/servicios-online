@@ -30,6 +30,38 @@
         this.resetReviewState();
         this.statusModal = true;
     },
+    datalinkUrl: '',
+    datalinkNotes: '',
+    copiedDataLinkWa: false,
+    openDataLinkModal(app) {
+        this.selectedApp = app;
+        const p = app.payments && app.payments.length ? app.payments[0] : null;
+        this.datalinkUrl = p?.datalink_url || (p?.payload_response && p.payload_response.datalink_url) || '';
+        this.datalinkNotes = '';
+        this.activeTab = 'datalink';
+        this.resetReviewState();
+        this.statusModal = true;
+    },
+    getDataLinkWhatsAppUrl() {
+        if (!this.selectedApp) return '#';
+        let phone = this.selectedApp.patient?.phone || '';
+        phone = phone.replace(/[^0-9]/g, '');
+        if (phone.startsWith('09') && phone.length === 10) {
+            phone = '593' + phone.substring(1);
+        } else if (phone.startsWith('0') && phone.length === 9) {
+            phone = '593' + phone.substring(1);
+        }
+        const patientName = this.selectedApp.patient ? (this.selectedApp.patient.first_name + ' ' + this.selectedApp.patient.last_name) : 'Estimado(a) paciente';
+        const doctorName = this.selectedApp.doctor?.user?.name || 'su médico especialista';
+        const specialty = this.selectedApp.specialty?.name || 'Consulta Médica';
+        const date = this.selectedApp.start_at ? new Date(this.selectedApp.start_at).toLocaleDateString('es-EC', { weekday: 'short', day: 'numeric', month: 'short' }) : 'su fecha agendada';
+        const amount = this.selectedApp.price ? Number(this.selectedApp.price).toFixed(2) : '0.00';
+        const link = this.datalinkUrl || 'Enlace en preparación';
+        const brand = '{{ config('branding.client_name', 'Clínica Sur Hospital') }}';
+        
+        const msg = `¡Hola ${patientName}! 👋 Le saludamos desde *${brand}*.\n\nLe compartimos su *Enlace de Pago DataLink (Datafast)* para confirmar su cita médica de *${specialty}* con el Dr(a). *${doctorName}*:\n\n📅 Fecha: ${date}\n💰 Valor a cancelar: *$${amount} USD*\n🔗 Enlace de pago seguro:\n👉 ${link}\n\nUna vez realizado el pago, su turno queda confirmado inmediatamente. ¡Quedamos a su disposición!`;
+        return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+    },
     resetReviewState() {
         this.copiedLink = false;
         this.emailSending = false;
@@ -268,6 +300,17 @@
                                         <a href="{{ route('admin.patients.clinical_record', $app->patient_id) }}" class="px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs transition-colors flex items-center space-x-1" title="Ver Historia Clínica del Paciente">
                                             <span>Historial</span>
                                         </a>
+                                        @php
+                                            $hasDataLink = $app->payments->where('payment_method.value', 'PAYMENT_LINK')->count() > 0 
+                                                || $app->payments->where('payment_method', 'PAYMENT_LINK')->count() > 0
+                                                || in_array($app->status->value, ['PENDING', 'PENDING_PAYMENT']);
+                                        @endphp
+                                        @if($hasDataLink)
+                                            <button @click="openDataLinkModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-600 text-purple-700 hover:text-white font-bold text-xs transition-colors cursor-pointer flex items-center space-x-1" title="Gestionar Enlace DataLink (WhatsApp y Correo)">
+                                                <span>🔗</span>
+                                                <span>DataLink</span>
+                                            </button>
+                                        @endif
                                         <button @click="openManageModal({{ $app->toJson() }})" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
                                             Estado
                                         </button>
@@ -311,15 +354,19 @@
                     <!-- Modal Navigation Tabs -->
                     <div class="flex p-1 bg-slate-100 rounded-2xl my-4 text-xs font-bold gap-1">
                         <template x-if="selectedApp.status !== 'COMPLETED' && selectedApp.status !== 'CANCELLED'">
-                            <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all">
+                            <button type="button" @click="activeTab = 'status'" :class="activeTab === 'status' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all cursor-pointer">
                                 Estado
                             </button>
                         </template>
-                        <button type="button" @click="activeTab = 'clinical'" :class="activeTab === 'clinical' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1">
+                        <button type="button" @click="activeTab = 'datalink'" :class="activeTab === 'datalink' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer">
+                            <span>🔗</span>
+                            <span>DataLink</span>
+                        </button>
+                        <button type="button" @click="activeTab = 'clinical'" :class="activeTab === 'clinical' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             <span>Historia</span>
                         </button>
-                        <button type="button" @click="activeTab = 'review'" :class="activeTab === 'review' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1">
+                        <button type="button" @click="activeTab = 'review'" :class="activeTab === 'review' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'" class="flex-1 py-2 px-2 text-center rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer">
                             <span class="text-amber-500">⭐</span>
                             <span>Valoración</span>
                         </button>
@@ -592,7 +639,97 @@
                         </template>
 
                         <div class="flex justify-end pt-3 border-t border-slate-100">
-                            <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold">
+                            <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold cursor-pointer">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: GESTIÓN DATALINK (WHATSAPP & CORREO) -->
+                    <div x-show="activeTab === 'datalink'" class="space-y-4 text-xs animate-fadeIn">
+                        <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-purple-950 uppercase tracking-wider">Gestión Manual DataLink (Datafast)</span>
+                                <template x-if="selectedApp.payments && selectedApp.payments.length && selectedApp.payments[0].status === 'PAID'">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">✓ PAGADO</span>
+                                </template>
+                                <template x-if="!selectedApp.payments || !selectedApp.payments.length || selectedApp.payments[0].status !== 'PAID'">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800">🟡 PENDIENTE DE PAGO</span>
+                                </template>
+                            </div>
+                            <p class="text-slate-600 text-[11px] leading-relaxed">
+                                Genera el enlace de cobro en el portal de <strong>Datafast</strong> y envíalo directamente por <strong>WhatsApp</strong> o <strong>Correo electrónico</strong> al paciente para confirmar el turno.
+                            </p>
+
+                            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                                <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                                    <span class="text-slate-400 block">Teléfono / WhatsApp:</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="selectedApp.patient?.phone || 'Sin teléfono'"></span>
+                                </div>
+                                <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                                    <span class="text-slate-400 block">Correo Paciente:</span>
+                                    <span class="font-bold text-slate-800 truncate block font-mono" x-text="selectedApp.patient?.email || 'Sin correo'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulario para Enviar Correo con Enlace DataLink -->
+                        <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/datalink/enviar-correo'" method="POST" class="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                            @csrf
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                                    URL del Enlace DataLink (Datafast) *
+                                </label>
+                                <input type="url" name="datalink_url" x-model="datalinkUrl" required class="w-full rounded-xl border-slate-200 text-xs p-2.5 font-mono focus:border-purple-600 focus:ring-purple-600 bg-white" placeholder="https://datalink.datafast.com.ec/..." />
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                                    Notas adicionales (Opcional)
+                                </label>
+                                <input type="text" name="notes" x-model="datalinkNotes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-purple-600 focus:ring-purple-600 bg-white" placeholder="Ej: Link válido por 24 horas..." />
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-[11px] text-slate-400">Envía correo con botón de pago directo</span>
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                                    <span>✉️ Enviar por Correo</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Envío por WhatsApp -->
+                        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-emerald-950 uppercase tracking-wider text-[11px]">Envío Directo por WhatsApp</span>
+                                <span class="text-[10px] text-emerald-700 font-semibold">Mensaje Preformateado</span>
+                            </div>
+                            <p class="text-[11px] text-emerald-900 leading-relaxed">
+                                Abre el chat de WhatsApp con el paciente con un mensaje que incluye los datos de la cita y el enlace DataLink.
+                            </p>
+                            <div class="flex items-center justify-end gap-2 pt-1">
+                                <a :href="getDataLinkWhatsAppUrl()" target="_blank" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                                    <span>💬 Abrir WhatsApp con Enlace</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Marcar como Pagado -->
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-slate-900 block text-xs">Confirmar Pago DataLink</span>
+                                <span class="text-[11px] text-slate-400">Si el paciente ya pagó en Datafast, confirma la cita</span>
+                            </div>
+                            <form :action="'{{ url('/admin/citas') }}/' + selectedApp.id + '/datalink/marcar-pagado'" method="POST" onsubmit="return confirm('¿Confirmas que el pago DataLink fue completado? La cita médica quedará confirmada.');">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                                    <span>✓ Marcar Pagado y Confirmar</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="flex justify-end pt-3 border-t border-slate-100">
+                            <button type="button" @click="statusModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold cursor-pointer">
                                 Cerrar
                             </button>
                         </div>

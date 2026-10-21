@@ -24,8 +24,13 @@ class HomeController extends Controller
         return view('public.home', compact('specialties', 'doctors'));
     }
 
-    public function booking(): View
+    public function booking(): View|\Illuminate\Http\RedirectResponse
     {
+        $branding = app(\App\Domain\Branding\BrandingService::class);
+        if (!$branding->canShowBookingButton()) {
+            return redirect()->route('home')->with('info', 'El agendamiento en línea estará disponible próximamente para el público general. Si requieres agendar una cita, comunícate con recepción al ' . config('branding.contact.phone') . ' o vía WhatsApp al ' . config('branding.contact.whatsapp') . '.');
+        }
+
         return view('public.booking');
     }
 }

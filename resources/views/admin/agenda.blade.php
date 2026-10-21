@@ -229,6 +229,45 @@
                             <span class="font-bold text-brand-primary" x-text="selectedApp.start_at"></span>
                         </div>
 
+                        <!-- LOPDP Data Treatment Status -->
+                        <div class="p-3 rounded-xl bg-slate-50 flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 block text-[11px]">Tratamiento de Datos (LOPDP):</span>
+                                <span class="font-bold text-slate-700">Consentimiento de Salud</span>
+                            </div>
+                            <template x-if="selectedApp.patient?.data_consent_accepted">
+                                <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1 border border-emerald-200">
+                                    <span>✓</span>
+                                    <span>Autorizado</span>
+                                </span>
+                            </template>
+                            <template x-if="!selectedApp.patient?.data_consent_accepted">
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[11px] flex items-center gap-1 border border-amber-200">
+                                    <span>⚠️</span>
+                                    <span>Pendiente</span>
+                                </span>
+                            </template>
+                        </div>
+
+                        <!-- DataLink Quick Actions in Agenda Modal -->
+                        <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-purple-950 flex items-center gap-1.5 text-xs">
+                                    <span>🔗</span>
+                                    <span>Gestión de Pago DataLink</span>
+                                </span>
+                                <span class="text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-md">Datafast</span>
+                            </div>
+                            <div class="flex items-center gap-2 pt-1">
+                                <a :href="'{{ url('/admin/citas') }}?search=' + selectedApp.code" class="flex-1 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-center text-xs shadow-xs transition-colors">
+                                    Gestionar Enlace / WhatsApp
+                                </a>
+                                <a :href="'{{ url('/admin/transferencias') }}?tab=datalink'" class="px-3 py-2 rounded-xl bg-white border border-purple-200 text-purple-900 font-bold hover:bg-purple-50 text-center text-xs transition-colors">
+                                    Validar Pagos
+                                </a>
+                            </div>
+                        </div>
+
                         <!-- Existing Documents in Modal -->
                         <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
                             <span class="font-bold text-slate-700 block">Documentos Clínicos:</span>

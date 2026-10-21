@@ -6,6 +6,9 @@ use App\Mail\AppointmentCancelledMail;
 use App\Mail\AppointmentCreatedMail;
 use App\Mail\AppointmentRescheduledMail;
 use App\Mail\PaymentReceivedMail;
+use App\Mail\PatientDataLinkPendingMail;
+use App\Mail\PatientDataLinkReadyMail;
+use App\Mail\StaffDataLinkAlertMail;
 use App\Models\Appointment;
 use App\Models\Payment;
 use App\Models\User;
@@ -107,8 +110,8 @@ class AppointmentNotificationDispatcher
      */
     public function dispatchAppointmentConfirmed(Appointment $appointment): void
     {
-        $appointment->loadMissing(['patient', 'doctor.user', 'specialty', 'procedure']);
-        $patientEmail = $appointment->patient?->email;
+        $appointment->loadMissing(['patient.user', 'doctor.user', 'specialty', 'procedure']);
+        $patientEmail = $appointment->patient?->email ?: $appointment->patient?->user?->email;
 
         if (!empty($patientEmail)) {
             try {
@@ -127,8 +130,8 @@ class AppointmentNotificationDispatcher
      */
     public function dispatchPaymentReceived(Appointment $appointment, Payment $payment, ?string $note = null): void
     {
-        $appointment->loadMissing(['patient', 'doctor.user', 'specialty', 'procedure']);
-        $patientEmail = $appointment->patient?->email;
+        $appointment->loadMissing(['patient.user', 'doctor.user', 'specialty', 'procedure']);
+        $patientEmail = $appointment->patient?->email ?: $appointment->patient?->user?->email;
         $staffEmails = $this->getStaffEmails();
         $staffUsers = $this->getStaffUsers();
         $amountFormatted = number_format((float) $payment->amount, 2);
@@ -316,7 +319,7 @@ class AppointmentNotificationDispatcher
             $recipients = $recipients->concat([$doctorUser]);
         }
 
-        if ($recipients->isNotEmpty()) {
+            if ($recipients->isNotEmpty()) {
             try {
                 $patientName = $appointment->patient?->full_name ?? 'Paciente';
                 Notification::send($recipients, new AppointmentSystemNotification(
@@ -328,6 +331,85 @@ class AppointmentNotificationDispatcher
                 ));
             } catch (\Throwable $e) {
                 Log::error('Error registrando notificación interna de cancelación: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Dispatch notifications when patient requests manual DataLink payment.
+     */
+    public function dispatchDataLinkRequested(Appointment $appointment, Payment $payment): void
+    {
+        $appointment->loadMissing(['patient.user', 'doctor.user', 'specialty']);
+        $patientEmail = $appointment->patient?->email ?: $appointment->patient?->user?->email;
+        $staffEmails = $this->getStaffEmails();
+        $staffUsers = $this->getStaffUsers();
+
+        // 1. Send confirmation to patient that appointment is reserved and link is being prepared
+        if (!empty($patientEmail)) {
+            try {
+                Mail::to($patientEmail)->send(new PatientDataLinkPendingMail(
+                    appointment: $appointment,
+                    amount: (float) $payment->amount,
+                    patientName: $appointment->patient?->full_name
+                ));
+            } catch (\Throwable $e) {
+                Log::error('Error enviando correo de DataLink pendiente al paciente: ' . $e->getMessage());
+            }
+        }
+
+        // 2. Send urgent alert to reception and administration
+        foreach ($staffEmails as $staffEmail) {
+            if ($staffEmail === $patientEmail) continue;
+            try {
+                Mail::to($staffEmail)->send(new StaffDataLinkAlertMail(
+                    appointment: $appointment,
+                    amount: (float) $payment->amount,
+                    patientName: $appointment->patient?->full_name,
+                    patientPhone: $appointment->patient?->phone,
+                    patientEmail: $patientEmail
+                ));
+            } catch (\Throwable $e) {
+                Log::error('Error enviando alerta de DataLink al staff: ' . $e->getMessage());
+            }
+        }
+
+        // 3. In-app system notification for reception/admin
+        if ($staffUsers->isNotEmpty()) {
+            try {
+                $patientName = $appointment->patient?->full_name ?? 'Paciente';
+                Notification::send($staffUsers, new AppointmentSystemNotification(
+                    title: '🔗 Emitir Enlace DataLink',
+                    message: "Cita #{$appointment->code} ({$patientName}) requiere emisión manual de Enlace de Pago DataLink por $" . number_format((float) $payment->amount, 2) . ".",
+                    appointment: $appointment,
+                    type: 'datalink_required',
+                    actionUrl: url('/admin/transferencias?tab=datalink')
+                ));
+            } catch (\Throwable $e) {
+                Log::error('Error registrando notificación interna de DataLink: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Dispatch notification when reception emits and sends DataLink payment link to the patient.
+     */
+    public function dispatchDataLinkSent(Appointment $appointment, Payment $payment, string $dataLinkUrl, ?string $notes = null): void
+    {
+        $appointment->loadMissing(['patient.user', 'doctor.user', 'specialty']);
+        $patientEmail = $appointment->patient?->email ?: $appointment->patient?->user?->email;
+
+        if (!empty($patientEmail)) {
+            try {
+                Mail::to($patientEmail)->send(new PatientDataLinkReadyMail(
+                    appointment: $appointment,
+                    dataLinkUrl: $dataLinkUrl,
+                    amount: (float) $payment->amount,
+                    patientName: $appointment->patient?->full_name,
+                    notes: $notes
+                ));
+            } catch (\Throwable $e) {
+                Log::error('Error enviando correo con enlace DataLink al paciente: ' . $e->getMessage());
             }
         }
     }

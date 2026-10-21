@@ -97,6 +97,30 @@ class BrandingService
     }
 
     /**
+     * Determine if patient/public online booking is globally enabled.
+     */
+    public function isPatientBookingEnabled(): bool
+    {
+        return (bool) config('branding.enable_patient_booking', false);
+    }
+
+    /**
+     * Determine if appointment booking button should be visible.
+     * Always visible for Admin and Receptionist staff.
+     * For patients and public visitors, controlled by ENABLE_PATIENT_BOOKING.
+     */
+    public function canShowBookingButton(?\App\Models\User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+
+        if ($user && ($user->hasRole('ADMIN') || $user->hasRole('RECEPTION'))) {
+            return true;
+        }
+
+        return $this->isPatientBookingEnabled();
+    }
+
+    /**
      * Get any config value under branding.
      */
     public function get(string $key, mixed $default = null): mixed
@@ -104,3 +128,4 @@ class BrandingService
         return config("branding.{$key}", $default);
     }
 }
+

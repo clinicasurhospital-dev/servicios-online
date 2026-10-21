@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Domain\Appointments\DTOs\CreateAppointmentDTO;
 use App\Domain\Appointments\Services\AppointmentBookingService;
 use App\Domain\Availability\Services\AvailabilityService;
+use App\Domain\Appointments\Services\AppointmentNotificationDispatcher;
 use App\Domain\Patients\Enums\Gender;
 use App\Domain\Patients\Enums\IdentificationType;
 use App\Domain\Payments\Enums\BankTransferStatus;
@@ -114,7 +115,9 @@ class BookingWizard extends Component
                 'reason' => 'nullable|string|max:500',
             ];
 
-            if (!$this->isManual && !Auth::check() && !$this->patientExists) {
+            if ($this->isManual) {
+                $rules['dataConsent'] = 'accepted';
+            } elseif (!Auth::check() && !$this->patientExists) {
                 $rules['password'] = 'required|string|min:8';
                 $rules['dataConsent'] = 'accepted';
             }
@@ -168,6 +171,7 @@ class BookingWizard extends Component
         'cardNumber.required' => 'Ingresa el número de tarjeta (16 dígitos).',
         'cardExpiry.required' => 'Ingresa la fecha de vencimiento (MM/AA).',
         'cardCvv.required' => 'Ingresa el código de seguridad CVV.',
+        'dataConsent.accepted' => 'Debe confirmar la autorización del paciente para el tratamiento de datos personales (LOPDP).',
         'transferBank.required' => 'Por favor selecciona la entidad bancaria.',
         'transferReceipt.file' => 'El comprobante debe ser un archivo válido.',
         'transferReceipt.mimes' => 'El comprobante debe ser una imagen (JPG, PNG, WEBP) o un documento PDF.',
@@ -232,6 +236,7 @@ class BookingWizard extends Component
                     $this->phone = $existingPatient->phone;
                     $this->birthDate = $existingPatient->birth_date?->format('Y-m-d') ?? '';
                     $this->gender = $existingPatient->gender->value ?? 'OTHER';
+                    $this->dataConsent = (bool) ($existingPatient->data_consent_accepted ?? true);
                     
                     $this->cedulaStatus = 'valid';
                     $this->cedulaMessage = 'Ya el paciente se encuentra registrado.';
@@ -239,7 +244,6 @@ class BookingWizard extends Component
                     session()->flash('toast_message', 'Ya el paciente se encuentra registrado.');
                     session()->flash('toast_type', 'success');
                     
-                    $this->proceedToStep4();
                     return;
                 } else {
                     $this->patientExists = false;
@@ -471,13 +475,24 @@ class BookingWizard extends Component
         }
 
         $appointment = $this->confirmedAppointmentId ? Appointment::find($this->confirmedAppointmentId) : null;
-        $amount = $this->calculateTotalAmount();
-
-        if (empty($this->generatedPaymentLink)) {
-            $this->generatedPaymentLink = $appointment ? route('patient.appointment.show', $appointment) : url('/paciente');
+        if (! $appointment) {
+            return;
         }
 
-        if ($appointment) {
+        $payment = $appointment->payments()->first();
+        if ($this->paymentMethod === 'PAYMENT_LINK' && $payment) {
+            try {
+                app(AppointmentNotificationDispatcher::class)->dispatchDataLinkRequested($appointment, $payment);
+                $this->paymentLinkSent = true;
+                $this->errorMessage = null;
+            } catch (\Throwable $e) {
+                logger()->error('Error reenviando alerta de DataLink: ' . $e->getMessage());
+            }
+        } else {
+            $amount = $this->calculateTotalAmount();
+            if (empty($this->generatedPaymentLink)) {
+                $this->generatedPaymentLink = route('patient.appointment.show', $appointment);
+            }
             try {
                 Mail::to($this->email)->send(new PaymentLinkMail(
                     appointment: $appointment,
@@ -559,6 +574,7 @@ class BookingWizard extends Component
                         $user = User::create([
                             'name' => "{$this->firstName} {$this->lastName}",
                             'email' => $this->email,
+                            'phone' => $this->phone,
                             'password' => Hash::make($this->password ?: 'password123'),
                             'is_active' => true,
                             'email_verified_at' => now(),
@@ -573,11 +589,25 @@ class BookingWizard extends Component
                         'last_name' => $this->lastName,
                         'identification_type' => IdentificationType::tryFrom($this->identificationType) ?? IdentificationType::CEDULA,
                         'identification_number' => $this->identificationNumber,
+                        'email' => $this->email,
                         'phone' => $this->phone,
                         'birth_date' => $this->birthDate ?: '1990-01-01',
                         'gender' => Gender::tryFrom($this->gender) ?? Gender::OTHER,
-                        'data_consent_accepted' => true,
-                        'data_consent_accepted_at' => now(),
+                        'data_consent_accepted' => (bool) $this->dataConsent,
+                        'data_consent_accepted_at' => $this->dataConsent ? now() : null,
+                        'data_consent_ip' => request()->ip(),
+                        'data_consent_user_agent' => request()->userAgent(),
+                    ]);
+                } else {
+                    $patient->update([
+                        'first_name' => $this->firstName ?: $patient->first_name,
+                        'last_name' => $this->lastName ?: $patient->last_name,
+                        'email' => $this->email ?: $patient->email,
+                        'phone' => $this->phone ?: $patient->phone,
+                        'birth_date' => $this->birthDate ?: $patient->birth_date,
+                        'gender' => Gender::tryFrom($this->gender) ?? $patient->gender,
+                        'data_consent_accepted' => (bool) $this->dataConsent,
+                        'data_consent_accepted_at' => $this->dataConsent ? ($patient->data_consent_accepted_at ?? now()) : null,
                         'data_consent_ip' => request()->ip(),
                         'data_consent_user_agent' => request()->userAgent(),
                     ]);
@@ -647,18 +677,22 @@ class BookingWizard extends Component
             $startAt = Carbon::parse("{$this->selectedDate} {$this->selectedTime}");
             
             // Calculate total duration based on selected items
-            $duration = $specialty->default_duration_minutes ?? 30;
+            $duration = (int) ($specialty->default_duration_minutes ?? 30);
             if (!empty($this->selectedSubproceduresList)) {
-                $duration = \App\Models\Subprocedure::whereIn('id', $this->selectedSubproceduresList)->sum('duration_minutes') ?: $duration;
+                $duration = (int) (\App\Models\Subprocedure::whereIn('id', $this->selectedSubproceduresList)->sum('duration_minutes') ?: $duration);
             } elseif (!empty($this->selectedProceduresList)) {
-                $duration = \App\Models\Procedure::whereIn('id', $this->selectedProceduresList)->sum('duration_minutes') ?: $duration;
+                $duration = (int) (\App\Models\Procedure::whereIn('id', $this->selectedProceduresList)->sum('duration_minutes') ?: $duration);
             } elseif ($procedure) {
-                $duration = $procedure->duration_minutes;
+                $duration = (int) ($procedure->duration_minutes ?? $duration);
             } else {
-                $duration = $doctor->consultation_duration_minutes ?? $duration;
+                $duration = (int) ($doctor->default_slot_duration_minutes ?? $doctor->consultation_duration_minutes ?? $duration);
+            }
+
+            if ($duration <= 0) {
+                $duration = 30;
             }
             
-            $endAt = (clone $startAt)->addMinutes($duration);
+            $endAt = (clone $startAt)->addMinutes((int) $duration);
 
             $amount = $this->calculateTotalAmount();
 
@@ -730,22 +764,16 @@ class BookingWizard extends Component
 
             $this->confirmedAppointmentId = $appointment->id;
             $this->confirmedAppointmentCode = $appointment->code;
-            // Enviar correo electrónico institucional si el método de pago es LINK DE PAGO o creación por recepción
-            if (!empty($this->email) && $this->paymentMethod === 'PAYMENT_LINK') {
-                if (empty($this->generatedPaymentLink) || str_contains($this->generatedPaymentLink, 'checkout')) {
-                    $this->generatedPaymentLink = route('patient.appointment.show', $appointment);
-                }
-                try {
-                    Mail::to($this->email)->send(new PaymentLinkMail(
-                        appointment: $appointment,
-                        paymentLink: $this->generatedPaymentLink,
-                        amount: (float) $amount,
-                        patientName: "{$this->firstName} {$this->lastName}",
-                        paymentMethod: $this->paymentMethod
-                    ));
-                    $this->paymentLinkSent = true;
-                } catch (\Throwable $mailException) {
-                    logger()->error('Error enviando correo de link de pago: ' . $mailException->getMessage());
+            // Notificar al paciente y a recepción/administración si el método de pago es DataLink (Enlace de Pago)
+            if ($this->paymentMethod === 'PAYMENT_LINK') {
+                $payment = $appointment->payments()->first();
+                if ($payment) {
+                    try {
+                        app(AppointmentNotificationDispatcher::class)->dispatchDataLinkRequested($appointment, $payment);
+                        $this->paymentLinkSent = true;
+                    } catch (\Throwable $mailException) {
+                        logger()->error('Error enviando notificación de enlace de pago DataLink: ' . $mailException->getMessage());
+                    }
                 }
             }
 
@@ -781,7 +809,15 @@ class BookingWizard extends Component
             $date = Carbon::parse($this->selectedDate);
 
             if ($doctor) {
-                $duration = $procedure ? $procedure->duration_minutes : null;
+                $duration = null;
+                if (!empty($this->selectedSubproceduresList)) {
+                    $duration = (int) \App\Models\Subprocedure::whereIn('id', $this->selectedSubproceduresList)->sum('duration_minutes');
+                } elseif (!empty($this->selectedProceduresList)) {
+                    $duration = (int) \App\Models\Procedure::whereIn('id', $this->selectedProceduresList)->sum('duration_minutes');
+                } elseif ($procedure) {
+                    $duration = (int) $procedure->duration_minutes;
+                }
+
                 $availableSlots = $availabilityService->getAvailableSlotsForDate(
                     $doctor,
                     $date,

@@ -174,10 +174,14 @@ Route::middleware(['auth', 'role:SUPER_ADMIN|ADMIN|RECEPTION|DOCTOR|SPECIALIST']
         Route::post('/subprocedimientos/{subprocedure}/toggle', [AdminSpecialtyController::class, 'toggleSubprocedureActive'])->name('subprocedures.toggle');
         Route::delete('/subprocedimientos/{subprocedure}', [AdminSpecialtyController::class, 'destroySubprocedure'])->name('subprocedures.destroy');
 
-        // Pagos / Transferencias
+        // Pagos / Transferencias / DataLink
         Route::get('/transferencias', [AdminTransferController::class, 'index'])->name('transfers');
         Route::post('/transferencias/{transfer}/validar', [AdminTransferController::class, 'validateTransfer'])->name('transfers.validate');
         Route::get('/transferencias/{transfer}/comprobante', [AdminTransferController::class, 'downloadReceipt'])->name('transfers.receipt');
+        Route::post('/transferencias/datalink/{payment}/enviar-correo', [AdminTransferController::class, 'sendDataLinkEmail'])->name('transfers.datalink.email');
+        Route::post('/transferencias/datalink/{payment}/marcar-pagado', [AdminTransferController::class, 'markDataLinkPaid'])->name('transfers.datalink.mark_paid');
+        Route::post('/citas/{appointment}/datalink/enviar-correo', [AdminAppointmentController::class, 'sendDataLinkEmail'])->name('appointments.datalink.email');
+        Route::post('/citas/{appointment}/datalink/marcar-pagado', [AdminAppointmentController::class, 'markDataLinkPaid'])->name('appointments.datalink.mark_paid');
     });
 
     // Módulos Exclusivos de Seguridad y Administración (Super Admin & Admin)

@@ -404,13 +404,19 @@
                 <p>Tu aceptación queda registrada con fecha, hora y dirección IP de origen para garantizar la trazabilidad legal y seguridad de tu expediente.</p>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between shrink-0">
-                <button type="button" @click="dataConsent = true; showConsentModal = false" class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all">
-                    Acepto la Política y Términos
-                </button>
-                <button type="button" @click="showConsentModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors">
-                    Cerrar
-                </button>
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <a href="https://www.abogadoslatam.com/politicas/surhospital/salud" target="_blank" rel="noopener noreferrer" class="text-xs text-brand-primary font-bold hover:underline inline-flex items-center gap-1">
+                    Ver documento legal en línea
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="showConsentModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors">
+                        Cerrar
+                    </button>
+                    <button type="button" @click="dataConsent = true; showConsentModal = false" class="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all">
+                        Acepto la Política y Términos
+                    </button>
+                </div>
             </div>
         </div>
     </div>

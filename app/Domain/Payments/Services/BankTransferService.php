@@ -14,6 +14,7 @@ use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -109,47 +110,61 @@ class BankTransferService
             ]);
 
             $payment = $transfer->payment;
-            $appointment = $payment->appointment;
+            $appointment = $payment?->appointment;
+
+            if ($isApproved && ! $appointment) {
+                throw new \InvalidArgumentException('No se puede aprobar la transferencia porque la cita médica asociada no existe en el sistema.');
+            }
+
+            if ($payment) {
+                // Si la cita asociada fue eliminada previamente en la BD (huérfana),
+                // MySQL InnoDB arroja el error 1452 al hacer UPDATE en payments.
+                // Se desactivan temporalmente las comprobaciones FK para actualizar el pago de forma segura.
+                Schema::disableForeignKeyConstraints();
+                try {
+                    $payment->update([
+                        'status' => $isApproved ? PaymentStatus::PAID : PaymentStatus::REJECTED,
+                        'paid_at' => $isApproved ? now() : $payment->paid_at,
+                    ]);
+                } finally {
+                    Schema::enableForeignKeyConstraints();
+                }
+            }
 
             if ($isApproved) {
-                $payment->update([
-                    'status' => PaymentStatus::PAID,
-                    'paid_at' => now(),
-                ]);
+                if ($appointment) {
+                    $appointment->update([
+                        'status' => AppointmentStatus::CONFIRMED,
+                    ]);
 
-                $appointment->update([
-                    'status' => AppointmentStatus::CONFIRMED,
-                ]);
-
-                AppointmentStatusHistory::create([
-                    'appointment_id' => $appointment->id,
-                    'previous_status' => $appointment->status->value,
-                    'new_status' => AppointmentStatus::CONFIRMED->value,
-                    'changed_by_user_id' => $validator->id,
-                    'reason' => 'Transferencia bancaria aprobada por recepción',
-                    'metadata' => [
-                        'bank_name' => $transfer->bank_name,
-                        'reference' => $transfer->reference_number,
-                    ],
-                    'created_at' => now(),
-                ]);
+                    AppointmentStatusHistory::create([
+                        'appointment_id' => $appointment->id,
+                        'previous_status' => $appointment->status->value,
+                        'new_status' => AppointmentStatus::CONFIRMED->value,
+                        'changed_by_user_id' => $validator->id,
+                        'reason' => 'Transferencia bancaria aprobada por recepción',
+                        'metadata' => [
+                            'bank_name' => $transfer->bank_name,
+                            'reference' => $transfer->reference_number,
+                        ],
+                        'created_at' => now(),
+                    ]);
+                }
             } else {
-                $payment->update([
-                    'status' => PaymentStatus::REJECTED,
-                ]);
-
-                AppointmentStatusHistory::create([
-                    'appointment_id' => $appointment->id,
-                    'previous_status' => $appointment->status->value,
-                    'new_status' => $appointment->status->value,
-                    'changed_by_user_id' => $validator->id,
-                    'reason' => "Transferencia bancaria rechazada: {$rejectionReason}",
-                    'metadata' => [
-                        'bank_name' => $transfer->bank_name,
-                        'reference' => $transfer->reference_number,
-                    ],
-                    'created_at' => now(),
-                ]);
+                if ($appointment) {
+                    AppointmentStatusHistory::create([
+                        'appointment_id' => $appointment->id,
+                        'previous_status' => $appointment->status->value,
+                        'new_status' => $appointment->status->value,
+                        'changed_by_user_id' => $validator->id,
+                        'reason' => "Transferencia bancaria rechazada: {$rejectionReason}",
+                        'metadata' => [
+                            'bank_name' => $transfer->bank_name,
+                            'reference' => $transfer->reference_number,
+                        ],
+                        'created_at' => now(),
+                    ]);
+                }
             }
 
             AuditLog::create([

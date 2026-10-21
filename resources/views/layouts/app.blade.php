@@ -98,12 +98,14 @@
                         </a>
                     @endauth
 
-                    <a href="{{ route('booking') }}" class="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white text-xs xl:text-sm font-bold shadow-md shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>Agendar Cita</span>
-                    </a>
+                    @if($branding->canShowBookingButton())
+                        <a href="{{ route('booking') }}" class="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white text-xs xl:text-sm font-bold shadow-md shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Agendar Cita</span>
+                        </a>
+                    @endif
 
                     <!-- Mobile Hamburger Toggle Button -->
                     <button @click="mobileOpen = !mobileOpen" type="button" class="lg:hidden inline-flex items-center justify-center p-2 rounded-xl text-slate-600 hover:text-brand-primary hover:bg-slate-100 focus:outline-none transition-colors ml-1" aria-label="Abrir Menú de Navegación">
@@ -124,13 +126,15 @@
              x-transition:leave-end="opacity-0 -translate-y-3"
              class="lg:hidden border-t border-slate-100 bg-white/98 backdrop-blur-xl px-4 pt-3 pb-6 space-y-3 shadow-2xl">
             
-            <!-- Mobile Primary CTA: Agendar Cita en Línea -->
-            <div class="pb-1">
-                <a @click="mobileOpen = false" href="{{ route('booking') }}" class="flex items-center justify-center space-x-2 w-full py-3.5 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-black text-sm shadow-lg shadow-brand-primary/25 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span>Agendar Cita en Línea</span>
-                </a>
-            </div>
+            @if($branding->canShowBookingButton())
+                <!-- Mobile Primary CTA: Agendar Cita en Línea -->
+                <div class="pb-1">
+                    <a @click="mobileOpen = false" href="{{ route('booking') }}" class="flex items-center justify-center space-x-2 w-full py-3.5 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-black text-sm shadow-lg shadow-brand-primary/25 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Agendar Cita en Línea</span>
+                    </a>
+                </div>
+            @endif
 
             <!-- Mobile Navigation Links -->
             <nav class="grid grid-cols-1 gap-1">
@@ -240,7 +244,9 @@
                         <li><a href="{{ route('home') }}#paquetes" class="hover:text-white transition-colors">Paquetes Quirúrgicos</a></li>
                         <li><a href="{{ route('home') }}#docencia" class="hover:text-white transition-colors">Docencia & Posgrados</a></li>
                         <li><a href="{{ route('home') }}#contacto" class="hover:text-white transition-colors">Contactos & Ubicación</a></li>
-                        <li><a href="{{ route('booking') }}" class="text-brand-300 font-semibold hover:text-white transition-colors">Agendamiento en Línea</a></li>
+                        @if($branding->canShowBookingButton())
+                            <li><a href="{{ route('booking') }}" class="text-brand-300 font-semibold hover:text-white transition-colors">Agendamiento en Línea</a></li>
+                        @endif
                     </ul>
                 </div>
 

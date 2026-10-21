@@ -4,6 +4,11 @@
 @section('meta_description', 'Clínica Sur Hospital en Guayaquil. Quirófanos inteligentes, sala de hemodinamia, imágenes TAC/RM, laboratorio 24h, emergencias y agendamiento en línea.')
 
 @section('content')
+@php
+    $canBook = $branding->canShowBookingButton();
+    $bookingTarget = $canBook ? route('booking') : '#contacto';
+    $whatsappBookingUrl = 'https://wa.me/' . preg_replace('/[^0-9]/', '', config('branding.contact.whatsapp', '593997783576')) . '?text=' . urlencode('Hola, deseo solicitar información para una cita médica en Clínica Sur Hospital');
+@endphp
 <!-- HERO SECTION -->
 <section class="relative bg-gradient-to-b from-brand-soft/40 via-white to-white py-12 lg:py-20 overflow-hidden">
     <!-- Background Accents -->
@@ -30,10 +35,17 @@
 
                 <!-- Action CTAs -->
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
-                    <a href="{{ route('booking') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-base shadow-xl shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <span>Agendar Cita en Línea</span>
-                    </a>
+                    @if($canBook)
+                        <a href="{{ route('booking') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-base shadow-xl shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
+                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>Agendar Cita en Línea</span>
+                        </a>
+                    @else
+                        <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-xl shadow-emerald-600/25 hover:shadow-emerald-600/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
+                            <span class="text-xl">💬</span>
+                            <span>Agendar por WhatsApp / Recepción</span>
+                        </a>
+                    @endif
                     <a href="#servicios" class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-base border border-slate-200 shadow-xs transition-all flex items-center justify-center space-x-2">
                         <span>Conocer Servicios</span>
                         <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -201,7 +213,7 @@
                             </li>
                         </ul>
                     </div>
-                    <a href="{{ route('booking') }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
+                    <a href="{{ $bookingTarget }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
                         Consultar Procedimiento &rarr;
                     </a>
                 </div>
@@ -275,7 +287,7 @@
                             </li>
                         </ul>
                     </div>
-                    <a href="{{ route('booking') }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
+                    <a href="{{ $bookingTarget }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
                         Agendar Estudio de Imagen &rarr;
                     </a>
                 </div>
@@ -386,7 +398,7 @@
                             </li>
                         </ul>
                     </div>
-                    <a href="{{ route('booking') }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
+                    <a href="{{ $bookingTarget }}" class="inline-flex items-center justify-center w-full py-3 rounded-xl bg-slate-50 hover:bg-brand-primary text-slate-800 hover:text-white font-bold text-xs border border-slate-200 hover:border-brand-primary transition-all">
                         Consultar Admisiones &rarr;
                     </a>
                 </div>
@@ -413,7 +425,7 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </div>
@@ -421,7 +433,7 @@
                 <p class="text-xs text-slate-500 mt-1">Intervencionista & Clínica</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                 </div>
@@ -429,7 +441,7 @@
                 <p class="text-xs text-slate-500 mt-1">Cerebro y Columna</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                 </div>
@@ -437,7 +449,7 @@
                 <p class="text-xs text-slate-500 mt-1">Laparoscopía & Bariátrica</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 </div>
@@ -445,7 +457,7 @@
                 <p class="text-xs text-slate-500 mt-1">Endoscopía & Colonoscopía</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
@@ -453,7 +465,7 @@
                 <p class="text-xs text-slate-500 mt-1">Cálculos & Próstata</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
@@ -461,7 +473,7 @@
                 <p class="text-xs text-slate-500 mt-1">Salud Renal & Diálisis</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-pink-50 text-pink-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </div>
@@ -469,7 +481,7 @@
                 <p class="text-xs text-slate-500 mt-1">Control Prenatal & Partos</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
@@ -477,7 +489,7 @@
                 <p class="text-xs text-slate-500 mt-1">Atención Infantil Integral</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
@@ -485,7 +497,7 @@
                 <p class="text-xs text-slate-500 mt-1">Ortopedia & Fracturas</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" /></svg>
                 </div>
@@ -493,7 +505,7 @@
                 <p class="text-xs text-slate-500 mt-1">Oído, Nariz y Garganta</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                 </div>
@@ -501,7 +513,7 @@
                 <p class="text-xs text-slate-500 mt-1">Diagnóstico Integral Adultos</p>
             </a>
 
-            <a href="{{ route('booking') }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
+            <a href="{{ $bookingTarget }}" class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-brand-primary hover:shadow-lg transition-all text-center group">
                 <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 mx-auto flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 </div>
@@ -512,10 +524,16 @@
         </div>
 
         <div class="mt-12 text-center">
-            <a href="{{ route('booking') }}" class="inline-flex items-center space-x-2 px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-sm shadow-lg shadow-brand-primary/25 transition-all">
-                <span>Seleccionar Especialidad y Agendar Cita</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </a>
+            @if($canBook)
+                <a href="{{ route('booking') }}" class="inline-flex items-center space-x-2 px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-sm shadow-lg shadow-brand-primary/25 transition-all">
+                    <span>Seleccionar Especialidad y Agendar Cita</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            @else
+                <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="inline-flex items-center space-x-2 px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all">
+                    <span>💬 Consultar Especialidades por WhatsApp</span>
+                </a>
+            @endif
         </div>
     </div>
 </section>
@@ -555,9 +573,15 @@
                     </div>
                 </div>
                 <div class="px-6 pb-6">
-                    <a href="{{ route('booking') }}" class="block w-full text-center py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-all shadow-xs">
-                        Agendar con Dr. Vargas
-                    </a>
+                    @if($canBook)
+                        <a href="{{ route('booking') }}" class="block w-full text-center py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-all shadow-xs">
+                            Agendar con Dr. Vargas
+                        </a>
+                    @else
+                        <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="block w-full text-center py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs">
+                            💬 Consultar por WhatsApp
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -579,9 +603,15 @@
                     </div>
                 </div>
                 <div class="px-6 pb-6">
-                    <a href="{{ route('booking') }}" class="block w-full text-center py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-all shadow-xs">
-                        Agendar con Dra. Ramírez
-                    </a>
+                    @if($canBook)
+                        <a href="{{ route('booking') }}" class="block w-full text-center py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-all shadow-xs">
+                            Agendar con Dra. Ramírez
+                        </a>
+                    @else
+                        <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="block w-full text-center py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs">
+                            💬 Consultar por WhatsApp
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -603,7 +633,7 @@
                     </div>
                 </div>
                 <div class="px-6 pb-6">
-                    <a href="{{ route('booking') }}" class="block w-full text-center py-2.5 rounded-xl bg-slate-900 hover:bg-brand-primary text-white font-bold text-xs transition-all shadow-xs">
+                    <a href="{{ $bookingTarget }}" class="block w-full text-center py-2.5 rounded-xl bg-slate-900 hover:bg-brand-primary text-white font-bold text-xs transition-all shadow-xs">
                         Ver Directorio Completo
                     </a>
                 </div>
@@ -642,7 +672,7 @@
                     </ul>
                 </div>
                 <div class="mt-8 pt-6 border-t border-slate-700">
-                    <a href="{{ route('booking') }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors">
+                    <a href="{{ $bookingTarget }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors">
                         Solicitar Valoración Quirúrgica
                     </a>
                 </div>
@@ -663,7 +693,7 @@
                     </ul>
                 </div>
                 <div class="mt-8 pt-6 border-t border-slate-700">
-                    <a href="{{ route('booking') }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors shadow-lg">
+                    <a href="{{ $bookingTarget }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors shadow-lg">
                         Solicitar Valoración Quirúrgica
                     </a>
                 </div>
@@ -681,7 +711,7 @@
                     </ul>
                 </div>
                 <div class="mt-8 pt-6 border-t border-slate-700">
-                    <a href="{{ route('booking') }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors">
+                    <a href="{{ $bookingTarget }}" class="block text-center py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs transition-colors">
                         Solicitar Valoración Quirúrgica
                     </a>
                 </div>
@@ -871,9 +901,15 @@
                         </p>
 
                         <div class="pt-2">
-                            <a href="{{ route('booking') }}" class="inline-flex items-center justify-center w-full py-4 rounded-2xl bg-white hover:bg-slate-50 text-brand-primary font-black text-base shadow-xl transition-all transform hover:-translate-y-0.5">
-                                Iniciar Agendamiento Ahora &rarr;
-                            </a>
+                            @if($canBook)
+                                <a href="{{ route('booking') }}" class="inline-flex items-center justify-center w-full py-4 rounded-2xl bg-white hover:bg-slate-50 text-brand-primary font-black text-base shadow-xl transition-all transform hover:-translate-y-0.5">
+                                    Iniciar Agendamiento Ahora &rarr;
+                                </a>
+                            @else
+                                <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full py-4 rounded-2xl bg-white hover:bg-slate-50 text-emerald-700 font-black text-base shadow-xl transition-all transform hover:-translate-y-0.5">
+                                    💬 Contactar a Recepción por WhatsApp &rarr;
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>

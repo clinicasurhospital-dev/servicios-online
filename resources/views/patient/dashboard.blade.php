@@ -12,10 +12,12 @@
             <p class="text-blue-100 text-xs sm:text-sm mt-1">Gestiona tus consultas, historial médico y estados de pago fácilmente.</p>
         </div>
 
-        <a href="{{ route('booking') }}" class="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-white text-brand-primary font-bold text-sm shadow-lg hover:bg-slate-50 transition-all transform hover:scale-105 shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-            <span>Agendar Nueva Cita</span>
-        </a>
+        @if($branding->canShowBookingButton())
+            <a href="{{ route('booking') }}" class="inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-2xl bg-white text-brand-primary font-bold text-sm shadow-lg hover:bg-slate-50 transition-all transform hover:scale-105 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                <span>Agendar Nueva Cita</span>
+            </a>
+        @endif
     </div>
 
     <!-- ALERTA AUTOMÁTICA: CITA PENDIENTE DE PAGO O TRANSFERENCIA EN VALIDACIÓN -->
@@ -162,9 +164,9 @@
         @else
             <x-empty-state
                 title="No tienes citas próximas programadas"
-                description="Agenda una cita médica con nuestros especialistas cuando lo necesites."
-                action-text="Agendar Cita Ahora"
-                action-url="{{ route('booking') }}"
+                description="{{ $branding->canShowBookingButton() ? 'Agenda una cita médica con nuestros especialistas cuando lo necesites.' : 'Para coordinar una cita médica comunícate con el área de recepción.' }}"
+                :action-text="$branding->canShowBookingButton() ? 'Agendar Cita Ahora' : null"
+                :action-url="$branding->canShowBookingButton() ? route('booking') : null"
             />
         @endif
     </div>

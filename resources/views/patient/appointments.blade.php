@@ -10,10 +10,12 @@
             <p class="text-xs text-slate-500 mt-1">Revisa el estado de todas tus reservas pasadas y programadas, cambia fecha o cancela cuando lo necesites.</p>
         </div>
 
-        <a href="{{ route('booking') }}" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105 shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-            <span>+ Agendar Nueva Cita</span>
-        </a>
+        @if($branding->canShowBookingButton())
+            <a href="{{ route('booking') }}" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-xs shadow-md shadow-brand-primary/20 transition-all transform hover:scale-105 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                <span>+ Agendar Nueva Cita</span>
+            </a>
+        @endif
     </div>
 
     <!-- ALERTA AUTOMÁTICA: CONSULTA ATENDIDA PENDIENTE DE VALORACIÓN -->
@@ -163,9 +165,9 @@
     @else
         <x-empty-state
             title="Aún no tienes citas registradas"
-            description="Agenda tu primera consulta médica con nuestros especialistas en pocos clics."
-            action-text="Agendar Primera Cita"
-            action-url="{{ route('booking') }}"
+            description="{{ $branding->canShowBookingButton() ? 'Agenda tu primera consulta médica con nuestros especialistas en pocos clics.' : 'Para coordinar una cita médica comunícate con el área de recepción.' }}"
+            :action-text="$branding->canShowBookingButton() ? 'Agendar Primera Cita' : null"
+            :action-url="$branding->canShowBookingButton() ? route('booking') : null"
         />
     @endif
 </div>
