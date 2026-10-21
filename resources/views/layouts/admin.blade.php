@@ -70,7 +70,7 @@
                         ];
                     } else {
                         $navItems = [
-                            ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'home', 'can' => 'view_dashboard'],
+                            ['label' => 'Panel Principal', 'route' => 'admin.dashboard', 'icon' => 'home', 'can' => 'view_dashboard'],
                             ['label' => 'Agenda Médica', 'route' => 'admin.agenda', 'icon' => 'calendar', 'can' => 'view_all_appointments'],
                             ['label' => 'Gestión de Citas', 'route' => 'admin.appointments', 'icon' => 'clock', 'can' => 'view_all_appointments'],
                             ['label' => 'Pacientes', 'route' => 'admin.patients', 'icon' => 'users', 'can' => 'manage_patients'],

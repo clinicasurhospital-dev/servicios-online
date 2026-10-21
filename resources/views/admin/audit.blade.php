@@ -58,7 +58,7 @@
                             </td>
                             <td class="py-4 px-6 text-right">
                                 <button type="button" @click="selectedLog = logsMap[{{ $log->id }}] || null; payloadModal = true" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-brand-primary text-slate-700 hover:text-brand-primary font-bold text-xs transition-colors cursor-pointer">
-                                    Ver Diff
+                                    Ver Cambios
                                 </button>
                             </td>
                         </tr>

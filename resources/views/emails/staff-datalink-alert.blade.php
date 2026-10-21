@@ -30,7 +30,7 @@
                         <td style="padding: 30px 30px 20px 30px;">
                             <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-top: 0; margin-bottom: 20px;">
                                 Estimado equipo de <strong>Recepción y Administración</strong>,<br><br>
-                                El paciente <strong>{{ $patientName }}</strong> ha agendado una cita médica y seleccionó el método de pago <strong style="color: #7C3AED;">Enlace de Pago (DataLink manual)</strong>. Se requiere generar el link en el portal DataLink / Datafast y remitirlo al paciente para completar el cobro.
+                                El paciente <strong>{{ $patientName }}</strong> ha agendado una cita médica y seleccionó el método de pago <strong style="color: #7C3AED;">Enlace de Pago (DataLink manual)</strong>. Se requiere generar el enlace en el portal DataLink / Datafast y remitirlo al paciente para completar el cobro.
                             </p>
 
                             <!-- Patient & Appointment Card -->
@@ -91,7 +91,7 @@
                                     Pasos para Completar la Gestión:
                                 </h4>
                                 <ol style="margin: 0; padding-left: 20px; font-size: 12px; color: #581C87; line-height: 1.6;">
-                                    <li>Ingresa al portal de DataLink (Datafast) y genera un link por <strong>${{ number_format($amount, 2) }} USD</strong>.</li>
+                                    <li>Ingresa al portal de DataLink (Datafast) y genera un enlace por <strong>${{ number_format($amount, 2) }} USD</strong>.</li>
                                     <li>Haz clic en el botón inferior para abrir el módulo <strong>Validar Pagos</strong> en el sistema.</li>
                                     <li>Pega el enlace generado y presiona <strong>Enviar por WhatsApp</strong> o <strong>Enviar por Correo</strong> para que el paciente pague.</li>
                                     <li>Una vez acreditado, marca la cita como <strong>Pagada</strong>.</li>

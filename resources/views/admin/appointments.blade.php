@@ -687,7 +687,7 @@
                                 <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
                                     Notas adicionales (Opcional)
                                 </label>
-                                <input type="text" name="notes" x-model="datalinkNotes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-purple-600 focus:ring-purple-600 bg-white" placeholder="Ej: Link válido por 24 horas..." />
+                                <input type="text" name="notes" x-model="datalinkNotes" class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-purple-600 focus:ring-purple-600 bg-white" placeholder="Ej: Enlace válido por 24 horas..." />
                             </div>
 
                             <div class="flex items-center justify-between pt-1">

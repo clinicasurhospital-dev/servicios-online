@@ -84,7 +84,7 @@
             <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">Acceso Rápido de Prueba (1 Clic)</span>
             <div class="grid grid-cols-2 gap-2 text-xs">
                 <button type="button" onclick="document.getElementById('email').value='admin@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
-                    <span class="font-bold block text-slate-800 text-[11px]">👑 Admin</span>
+                    <span class="font-bold block text-slate-800 text-[11px]">👑 Administrador</span>
                     <span class="text-[10px] text-slate-500 font-mono truncate block">admin@surhospital.com</span>
                 </button>
                 <button type="button" onclick="document.getElementById('email').value='recepcion@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">

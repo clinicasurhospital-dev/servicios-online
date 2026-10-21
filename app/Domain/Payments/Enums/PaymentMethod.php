@@ -16,7 +16,7 @@ enum PaymentMethod: string
     {
         return match ($this) {
             self::CREDIT_CARD => 'Tarjeta de Débito / Crédito',
-            self::PAYMENT_LINK => 'Link de Pago Digital',
+            self::PAYMENT_LINK => 'Enlace de Pago DataLink',
             self::ONLINE => 'Pago en Línea',
             self::BANK_TRANSFER, self::TRANSFER => 'Transferencia Bancaria',
             self::CASH => 'Efectivo en Recepción',

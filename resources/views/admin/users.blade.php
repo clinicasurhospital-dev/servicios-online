@@ -59,7 +59,7 @@
         <!-- Admins -->
         <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div class="flex items-center justify-between text-indigo-400">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Admins</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Administradores</span>
                 <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
@@ -156,7 +156,7 @@
                     @foreach($roles as $r)
                         @php
                             $rLabel = match($r->name) {
-                                'SUPER_ADMIN' => 'Super Admin',
+                                'SUPER_ADMIN' => 'Super Administrador',
                                 'ADMIN' => 'Administrador',
                                 'RECEPTION' => 'Recepcionista',
                                 'DOCTOR' => 'Médico',
@@ -244,7 +244,7 @@
                             <td class="py-4 px-6">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border {{ $roleBadgeClass }}">
                                     @if($primaryRole === 'SUPER_ADMIN')
-                                        👑 Super Admin
+                                        👑 Super Administrador
                                     @elseif($primaryRole === 'ADMIN')
                                         🛡️ Administrador
                                     @elseif($primaryRole === 'RECEPTION')
@@ -441,7 +441,7 @@
                         </label>
                         <label class="flex items-center p-3 rounded-2xl border cursor-pointer transition-all" :class="selectedRole === 'SUPER_ADMIN' ? 'border-brand-primary bg-brand-soft/20 text-brand-primary font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
                             <input type="radio" name="role" value="SUPER_ADMIN" x-model="selectedRole" class="sr-only" />
-                            <span>👑 Super Admin</span>
+                            <span>👑 Super Administrador</span>
                         </label>
                     </div>
                 </div>

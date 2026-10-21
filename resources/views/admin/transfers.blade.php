@@ -217,7 +217,7 @@
                                             </button>
                                         </div>
                                     @else
-                                        <span class="text-[11px] text-slate-400">Validado por {{ $t->validator?->name ?? 'Admin' }}</span>
+                                        <span class="text-[11px] text-slate-400">Validado por {{ $t->validator?->name ?? 'Administrador' }}</span>
                                     @endif
                                 </td>
                             </tr>

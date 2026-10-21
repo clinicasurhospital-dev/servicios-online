@@ -40,7 +40,7 @@
                                     <strong style="color: #6B21A8; font-size: 13px;">Pago Asistido con Enlace DataLink (Datafast)</strong>
                                 </div>
                                 <p style="font-size: 12px; color: #581C87; margin: 0; line-height: 1.6;">
-                                    Has seleccionado el método de <strong>Enlace de Pago</strong>. Nuestro personal de recepción está generando tu link oficial y te lo remitirá por <strong>WhatsApp</strong> y <strong>Correo Electrónico</strong> para que puedas pagar con cualquier tarjeta de crédito o débito de forma rápida y segura.
+                                    Has seleccionado el método de <strong>Enlace de Pago</strong>. Nuestro personal de recepción está generando tu enlace oficial y te lo remitirá por <strong>WhatsApp</strong> y <strong>Correo Electrónico</strong> para que puedas pagar con cualquier tarjeta de crédito o débito de forma rápida y segura.
                                 </p>
                             </div>
 
@@ -87,7 +87,7 @@
                             <!-- WhatsApp Contact Button -->
                             <div style="text-align: center; margin-bottom: 24px;">
                                 <p style="font-size: 12px; color: #64748B; margin-bottom: 10px;">¿Deseas agilizar la emisión de tu enlace?</p>
-                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $brandWhatsapp) }}?text={{ urlencode('Hola SurHospital, acabo de reservar la cita #' . $appointment->code . ' para ' . $patientName . ' con método Enlace de Pago DataLink. ¿Me ayudan con el link de pago?') }}" target="_blank" style="display: inline-block; background-color: #16A34A; color: #FFFFFF; font-size: 13px; font-weight: 800; text-decoration: none; padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $brandWhatsapp) }}?text={{ urlencode('Hola SurHospital, acabo de reservar la cita #' . $appointment->code . ' para ' . $patientName . ' con método Enlace de Pago DataLink. ¿Me ayudan con el enlace de pago?') }}" target="_blank" style="display: inline-block; background-color: #16A34A; color: #FFFFFF; font-size: 13px; font-weight: 800; text-decoration: none; padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
                                     💬 Escribir a Recepción por WhatsApp
                                 </a>
                             </div>

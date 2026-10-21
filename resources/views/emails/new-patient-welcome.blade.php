@@ -105,7 +105,7 @@
                     <tr>
                         <td style="background-color: #F8FAFC; padding: 25px 30px; text-align: center; border-top: 1px solid #E2E8F0;">
                             <p style="font-size: 12px; color: #64748B; margin: 0 0 6px 0; font-weight: 600;">
-                                {{ $brandName }} — Nexaris Link Medical Care
+                                {{ $brandName }} — Sistema de Gestión Médica
                             </p>
                             <p style="font-size: 11px; color: #94A3B8; margin: 0 0 10px 0;">
                                 {{ $brandAddress }}

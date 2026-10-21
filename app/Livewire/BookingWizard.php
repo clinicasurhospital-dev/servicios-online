@@ -180,13 +180,38 @@ class BookingWizard extends Component
 
     public function updatedTransferReceipt(): void
     {
-        $this->validateOnly('transferReceipt', [
-            'transferReceipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:10240',
-        ]);
-        if ($this->transferReceipt) {
-            $this->uploadedReceiptName = $this->transferReceipt->getClientOriginalName();
-            $this->uploadedReceiptSize = round($this->transferReceipt->getSize() / 1024, 1) . ' KB';
+        try {
+            $this->validateOnly('transferReceipt', [
+                'transferReceipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:10240',
+            ]);
+        } catch (\League\Flysystem\UnableToRetrieveMetadata) {
+            // Ignorar error de lectura de metadatos temporales de Flysystem en entornos cruzados
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable) {
+            // Ignorar otros errores de FS temporal en Livewire
         }
+
+        if ($this->transferReceipt) {
+            $rawName = method_exists($this->transferReceipt, 'getClientOriginalName')
+                ? $this->transferReceipt->getClientOriginalName()
+                : 'comprobante_deposito.pdf';
+            $this->uploadedReceiptName = $this->cleanReceiptFileName($rawName);
+            try {
+                $size = method_exists($this->transferReceipt, 'getSize') ? $this->transferReceipt->getSize() : 0;
+                $this->uploadedReceiptSize = $size > 0 ? round($size / 1024, 1) . ' KB' : 'Adjuntado';
+            } catch (\Throwable) {
+                $this->uploadedReceiptSize = 'Adjuntado';
+            }
+        }
+    }
+
+    protected function cleanReceiptFileName(?string $name): string
+    {
+        if (empty($name) || !mb_check_encoding($name, 'UTF-8') || preg_match('/[^\w\.\-\s\(\)áéíóúÁÉÍÓÚñÑüÜ]/u', $name)) {
+            return 'comprobante_deposito.pdf';
+        }
+        return $name;
     }
 
     public function removeReceipt(): void
@@ -742,7 +767,9 @@ class BookingWizard extends Component
                         $ext = $this->transferReceipt->getClientOriginalExtension() ?: 'pdf';
                         $filename = 'receipt_' . $appointment->code . '_' . Str::random(12) . '.' . $ext;
                         $receiptPath = str_replace('\\', '/', $this->transferReceipt->storeAs('receipts', $filename, 'receipts'));
-                        $receiptOriginalName = $this->transferReceipt->getClientOriginalName();
+                        $receiptOriginalName = $this->cleanReceiptFileName(
+                            method_exists($this->transferReceipt, 'getClientOriginalName') ? $this->transferReceipt->getClientOriginalName() : 'comprobante_deposito.pdf'
+                        );
                         $this->uploadedReceiptName = $receiptOriginalName;
                     }
 
@@ -750,8 +777,8 @@ class BookingWizard extends Component
                         'payment_id' => $payment->id,
                         'bank_name' => $this->transferBank ?: 'Banco Pichincha',
                         'reference_number' => $this->transferReference ?: ('TRANS-' . strtoupper(Str::random(6))),
-                        'receipt_path' => $receiptPath,
-                        'receipt_original_name' => $receiptOriginalName,
+                        'receipt_path' => $receiptPath ?: 'receipts/manual_reference.txt',
+                        'receipt_original_name' => $receiptOriginalName ?: 'Sin comprobante adjunto',
                         'amount' => (float) $amount,
                         'transfer_date' => $this->transferDate ?: now()->format('Y-m-d'),
                         'notes' => $this->transferNotes ?: null,

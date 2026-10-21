@@ -223,6 +223,7 @@ class BookingWizardTest extends TestCase
 
     public function test_booking_wizard_bank_transfer_with_receipt_upload(): void
     {
+        Storage::fake();
         Storage::fake('receipts');
 
         $user = User::factory()->create();

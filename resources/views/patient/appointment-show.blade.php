@@ -444,7 +444,7 @@
                                 <span class="text-[10px] text-emerald-600 font-semibold">⚡ Validación y confirmación automática inmediata</span>
                             </div>
                             <button type="button" @click="fillDemoCard()" class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
-                                ⚡ Rellenar Demo
+                                ⚡ Llenar Datos de Prueba
                             </button>
                         </div>
 
@@ -490,7 +490,7 @@
                                 <span class="text-[10px] text-emerald-600 font-semibold">⚡ Validación y confirmación automática inmediata</span>
                             </div>
                             <button type="button" @click="fillDemoLink()" class="text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">
-                                ⚡ Generar Ref Demo
+                                ⚡ Generar Referencia de Prueba
                             </button>
                         </div>
 
@@ -499,7 +499,7 @@
                                 <span>🔗 Enlace de Pago Directo:</span>
                             </div>
                             <p class="text-[11px] text-indigo-800">
-                                Si recibiste un enlace de pago por WhatsApp/Correo o pagaste mediante botón digital (Wompi, Bold, PSE, Deuna o Link institucional), confirma aquí tu pago.
+                                Si recibiste un enlace de pago por WhatsApp/Correo o pagaste mediante botón digital (Wompi, Bold, PSE, Deuna o enlace institucional), confirma aquí tu pago.
                             </p>
                         </div>
 
@@ -513,7 +513,7 @@
                                         <option value="Wompi / Bancolombia">Wompi / Bancolombia</option>
                                         <option value="Bold / PSE">Bold / PSE</option>
                                         <option value="Deuna / App Móvil">Deuna / App Móvil</option>
-                                        <option value="Link de Pago WhatsApp">Link de Pago WhatsApp</option>
+                                        <option value="Enlace de Pago WhatsApp">Enlace de Pago WhatsApp</option>
                                     </select>
                                 </div>
                                 <div>

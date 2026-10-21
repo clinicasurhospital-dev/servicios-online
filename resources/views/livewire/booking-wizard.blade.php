@@ -791,7 +791,7 @@
                                             @elseif($isAmex)
                                                 <span class="font-black text-xs tracking-wider text-cyan-300 border border-cyan-400/50 px-1 py-0.5 rounded">AMEX</span>
                                             @else
-                                                <span class="text-xs font-black uppercase tracking-wider text-slate-300/80">DEBIT / CREDIT</span>
+                                                <span class="text-xs font-black uppercase tracking-wider text-slate-300/80">DÉBITO / CRÉDITO</span>
                                             @endif
                                         </div>
                                     </div>
@@ -831,7 +831,7 @@
                                         🔒 TLS 256-Bit SSL
                                     </span>
                                     <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600 font-medium">
-                                        🛡️ PCI-DSS Level 1
+                                        🛡️ PCI-DSS Nivel 1
                                     </span>
                                     <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600 font-medium">
                                         ✓ 3D Secure 2.0
@@ -937,12 +937,12 @@
                                 </div>
                                 <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
                                     <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2">2</div>
-                                    <div class="font-bold text-purple-950">Recepción Emite Link</div>
+                                    <div class="font-bold text-purple-950">Recepción Emite el Enlace</div>
                                     <p class="text-[11px] text-slate-500 mt-1">El personal de clínica crea el enlace en Datafast.</p>
                                 </div>
                                 <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
                                     <div class="w-7 h-7 rounded-lg bg-purple-600 text-white font-black text-xs flex items-center justify-center mb-2">3</div>
-                                    <div class="font-bold text-purple-950">Recibes Link</div>
+                                    <div class="font-bold text-purple-950">Recibes el Enlace</div>
                                     <p class="text-[11px] text-slate-500 mt-1">Te contactamos por WhatsApp y correo con el enlace seguro.</p>
                                 </div>
                                 <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100 flex flex-col justify-between">
@@ -1309,7 +1309,7 @@
                                 $clinicPhone = config('branding.phone', '593987654321');
                                 $clinicWa = preg_replace('/[^0-9]/', '', $clinicPhone);
                                 if (str_starts_with($clinicWa, '0')) { $clinicWa = '593' . substr($clinicWa, 1); }
-                                $patientWaMsg = rawurlencode("Hola recepción SurHospital, acabé de reservar mi cita médica (#{$confirmedAppointmentCode}) y seleccioné Enlace de Pago DataLink. ¿Me podrían ayudar por favor con el link para realizar el pago?");
+                                $patientWaMsg = rawurlencode("Hola recepción SurHospital, acabé de reservar mi cita médica (#{$confirmedAppointmentCode}) y seleccioné Enlace de Pago DataLink. ¿Me podrían ayudar por favor con el enlace para realizar el pago?");
                             @endphp
                             <a href="https://wa.me/{{ $clinicWa }}?text={{ $patientWaMsg }}" target="_blank" class="w-full sm:w-auto flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors text-center inline-flex items-center justify-center gap-2 cursor-pointer">
                                 <span>💬 Consultar a Recepción por WhatsApp</span>

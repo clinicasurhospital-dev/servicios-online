@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard — ' . config('branding.app_name') . ' | ' . config('branding.software_name'))
+@section('title', 'Panel Principal — ' . config('branding.app_name') . ' | ' . config('branding.software_name'))
 
 @section('content')
 <div class="space-y-8 animate-fadeIn">

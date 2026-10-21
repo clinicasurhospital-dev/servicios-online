@@ -101,7 +101,7 @@
                             default => '🔑'
                         };
                         $roleTitle = match($r->name) {
-                            'SUPER_ADMIN' => 'Super Admin',
+                            'SUPER_ADMIN' => 'Super Administrador',
                             'ADMIN' => 'Administrador',
                             'RECEPTION' => 'Recepcionista',
                             'DOCTOR' => 'Médico',
@@ -314,7 +314,7 @@
                                             @foreach($roles as $rl)
                                                 <option value="{{ $rl->name }}" {{ $uRole === $rl->name ? 'selected' : '' }}>
                                                     {{ match($rl->name) {
-                                                        'SUPER_ADMIN' => '👑 Super Admin',
+                                                        'SUPER_ADMIN' => '👑 Super Administrador',
                                                         'ADMIN' => '🛡️ Administrador',
                                                         'RECEPTION' => '📋 Recepcionista',
                                                         'DOCTOR' => '🩺 Médico',

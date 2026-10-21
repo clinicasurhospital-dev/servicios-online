@@ -109,7 +109,7 @@ return [
         'public_title' => 'SurHospital — Tu Salud en Manos de Especialistas',
         'patient_title' => 'SurHospital — Portal del Paciente',
         'admin_title' => 'SurHospital | Nexaris Link',
-        'powered_by_text' => 'Powered by Nexaris Link',
+        'powered_by_text' => 'Desarrollado por Nexaris Link',
         'show_powered_by' => true,
         'minimum_reschedule_hours' => (int) env('MIN_RESCHEDULE_HOURS', 1),
         'appointment_code_prefix' => 'SUR',

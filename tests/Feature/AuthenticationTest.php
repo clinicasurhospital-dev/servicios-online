@@ -52,19 +52,20 @@ class AuthenticationTest extends TestCase
                 'name' => 'Maria Gomez',
                 'first_name' => 'Maria',
                 'last_name' => 'Gomez',
-                'identification_type' => 'CC',
-                'identification_number' => '1020304050',
+                'identification_type' => 'CEDULA',
+                'identification_number' => '0923456784',
                 'email' => 'maria.gomez@test.com',
                 'phone' => '3009876543',
                 'birth_date' => '1995-05-15',
                 'gender' => 'FEMALE',
+                'data_consent' => 1,
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
             ]);
 
         $response->assertRedirect(route('patient.dashboard'));
         $this->assertDatabaseHas('users', ['email' => 'maria.gomez@test.com']);
-        $this->assertDatabaseHas('patients', ['identification_number' => '1020304050']);
+        $this->assertDatabaseHas('patients', ['identification_number' => '0923456784']);
 
         $user = User::where('email', 'maria.gomez@test.com')->first();
         $this->assertTrue($user->hasRole('PATIENT'));
