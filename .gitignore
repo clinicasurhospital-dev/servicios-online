@@ -1,4 +1,4 @@
-/node_modules
+#/node_modules
 /public/hot
 /public/storage
 /bootstrap/cache/*.php
@@ -23,7 +23,7 @@
 !/storage/framework/views/.gitkeep
 /storage/logs/*
 !/storage/logs/.gitkeep
-/vendor
+#/vendor
 *.sqlite
 *.sqlite-journal
 *.log
