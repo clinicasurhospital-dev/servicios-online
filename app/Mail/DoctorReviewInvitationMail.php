@@ -33,7 +33,7 @@ class DoctorReviewInvitationMail extends Mailable
 
         return new Envelope(
             from: new Address(
-                config('mail.from.address', 'notificaciones@surhospital.com'),
+                config('mail.from.address', 'notificaciones@surhospital.net'),
                 config('mail.from.name', 'SurHospital Citas')
             ),
             subject: "⭐ ¿Cómo fue tu consulta con el Dr(a). {$doctorName}? Cuéntanos tu experiencia — {$brandName}",

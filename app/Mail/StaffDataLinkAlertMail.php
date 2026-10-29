@@ -40,7 +40,7 @@ class StaffDataLinkAlertMail extends Mailable
 
         return new Envelope(
             from: new Address(
-                config('mail.from.address', 'notificaciones@surhospital.com'),
+                config('mail.from.address', 'notificaciones@surhospital.net'),
                 config('mail.from.name', 'SurHospital Notificaciones')
             ),
             subject: "🔔 ACCIÓN REQUERIDA: Generar Enlace DataLink — Cita #{$code} ({$this->patientName}) — {$brandName}",

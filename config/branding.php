@@ -69,8 +69,8 @@ return [
     |
     */
     'notifications' => [
-        'admin_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_ADMIN_EMAILS', env('BRAND_EMAIL', 'admin@surhospital.com')))))),
-        'reception_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_RECEPTION_EMAILS', env('BRAND_APPOINTMENTS_EMAIL', 'recepcion@surhospital.com')))))),
+        'admin_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_ADMIN_EMAILS', env('BRAND_EMAIL', 'info@surhospital.net')))))),
+        'reception_emails' => array_values(array_filter(array_map('trim', explode(',', env('NOTIFICATION_RECEPTION_EMAILS', env('BRAND_APPOINTMENTS_EMAIL', 'citas@surhospital.net')))))),
     ],
 
     /*

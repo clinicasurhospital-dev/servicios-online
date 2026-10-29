@@ -32,7 +32,7 @@ class AppointmentBookingService
      */
     public function book(CreateAppointmentDTO $dto): Appointment
     {
-        return DB::transaction(function () use ($dto) {
+        $appointment = DB::transaction(function () use ($dto) {
             // 1. Pessimistic lock on the Doctor record to serialize concurrent booking requests for this doctor
             $doctor = Doctor::where('id', $dto->doctorId)->lockForUpdate()->firstOrFail();
 
@@ -134,13 +134,15 @@ class AppointmentBookingService
             return $appointment;
         });
 
-        // Dispatch email and internal notifications
-        $this->notificationDispatcher->dispatchAppointmentCreated($appointment);
+        // Dispatch email and internal notifications (unless specialized flow like DataLink handles its own notification)
+        if ($dto->paymentMethod !== 'PAYMENT_LINK') {
+            $this->notificationDispatcher->dispatchAppointmentCreated($appointment);
 
-        if ($dto->paymentMethod === 'CREDIT_CARD') {
-            $payment = $appointment->payments()->first();
-            if ($payment) {
-                $this->notificationDispatcher->dispatchPaymentReceived($appointment, $payment, 'Pago con tarjeta al momento de agendar');
+            if ($dto->paymentMethod === 'CREDIT_CARD') {
+                $payment = $appointment->payments()->first();
+                if ($payment) {
+                    $this->notificationDispatcher->dispatchPaymentReceived($appointment, $payment, 'Pago con tarjeta al momento de agendar');
+                }
             }
         }
 

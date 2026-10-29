@@ -34,7 +34,7 @@ class PatientDataLinkReadyMail extends Mailable
 
         return new Envelope(
             from: new Address(
-                config('mail.from.address', 'notificaciones@surhospital.com'),
+                config('mail.from.address', 'notificaciones@surhospital.net'),
                 config('mail.from.name', 'SurHospital Citas')
             ),
             subject: "💳 Enlace de Pago DataLink para tu Cita #{$code} — {$brandName}",

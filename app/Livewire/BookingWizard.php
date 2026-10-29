@@ -791,6 +791,8 @@ class BookingWizard extends Component
 
             $this->confirmedAppointmentId = $appointment->id;
             $this->confirmedAppointmentCode = $appointment->code;
+            $this->generatedPaymentLink = route('patient.appointment.show', $appointment);
+
             // Notificar al paciente y a recepción/administración si el método de pago es DataLink (Enlace de Pago)
             if ($this->paymentMethod === 'PAYMENT_LINK') {
                 $payment = $appointment->payments()->first();
