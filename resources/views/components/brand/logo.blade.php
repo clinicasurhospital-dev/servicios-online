@@ -1,38 +1,31 @@
 @props([
     'variant' => 'full', // 'full', 'icon', 'white'
     'class' => '',
+    'height' => null,
 ])
 
 @php
     $isWhite = $variant === 'white';
-    $primaryColor = $isWhite ? '#FFFFFF' : '#0700FF';
-    $textColor = $isWhite ? '#FFFFFF' : '#172033';
-    $accentColor = $isWhite ? '#EEF0FF' : '#00C2FF';
+    $isIcon = $variant === 'icon';
+
+    if ($isIcon) {
+        $src = $isWhite ? asset('images/surhospital/icon-white.png') : asset('images/surhospital/icon.png');
+        $imgClass = 'h-10 w-auto object-contain';
+    } elseif ($isWhite) {
+        $src = asset('images/surhospital/logo-white.png');
+        $imgClass = 'h-12 w-auto max-w-[220px] object-contain';
+    } else {
+        $src = asset('images/surhospital/logo.png');
+        $imgClass = 'h-11 sm:h-12 w-auto max-w-[220px] sm:max-w-[240px] object-contain';
+    }
 @endphp
 
-@if($variant === 'icon')
-    <svg width="40" height="40" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0 {{ $class }}" style="width: 40px; height: 40px; display: inline-block;">
-        <!-- Shield Background -->
-        <rect width="44" height="44" rx="12" fill="{{ $isWhite ? 'rgba(255,255,255,0.15)' : '#EEF0FF' }}"/>
-        <!-- Healthcare Cross with Dynamic Pulse -->
-        <path d="M22 10V34M10 22H34" stroke="{{ $primaryColor }}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Pulse Heartbeat Accent -->
-        <path d="M14 22L19 22L21 16L24 28L26 22L30 22" stroke="{{ $accentColor }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-@else
-    <div class="inline-flex items-center gap-3 font-sans shrink-0 {{ $class }}" style="text-decoration: none;">
-        <svg width="40" height="40" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0" style="width: 40px; height: 40px; min-width: 40px;">
-            <rect width="44" height="44" rx="12" fill="{{ $isWhite ? 'rgba(255,255,255,0.15)' : '#EEF0FF' }}"/>
-            <path d="M22 10V34M10 22H34" stroke="{{ $primaryColor }}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M14 22L19 22L21 16L24 28L26 22L30 22" stroke="{{ $accentColor }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="flex flex-col justify-center leading-none select-none">
-            <span class="text-xl font-black tracking-tight font-sans" style="color: {{ $textColor }}; font-size: 1.3rem; font-weight: 900; letter-spacing: -0.03em;">
-                SUR<span style="color: {{ $primaryColor }};">HOSPITAL</span>
-            </span>
-            <span class="text-[10px] uppercase font-bold tracking-widest mt-1" style="color: {{ $isWhite ? 'rgba(255,255,255,0.8)' : '#667085' }}; font-size: 10px; font-weight: 700; letter-spacing: 0.12em;">
-                Excelencia Médica
-            </span>
-        </div>
-    </div>
-@endif
+<div class="inline-flex items-center shrink-0 {{ $class }}">
+    <img 
+        src="{{ $src }}" 
+        alt="{{ config('branding.client_name', 'SurHospital') }}" 
+        class="shrink-0 select-none {{ $imgClass }}"
+        @if($height) style="height: {{ is_numeric($height) ? $height . 'px' : $height }};" @endif
+    >
+</div>
+

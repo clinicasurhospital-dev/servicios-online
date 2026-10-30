@@ -77,7 +77,7 @@ class BrandingService
      */
     public function poweredBy(): string
     {
-        return config('branding.display.powered_by_text', 'Desarrollado por Nexaris Link');
+        return config('branding.display.powered_by_text', 'Desarrollado por Alfredo Hermoso');
     }
 
     /**

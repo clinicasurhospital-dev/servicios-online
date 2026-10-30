@@ -22,6 +22,6 @@
 @else
     <div class="inline-flex items-center gap-1.5 text-xs text-slate-400 {{ $class }}">
         <span>Desarrollado por</span>
-        <span class="font-semibold text-slate-600 hover:text-brand-600 transition-colors">Nexaris Link</span>
+        <span class="font-semibold text-slate-400 hover:text-brand-primary transition-colors">Alfredo Hermoso</span>
     </div>
 @endif
