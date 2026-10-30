@@ -43,3 +43,17 @@ jobs:
 
           # Robocopy retorna códigos entre 0 y 7 para operaciones exitosas
           if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
+      - name: Limpiar caché de Laravel automáticamente
+        shell: powershell
+        run: |
+          $batPath = "C:\inetpub\wwwroot\cache-clear.bat"
+          if (Test-Path $batPath) {
+            Write-Host "Ejecutando script de limpieza de caché..."
+            & $batPath
+          } else {
+            Write-Host "No se encontró el .bat, ejecutando artisan optimize:clear directamente..."
+            cd C:\inetpub\wwwroot
+            & "C:\php\php.exe" artisan optimize:clear
+              }
+
+    
