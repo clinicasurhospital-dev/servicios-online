@@ -100,7 +100,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         // Create Default Super Admin & Admin Users
         $adminUser = User::firstOrCreate(
-            ['email' => 'admin@surhospital.com'],
+            ['email' => 'info@surhospital.net'],
             [
                 'name' => 'Administrador SurHospital',
                 'phone' => '+593 99 123 4567',
@@ -112,7 +112,7 @@ class RoleAndPermissionSeeder extends Seeder
         $adminUser->syncRoles(['SUPER_ADMIN']);
 
         $receptionUser = User::firstOrCreate(
-            ['email' => 'recepcion@surhospital.com'],
+            ['email' => 'recepcion@surhospital.net'],
             [
                 'name' => 'Recepción SurHospital',
                 'phone' => '+593 99 234 5678',

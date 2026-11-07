@@ -85,17 +85,17 @@
             <div class="grid grid-cols-2 gap-2 text-xs">
                 <button type="button" onclick="document.getElementById('email').value='admin@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
                     <span class="font-bold block text-slate-800 text-[11px]">👑 Administrador</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">admin@surhospital.com</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">info@surhospital.net</span>
                 </button>
                 <button type="button" onclick="document.getElementById('email').value='recepcion@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
                     <span class="font-bold block text-slate-800 text-[11px]">📋 Recepción</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">recepcion@surhospital.com</span>
+                    <span class="text-[10px] text-slate-500 font-mono truncate block">recepcion@surhospital.net</span>
                 </button>
                 <button type="button" onclick="document.getElementById('email').value='dr.carlos.soledispa@surhospital.net'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
                     <span class="font-bold block text-slate-800 text-[11px]">🩺 Médico</span>
                     <span class="text-[10px] text-slate-500 font-mono truncate block">dr.carlos.soledispa@...</span>
                 </button>
-                <button type="button" onclick="document.getElementById('email').value='paciente@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
+                <button type="button" onclick="document.getElementById('email').value='paciente@surhospital.net'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
                     <span class="font-bold block text-slate-800 text-[11px]">👤 Paciente</span>
                     <span class="text-[10px] text-slate-500 font-mono truncate block">paciente@surhospital.com</span>
                 </button>
