@@ -22,7 +22,7 @@ class PatientAndAppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminUser = User::where('email', 'admin@surhospital.net')->first() ?? User::role('SUPER_ADMIN')->first();
+        $adminUser = User::where('email', 'info@surhospital.net')->first() ?? User::where('email', 'admin@surhospital.net')->first() ?? User::role('SUPER_ADMIN')->first();
         $doctors = Doctor::with('specialties')->get();
         if ($doctors->isEmpty()) {
             return;
