@@ -995,41 +995,75 @@
                             </div>
                         </div>
 
+                        <!-- Beneficiario e Información de Pago -->
+                        <div class="p-4 rounded-2xl bg-brand-soft/70 border border-brand-primary/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                            <div class="space-y-1">
+                                <div class="text-slate-800 font-bold flex flex-wrap items-center gap-1.5">
+                                    <span class="text-brand-primary font-black uppercase tracking-wider text-[11px]">Beneficiario:</span>
+                                    <span>GALPE S.A.</span>
+                                    <span class="text-slate-300">|</span>
+                                    <span class="text-slate-600 font-mono">RUC: 0992674237001</span>
+                                </div>
+                                <div class="text-slate-600">
+                                    <span>Correo electrónico:</span> <strong class="text-slate-700 font-mono">recepcion@surhospital.net</strong>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/593993910568" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 shrink-0 transition-colors">
+                                <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                <span>Envía comprobante al: <strong>0993910568</strong></span>
+                            </a>
+                        </div>
+
                         <!-- Cuentas Bancarias Institucionales -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Banco Pichincha -->
-                            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-brand-primary transition-colors">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                            <!-- Banco General Rumiñahui (BGR) -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between group hover:border-blue-600 transition-colors">
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
-                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                                            <span class="text-sm font-black text-slate-700">BP</span>
+                                        <div class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-black text-xs">
+                                            BGR
                                         </div>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 uppercase tracking-wider">Cta. Corriente</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 uppercase tracking-wider">Cta. Corriente</span>
                                     </div>
-                                    <h4 class="text-sm font-bold text-slate-800">Banco Pichincha</h4>
-                                    <div class="text-lg font-black text-brand-primary mt-1 font-mono tracking-widest">2100849201</div>
+                                    <h4 class="text-xs font-bold text-slate-800">Banco General Rumiñahui</h4>
+                                    <div class="text-base font-black text-blue-700 mt-1 font-mono tracking-wider">#8022692404</div>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100">
-                                    <div class="text-xs text-slate-500 font-medium">Titular: <strong class="text-slate-700">SurHospital C.A.</strong></div>
-                                    <div class="text-xs text-slate-500 font-medium mt-0.5">RUC: <strong class="text-slate-700 font-mono">0992384756001</strong></div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-500">
+                                    Titular: <strong class="text-slate-700">GALPE S.A.</strong>
                                 </div>
                             </div>
 
-                            <!-- Banco Guayaquil -->
-                            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between group hover:border-brand-primary transition-colors">
+                            <!-- Banco Internacional -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between group hover:border-orange-500 transition-colors">
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
-                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                                            <span class="text-sm font-black text-slate-700">BG</span>
+                                        <div class="px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 font-black text-xs">
+                                            INTERNACIONAL
                                         </div>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 uppercase tracking-wider">Cta. Corriente</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 uppercase tracking-wider">Cta. Corriente</span>
                                     </div>
-                                    <h4 class="text-sm font-bold text-slate-800">Banco Guayaquil</h4>
-                                    <div class="text-lg font-black text-brand-primary mt-1 font-mono tracking-widest">1004829102</div>
+                                    <h4 class="text-xs font-bold text-slate-800">Banco Internacional</h4>
+                                    <div class="text-base font-black text-orange-600 mt-1 font-mono tracking-wider">#1700605772</div>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100">
-                                    <div class="text-xs text-slate-500 font-medium">Titular: <strong class="text-slate-700">SurHospital C.A.</strong></div>
-                                    <div class="text-xs text-slate-500 font-medium mt-0.5">RUC: <strong class="text-slate-700 font-mono">0992384756001</strong></div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-500">
+                                    Titular: <strong class="text-slate-700">GALPE S.A.</strong>
+                                </div>
+                            </div>
+
+                            <!-- Banco Pichincha -->
+                            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between group hover:border-amber-500 transition-colors">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-black text-xs">
+                                            PICHINCHA
+                                        </div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 uppercase tracking-wider">Cta. Ahorros</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold text-slate-800">Banco Pichincha</h4>
+                                    <div class="text-base font-black text-amber-700 mt-1 font-mono tracking-wider">#6239167800</div>
+                                </div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-500">
+                                    Titular: <strong class="text-slate-700">GALPE S.A.</strong>
                                 </div>
                             </div>
                         </div>
@@ -1045,13 +1079,13 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Banco Emisor *</label>
                                     <select wire:model="transferBank" class="w-full rounded-xl border-slate-200 text-sm p-3 focus:border-brand-primary focus:ring-brand-primary bg-slate-50 focus:bg-white font-medium shadow-xs transition-colors">
+                                        <option value="Banco General Rumiñahui">Banco General Rumiñahui (BGR)</option>
+                                        <option value="Banco Internacional">Banco Internacional</option>
                                         <option value="Banco Pichincha">Banco Pichincha</option>
                                         <option value="Banco Guayaquil">Banco Guayaquil</option>
                                         <option value="Banco del Pacífico">Banco del Pacífico</option>
                                         <option value="Banco Bolivariano">Banco Bolivariano</option>
-                                        <option value="Banco Internacional">Banco Internacional</option>
                                         <option value="Produbanco">Produbanco</option>
-                                        <option value="Banco General Rumiñahui">Banco General Rumiñahui</option>
                                         <option value="Cooperativa JEP">Cooperativa JEP</option>
                                         <option value="Cooperativa Policía Nacional">Cooperativa Policía Nacional</option>
                                         <option value="Mutualista Pichincha">Mutualista Pichincha</option>

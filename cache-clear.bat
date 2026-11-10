@@ -5,10 +5,13 @@ echo =========================================
 
 cd /d C:\inetpub\wwwroot
 
-:: 1. Limpieza de cachés antiguas
+:: 1. Ejecutar migraciones pendientes
+"C:\php\php.exe" artisan migrate --force
+
+:: 2. Limpieza de cachés antiguas
 "C:\php\php.exe" artisan optimize:clear
 
-:: 2. Regenerar caché de configuración y rutas para máximo rendimiento
+:: 3. Regenerar caché de configuración y rutas para máximo rendimiento
 "C:\php\php.exe" artisan config:cache
 "C:\php\php.exe" artisan route:cache
 "C:\php\php.exe" artisan view:cache

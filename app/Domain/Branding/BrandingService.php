@@ -101,7 +101,7 @@ class BrandingService
      */
     public function isPatientBookingEnabled(): bool
     {
-        return (bool) config('branding.enable_patient_booking', false);
+        return (bool) config('branding.enable_patient_booking', true);
     }
 
     /**

@@ -79,13 +79,41 @@ return [
     |--------------------------------------------------------------------------
     */
     'banking' => [
-        'bank_name' => 'Banco Bolivariano / Banco Pichincha',
-        'account_type' => 'Cuenta Corriente',
-        'account_number' => '00192837465',
-        'account_holder' => 'Clínica Sur Hospital S.A.',
-        'identification' => 'RUC: 0992345678001',
-        'email_receipts' => 'pagos@surhospital.net',
-        'instructions' => 'Por favor realiza la transferencia bancaria por el monto exacto y adjunta tu comprobante. Nuestro equipo validará el pago en un plazo máximo de 2 horas hábiles.',
+        'account_holder' => 'GALPE S.A.',
+        'identification' => '0992674237001',
+        'email_receipts' => 'recepcion@surhospital.net',
+        'whatsapp_receipts' => '0993910568',
+        'whatsapp_receipts_display' => '0993910568',
+        'accounts' => [
+            [
+                'bank' => 'Banco General Rumiñahui (BGR)',
+                'short_name' => 'BGR',
+                'account_type' => 'Cuenta Corriente',
+                'account_number' => '8022692404',
+                'badge_color' => 'bg-blue-600',
+                'text_color' => 'text-blue-600',
+            ],
+            [
+                'bank' => 'Banco Internacional',
+                'short_name' => 'BI',
+                'account_type' => 'Cuenta Corriente',
+                'account_number' => '1700605772',
+                'badge_color' => 'bg-orange-500',
+                'text_color' => 'text-orange-600',
+            ],
+            [
+                'bank' => 'Banco Pichincha',
+                'short_name' => 'BP',
+                'account_type' => 'Cuenta de Ahorros',
+                'account_number' => '6239167800',
+                'badge_color' => 'bg-amber-500',
+                'text_color' => 'text-amber-600',
+            ],
+        ],
+        'bank_name' => 'BGR / Banco Internacional / Banco Pichincha',
+        'account_type' => 'Cuentas Corrientes y de Ahorros',
+        'account_number' => '8022692404 / 1700605772 / 6239167800',
+        'instructions' => 'Por favor realiza la transferencia bancaria por el monto exacto a cualquiera de nuestras cuentas oficiales y adjunta tu comprobante aquí o envíalo a nuestro WhatsApp 0993910568.',
     ],
 
     /*
@@ -98,7 +126,7 @@ return [
     | accessible to Administrator and Receptionist staff.
     |
     */
-    'enable_patient_booking' => (bool) env('ENABLE_PATIENT_BOOKING', false),
+    'enable_patient_booking' => (bool) env('ENABLE_PATIENT_BOOKING', true),
 
     /*
     |--------------------------------------------------------------------------

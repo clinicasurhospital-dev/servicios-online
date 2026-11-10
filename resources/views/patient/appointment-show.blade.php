@@ -544,10 +544,34 @@
                             </div>
                         </div>
 
-                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
-                            <span class="font-bold text-slate-900 block">Datos Bancarios para Depósito / Transferencia:</span>
-                            <p><strong>Banco:</strong> Banco Pichincha &bull; <strong>Cuenta Corriente:</strong> #2100849201</p>
-                            <p><strong>Titular:</strong> {{ config('branding.banking.account_holder', 'SurHospital S.A.') }} &bull; <strong>RUC:</strong> 0992384756001 &bull; <strong>Correo:</strong> {{ config('branding.banking.email_receipts', 'pagos@surhospital.net') }}</p>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                                <div>
+                                    <span class="font-bold text-slate-900 block text-xs">Beneficiario: GALPE S.A. &bull; RUC: 0992674237001</span>
+                                    <span class="text-slate-500 text-[11px]">Correo: <strong class="text-slate-700">recepcion@surhospital.net</strong></span>
+                                </div>
+                                <a href="https://wa.me/593993910568" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold hover:bg-emerald-100 transition-colors">
+                                    <span>WhatsApp: 0993910568</span>
+                                </a>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                                <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                                    <div class="font-bold text-blue-700">Banco General Rumiñahui (BGR)</div>
+                                    <div class="text-slate-500">Cta. Corriente</div>
+                                    <div class="font-mono font-black text-slate-800 text-xs mt-0.5">#8022692404</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                                    <div class="font-bold text-orange-600">Banco Internacional</div>
+                                    <div class="text-slate-500">Cta. Corriente</div>
+                                    <div class="font-mono font-black text-slate-800 text-xs mt-0.5">#1700605772</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                                    <div class="font-bold text-amber-700">Banco Pichincha</div>
+                                    <div class="text-slate-500">Cta. de Ahorros</div>
+                                    <div class="font-mono font-black text-slate-800 text-xs mt-0.5">#6239167800</div>
+                                </div>
+                            </div>
                         </div>
 
                         <form action="{{ route('patient.transfer.submit', $appointment) }}" method="POST" enctype="multipart/form-data" class="space-y-3.5">
@@ -777,10 +801,19 @@
                 </button>
             </div>
             
-            <div class="p-3.5 rounded-2xl bg-blue-50 text-blue-900 text-xs space-y-1">
-                <span class="font-bold block">Datos de Cuenta {{ config('branding.app_name') }}:</span>
-                <p>Banco: Banco Pichincha - Cta. Corriente # 2100849201</p>
-                <p>Titular: SurHospital S.A. - RUC: 0992384756001</p>
+            <div class="p-3.5 rounded-2xl bg-blue-50 text-blue-900 text-xs space-y-2">
+                <div class="font-bold border-b border-blue-200/60 pb-1.5 flex items-center justify-between">
+                    <span>Beneficiario: GALPE S.A. &bull; RUC: 0992674237001</span>
+                </div>
+                <div class="space-y-1 text-[11px]">
+                    <p>• <strong>BGR:</strong> Cta. Corriente <strong>#8022692404</strong></p>
+                    <p>• <strong>Banco Internacional:</strong> Cta. Corriente <strong>#1700605772</strong></p>
+                    <p>• <strong>Banco Pichincha:</strong> Cta. de Ahorros <strong>#6239167800</strong></p>
+                </div>
+                <div class="pt-1 border-t border-blue-200/60 text-[11px] text-blue-800 flex items-center justify-between">
+                    <span>Correo: <strong>recepcion@surhospital.net</strong></span>
+                    <span>WhatsApp: <strong>0993910568</strong></span>
+                </div>
             </div>
 
             <form action="{{ route('patient.transfer.submit', $appointment) }}" method="POST" enctype="multipart/form-data" class="space-y-3">

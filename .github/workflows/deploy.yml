@@ -51,9 +51,10 @@ jobs:
             Write-Host "Ejecutando script de limpieza de caché..."
             & $batPath
           } else {
-            Write-Host "No se encontró el .bat, ejecutando artisan optimize:clear directamente..."
+            Write-Host "No se encontró el .bat, ejecutando migrate y optimize:clear directamente..."
             cd C:\inetpub\wwwroot
+            & "C:\php\php.exe" artisan migrate --force
             & "C:\php\php.exe" artisan optimize:clear
-              }
+          }
 
     
