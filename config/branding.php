@@ -126,7 +126,7 @@ return [
     | accessible to Administrator and Receptionist staff.
     |
     */
-    'enable_patient_booking' => (bool) env('ENABLE_PATIENT_BOOKING', true),
+    'enable_patient_booking' => true,
 
     /*
     |--------------------------------------------------------------------------

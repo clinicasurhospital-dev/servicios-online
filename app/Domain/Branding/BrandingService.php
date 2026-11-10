@@ -106,8 +106,6 @@ class BrandingService
 
     /**
      * Determine if appointment booking button should be visible.
-     * Always visible for Admin and Receptionist staff.
-     * For patients and public visitors, controlled by ENABLE_PATIENT_BOOKING.
      */
     public function canShowBookingButton(?\App\Models\User $user = null): bool
     {

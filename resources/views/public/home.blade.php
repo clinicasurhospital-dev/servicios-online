@@ -5,8 +5,8 @@
 
 @section('content')
 @php
-    $canBook = $branding->canShowBookingButton();
-    $bookingTarget = $canBook ? route('booking') : '#contacto';
+    $canBook = true;
+    $bookingTarget = route('booking');
     $whatsappBookingUrl = 'https://wa.me/' . preg_replace('/[^0-9]/', '', config('branding.contact.whatsapp', '593997783576')) . '?text=' . urlencode('Hola, deseo solicitar información para una cita médica en Clínica Sur Hospital');
 @endphp
 <!-- HERO SECTION -->
@@ -35,17 +35,10 @@
 
                 <!-- Action CTAs -->
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
-                    @if($canBook)
-                        <a href="{{ route('booking') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-base shadow-xl shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
-                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span>Agendar Cita en Línea</span>
-                        </a>
-                    @else
-                        <a href="{{ $whatsappBookingUrl }}" target="_blank" rel="noopener" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-xl shadow-emerald-600/25 hover:shadow-emerald-600/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
-                            <span class="text-xl">💬</span>
-                            <span>Agendar por WhatsApp / Recepción</span>
-                        </a>
-                    @endif
+                    <a href="{{ route('booking') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-primary hover:bg-brand-primary-dark text-white font-bold text-base shadow-xl shadow-brand-primary/25 hover:shadow-brand-primary/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2.5 group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Agendar Cita en Línea</span>
+                    </a>
                     <a href="#servicios" class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-base border border-slate-200 shadow-xs transition-all flex items-center justify-center space-x-2">
                         <span>Conocer Servicios</span>
                         <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
