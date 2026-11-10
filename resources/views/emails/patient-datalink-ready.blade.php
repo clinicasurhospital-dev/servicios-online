@@ -12,7 +12,7 @@
                 <table role="presentation" width="100%" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;" cellspacing="0" cellpadding="0">
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #7C3AED 0%, #0700FF 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #7C3AED 0%, #024185 100%); padding: 35px 30px; text-align: center;">
                             <div style="display: inline-block; background-color: rgba(255,255,255,0.2); color: #FFFFFF; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
                                 💳 Enlace de Pago Listo
                             </div>

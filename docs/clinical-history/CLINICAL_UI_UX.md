@@ -9,7 +9,7 @@
 
 El módulo de Historia Clínica adopta y enriquece el Design System de **Nexaris Link** adaptado para la identidad visual de **SurHospital**:
 
-- **Color Primario (Nexaris Brand)**: `#0700FF` (Azul eléctrico quirúrgico de alta legibilidad).
+- **Color Primario (Nexaris Brand)**: `#024185` (Azul eléctrico quirúrgico de alta legibilidad).
 - **Colores de Acento y Semántica Médica**:
   - Alerta Clínica / Riesgo Alto: `#EF4444` (Rojo carmesí / Alert banner).
   - Estado Favorable / Resuelto: `#10B981` (Verde esmeralda clínico).

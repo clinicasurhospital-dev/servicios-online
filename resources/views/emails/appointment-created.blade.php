@@ -14,7 +14,7 @@
                     
                     <!-- Header Banner -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0700FF 0%, #0500C9 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #024185 0%, #02336A 100%); padding: 35px 30px; text-align: center;">
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td align="center">
@@ -55,11 +55,11 @@
                             <!-- Appointment Summary Box -->
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; margin-bottom: 28px; overflow: hidden;">
                                 <tr>
-                                    <td style="padding: 16px 20px; background-color: #EEF0FF; border-bottom: 1px solid #E2E8F0;">
+                                    <td style="padding: 16px 20px; background-color: #EFF5FC; border-bottom: 1px solid #E2E8F0;">
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                             <tr>
-                                                <td style="font-size: 12px; font-weight: 700; color: #0700FF; text-transform: uppercase; letter-spacing: 0.5px;">Código de Turno</td>
-                                                <td align="right" style="font-size: 16px; font-weight: 900; color: #0700FF; font-family: monospace;">#{{ $appointment->code }}</td>
+                                                <td style="font-size: 12px; font-weight: 700; color: #024185; text-transform: uppercase; letter-spacing: 0.5px;">Código de Turno</td>
+                                                <td align="right" style="font-size: 16px; font-weight: 900; color: #024185; font-family: monospace;">#{{ $appointment->code }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -85,7 +85,7 @@
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">⏰ Hora de Consulta:</td>
-                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #0700FF;">{{ $appointment->start_at->format('h:i A') }} (Duración: {{ $appointment->duration_minutes }} min)</td>
+                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #024185;">{{ $appointment->start_at->format('h:i A') }} (Duración: {{ $appointment->duration_minutes }} min)</td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">💰 Valor Consulta:</td>
@@ -105,11 +105,11 @@
                                 <tr>
                                     <td align="center">
                                         @if($isForStaff)
-                                            <a href="{{ route('admin.appointments') }}?search={{ $appointment->code }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                            <a href="{{ route('admin.appointments') }}?search={{ $appointment->code }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                                 Ver Cita en Panel Administrativo
                                             </a>
                                         @else
-                                            <a href="{{ route('patient.appointment.show', $appointment) }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                            <a href="{{ route('patient.appointment.show', $appointment) }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                                 Ver Mi Cita en Portal del Paciente
                                             </a>
                                         @endif
@@ -118,7 +118,7 @@
                             </table>
 
                             <!-- Important Guidelines Box -->
-                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #0700FF; border-radius: 8px; margin-bottom: 25px;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #024185; border-radius: 8px; margin-bottom: 25px;">
                                 <tr>
                                     <td style="padding: 16px 20px;">
                                         <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 700; color: #1E293B;">

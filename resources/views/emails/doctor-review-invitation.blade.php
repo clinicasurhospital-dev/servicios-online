@@ -14,7 +14,7 @@
                     
                     <!-- Header Banner -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0700FF 0%, #0500C9 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #024185 0%, #02336A 100%); padding: 35px 30px; text-align: center;">
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td align="center">
@@ -42,11 +42,11 @@
                             <!-- Consultation Summary Box -->
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; margin-bottom: 28px; overflow: hidden;">
                                 <tr>
-                                    <td style="padding: 16px 20px; background-color: #EEF0FF; border-bottom: 1px solid #E2E8F0;">
+                                    <td style="padding: 16px 20px; background-color: #EFF5FC; border-bottom: 1px solid #E2E8F0;">
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                             <tr>
-                                                <td style="font-size: 12px; font-weight: 700; color: #0700FF; text-transform: uppercase; letter-spacing: 0.5px;">Detalle de la Consulta</td>
-                                                <td align="right" style="font-size: 13px; font-weight: 800; color: #0700FF; font-family: monospace;">#{{ $appointment->code }}</td>
+                                                <td style="font-size: 12px; font-weight: 700; color: #024185; text-transform: uppercase; letter-spacing: 0.5px;">Detalle de la Consulta</td>
+                                                <td align="right" style="font-size: 13px; font-weight: 800; color: #024185; font-family: monospace;">#{{ $appointment->code }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -70,7 +70,7 @@
                                             @endif
                                             <tr>
                                                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">📅 Fecha de Atención:</td>
-                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #0700FF;">
+                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #024185;">
                                                     {{ $appointment->start_at->translatedFormat('l, d \d\e F \d\e Y') }}
                                                 </td>
                                             </tr>
@@ -87,7 +87,7 @@
                                 <div style="margin-bottom: 20px; font-size: 28px; line-height: 1; letter-spacing: 4px;">
                                     ⭐⭐⭐⭐⭐
                                 </div>
-                                <a href="{{ $reviewUrl }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 14px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center; letter-spacing: 0.3px;">
+                                <a href="{{ $reviewUrl }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 14px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center; letter-spacing: 0.3px;">
                                     ✨ Dejar mi Valoración y Sugerencias &rarr;
                                 </a>
                                 <p style="font-size: 12px; color: #64748B; margin: 12px 0 0 0;">
@@ -98,7 +98,7 @@
                             <!-- Direct Link Fallback -->
                             <div style="background-color: #F1F5F9; border-radius: 12px; padding: 14px; margin-bottom: 24px;">
                                 <p style="font-size: 11px; color: #64748B; margin: 0 0 6px 0;">Enlace directo:</p>
-                                <a href="{{ $reviewUrl }}" style="font-size: 12px; color: #0700FF; word-break: break-all; font-family: monospace; font-weight: 600;">{{ $reviewUrl }}</a>
+                                <a href="{{ $reviewUrl }}" style="font-size: 12px; color: #024185; word-break: break-all; font-family: monospace; font-weight: 600;">{{ $reviewUrl }}</a>
                             </div>
                         </td>
                     </tr>

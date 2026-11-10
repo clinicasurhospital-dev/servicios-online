@@ -85,7 +85,7 @@
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">📅 Fecha y Hora Cita:</td>
-                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #0700FF;">{{ $appointment->start_at->translatedFormat('d M Y - h:i A') }}</td>
+                                                <td style="padding: 6px 0; font-size: 13px; font-weight: 700; color: #024185;">{{ $appointment->start_at->translatedFormat('d M Y - h:i A') }}</td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">⏱️ Fecha del Pago:</td>
@@ -111,7 +111,7 @@
                                                 Gestionar Cita y Pagos en Panel
                                             </a>
                                         @else
-                                            <a href="{{ route('patient.appointment.show', $appointment) }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                            <a href="{{ route('patient.appointment.show', $appointment) }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                                 Ver Detalles en Portal del Paciente
                                             </a>
                                         @endif

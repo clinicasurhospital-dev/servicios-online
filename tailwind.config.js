@@ -18,19 +18,19 @@ export default {
             },
             colors: {
                 brand: {
-                    50: '#EEF0FF',
-                    100: '#D9DCFF',
-                    200: '#B3BAFF',
-                    300: '#8590FF',
-                    400: '#4D5DFF',
-                    500: '#0700FF', // Primary Dominante SurHospital
-                    600: '#0500C9', // Dark Hover
-                    700: '#04009B',
-                    800: '#03006D',
-                    900: '#020042',
-                    primary: '#0700FF',
-                    'primary-dark': '#0500C9',
-                    soft: '#EEF0FF',
+                    50: '#EFF5FC',
+                    100: '#DBE8F8',
+                    200: '#BCD6F2',
+                    300: '#8CBDE9',
+                    400: '#549DDE',
+                    500: '#024185', // Primary Dominante SurHospital (#024185)
+                    600: '#02336A', // Dark Hover
+                    700: '#012650',
+                    800: '#011A37',
+                    900: '#010E1F',
+                    primary: '#024185',
+                    'primary-dark': '#02336A',
+                    soft: '#EFF5FC',
                 },
                 surface: '#FFFFFF',
                 appbg: '#F7F8FC',

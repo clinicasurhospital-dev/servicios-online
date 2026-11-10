@@ -14,7 +14,7 @@
                     
                     <!-- Header Banner -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0700FF 0%, #0500C9 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #024185 0%, #02336A 100%); padding: 35px 30px; text-align: center;">
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td align="center">
@@ -46,7 +46,7 @@
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; padding: 16px 36px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                        <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; padding: 16px 36px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                             Restablecer mi Contraseña
                                         </a>
                                     </td>
@@ -54,7 +54,7 @@
                             </table>
 
                             <!-- Important Expiration Notice Box -->
-                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #0700FF; border-radius: 8px; margin-bottom: 25px;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #024185; border-radius: 8px; margin-bottom: 25px;">
                                 <tr>
                                     <td style="padding: 16px 20px;">
                                         <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 700; color: #1E293B;">
@@ -72,7 +72,7 @@
                                 Si tienes problemas al hacer clic en el botón, copia y pega la siguiente URL en tu navegador web:
                             </p>
                             <p style="font-size: 11px; word-break: break-all; margin: 0 0 25px 0;">
-                                <a href="{{ $resetUrl }}" style="color: #0700FF; text-decoration: underline;">{{ $resetUrl }}</a>
+                                <a href="{{ $resetUrl }}" style="color: #024185; text-decoration: underline;">{{ $resetUrl }}</a>
                             </p>
 
                             <!-- Security Warning -->

@@ -94,7 +94,7 @@
 
                             @if(!$isForStaff)
                                 <!-- Re-book Notice Box -->
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #0700FF; border-radius: 8px; margin-bottom: 25px;">
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #024185; border-radius: 8px; margin-bottom: 25px;">
                                     <tr>
                                         <td style="padding: 16px 20px;">
                                             <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 700; color: #1E293B;">
@@ -111,7 +111,7 @@
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
                                     <tr>
                                         <td align="center">
-                                            <a href="{{ route('booking') }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                            <a href="{{ route('booking') }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; padding: 14px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                                 Agendar Nueva Cita Médica
                                             </a>
                                         </td>

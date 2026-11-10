@@ -12,7 +12,7 @@
                 <table role="presentation" width="100%" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;" cellspacing="0" cellpadding="0">
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0700FF 0%, #4F46E5 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #024185 0%, #4F46E5 100%); padding: 35px 30px; text-align: center;">
                             <div style="display: inline-block; background-color: rgba(255,255,255,0.2); color: #FFFFFF; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
                                 ⏳ Cita Reservada con Éxito
                             </div>
@@ -70,7 +70,7 @@
                                             <tr>
                                                 <td style="border-top: 1px dashed #CBD5E1; padding-top: 10px; font-size: 14px; font-weight: 800; color: #0F172A;">
                                                     Total a Pagar:
-                                                    <span style="font-size: 18px; font-weight: 900; color: #0700FF; float: right;">${{ number_format($amount, 2) }} USD</span>
+                                                    <span style="font-size: 18px; font-weight: 900; color: #024185; float: right;">${{ number_format($amount, 2) }} USD</span>
                                                 </td>
                                             </tr>
                                         </table>

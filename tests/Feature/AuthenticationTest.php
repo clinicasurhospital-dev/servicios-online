@@ -95,12 +95,12 @@ class AuthenticationTest extends TestCase
         \Illuminate\Support\Facades\Notification::fake();
 
         $user = User::factory()->create([
-            'email' => 'paciente.recuperar@surhospital.com',
+            'email' => 'paciente.recuperar@surhospital.net',
         ]);
 
         $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
             ->post('/recuperar-contrasena', [
-                'email' => 'paciente.recuperar@surhospital.com',
+                'email' => 'paciente.recuperar@surhospital.net',
             ]);
 
         $response->assertSessionHas('status');
@@ -112,7 +112,7 @@ class AuthenticationTest extends TestCase
 
     public function test_reset_password_screen_can_be_rendered(): void
     {
-        $response = $this->get('/restablecer-contrasena/sample-token?email=paciente.recuperar@surhospital.com');
+        $response = $this->get('/restablecer-contrasena/sample-token?email=paciente.recuperar@surhospital.net');
         $response->assertStatus(200);
         $response->assertSee('Nueva Contraseña');
     }
@@ -120,7 +120,7 @@ class AuthenticationTest extends TestCase
     public function test_password_can_be_reset_with_valid_token(): void
     {
         $user = User::factory()->create([
-            'email' => 'reset.user@surhospital.com',
+            'email' => 'reset.user@surhospital.net',
             'password' => bcrypt('old-password-123'),
         ]);
 
@@ -129,7 +129,7 @@ class AuthenticationTest extends TestCase
         $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
             ->post('/restablecer-contrasena', [
                 'token' => $token,
-                'email' => 'reset.user@surhospital.com',
+                'email' => 'reset.user@surhospital.net',
                 'password' => 'new-secure-password-456',
                 'password_confirmation' => 'new-secure-password-456',
             ]);

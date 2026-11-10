@@ -14,7 +14,7 @@
                     
                     <!-- Header Banner -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #0700FF 0%, #0500C9 100%); padding: 35px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #024185 0%, #02336A 100%); padding: 35px 30px; text-align: center;">
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td align="center">
@@ -41,7 +41,7 @@
 
                             <!-- Credentials Box -->
                             <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
-                                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0700FF; margin: 0 0 12px 0;">
+                                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #024185; margin: 0 0 12px 0;">
                                     📋 Datos de Acceso Inicial
                                 </h3>
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -51,7 +51,7 @@
                                     </tr>
                                     <tr>
                                         <td style="padding: 6px 0; font-size: 13px; color: #64748B;">Clave genérica inicial:</td>
-                                        <td style="padding: 6px 0; font-size: 14px; font-weight: 800; font-family: monospace; color: #0700FF; background-color: #EEF2FF; padding: 4px 8px; border-radius: 6px; display: inline-block;">
+                                        <td style="padding: 6px 0; font-size: 14px; font-weight: 800; font-family: monospace; color: #024185; background-color: #EEF2FF; padding: 4px 8px; border-radius: 6px; display: inline-block;">
                                             {{ $genericPassword }}
                                         </td>
                                     </tr>
@@ -69,7 +69,7 @@
                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background-color: #0700FF; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 12px; box-shadow: 0 4px 15px rgba(7, 0, 255, 0.35); text-align: center;">
+                                        <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background-color: #024185; color: #FFFFFF; font-size: 15px; font-weight: 800; text-decoration: none; padding: 16px 36px; border-radius: 12px; box-shadow: 0 4px 15px rgba(2, 65, 133, 0.35); text-align: center;">
                                             🔐 Generar Mi Nueva Contraseña Personal
                                         </a>
                                     </td>
@@ -85,8 +85,8 @@
                             <p style="font-size: 12px; line-height: 1.5; color: #64748B; margin: 0 0 8px 0;">
                                 Si tienes problemas con el botón superior, copia y pega el siguiente enlace directo en tu navegador web:
                             </p>
-                            <p style="font-size: 11px; line-height: 1.4; color: #0700FF; word-break: break-all; margin: 0 0 20px 0; font-family: monospace;">
-                                <a href="{{ $resetUrl }}" style="color: #0700FF; text-decoration: underline;">{{ $resetUrl }}</a>
+                            <p style="font-size: 11px; line-height: 1.4; color: #024185; word-break: break-all; margin: 0 0 20px 0; font-family: monospace;">
+                                <a href="{{ $resetUrl }}" style="color: #024185; text-decoration: underline;">{{ $resetUrl }}</a>
                             </p>
 
                             <!-- Assistance Box -->

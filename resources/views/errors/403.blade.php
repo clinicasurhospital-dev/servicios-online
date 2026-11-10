@@ -15,7 +15,7 @@
         p { font-size: 0.875rem; color: #64748b; line-height: 1.6; margin-bottom: 2rem; }
         .actions { display: flex; gap: 0.75rem; justify-content: center; }
         .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.875rem; font-size: 0.875rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
-        .btn-primary { background: #0700FF; color: white; }
+        .btn-primary { background: #024185; color: white; }
         .btn-primary:hover { opacity: 0.9; }
         .btn-secondary { background: #f1f5f9; color: #334155; }
         .btn-secondary:hover { background: #e2e8f0; }

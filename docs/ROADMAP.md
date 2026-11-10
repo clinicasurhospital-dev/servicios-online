@@ -10,7 +10,7 @@
 ### FASE 1: Scaffolding, Base de Datos, Branding & Autenticación
 - [x] Scaffolding del proyecto Laravel con configuración de entorno y PostgreSQL.
 - [x] Configuración de Tailwind CSS, Vite, Alpine.js y Livewire.
-- [x] Implementación de `BrandingService` y `config/branding.php` con tokens `#0700FF`.
+- [x] Implementación de `BrandingService` y `config/branding.php` con tokens `#024185`.
 - [x] Sistema de Autenticación con soporte para Roles (Spatie), Login, Registro de Pacientes y Recuperación.
 - [x] Design System base (Blade components: Button, Input, Select, Modal, Drawer, Toast, Badge, Card, StatCard).
 

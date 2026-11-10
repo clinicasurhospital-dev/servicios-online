@@ -74,7 +74,7 @@ class ClinicalModuleSeeder extends Seeder
         $adminUser = User::role(['SUPER_ADMIN', 'ADMIN'])->first() ?? User::first();
         if (!$adminUser) {
             $adminUser = User::firstOrCreate(
-                ['email' => 'admin.clinical@surhospital.com'],
+                ['email' => 'admin.clinical@surhospital.net'],
                 [
                     'name' => 'Admin Clínico',
                     'phone' => '+593 99 999 9999',

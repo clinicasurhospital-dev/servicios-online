@@ -32,7 +32,7 @@ El repositorio `/home/alfredo/projects/agenda-citas` se encontraba inicialmente 
 | :--- | :--- | :--- |
 | **Estructura Base** | Workspace inicial sin scaffolding | Crear scaffold estándar de Laravel 11 con estructura modular de dominio. |
 | **Base de Datos** | Sin esquema ni migraciones previas | Diseñar DDL completo en PostgreSQL con tipos ENUM, índices de concurrencia y restricciones anti-colisión. |
-| **Branding** | No existía aislamiento de marca | Implementar `BrandingService` / `config/branding.php` para desacoplar completamente textos, logos (#0700FF) e identidad de SurHospital. |
+| **Branding** | No existía aislamiento de marca | Implementar `BrandingService` / `config/branding.php` para desacoplar completamente textos, logos (#024185) e identidad de SurHospital. |
 | **Seguridad** | Sin políticas de autorización | Configurar Spatie Permissions, Laravel Policies, Form Requests tipados, CSRF, Rate Limiting y almacenamiento de archivos privados. |
 | **Testing** | Sin suites automatizadas | Configurar PHPUnit / Pest con tests unitarios y de integración para concurrencia, disponibilidad, agendamiento y pasarela de pagos. |
 
@@ -41,8 +41,8 @@ El repositorio `/home/alfredo/projects/agenda-citas` se encontraba inicialmente 
 ## 4. Estado de Assets y Logotipo
 
 - **Identidad Corporativa SurHospital:**
-  - Color Primario Referencial: `#0700FF` (Azul Médico Profundo).
-  - Color Primario Oscuro: `#0500C9`.
+  - Color Primario Referencial: `#024185` (Azul Médico Profundo).
+  - Color Primario Oscuro: `#02336A`.
   - Color Primario Suave / Fondos: `#EEF0FF`.
   - Fondo de Aplicación: `#F7F8FC`.
   - Superficie / Tarjetas: `#FFFFFF`.

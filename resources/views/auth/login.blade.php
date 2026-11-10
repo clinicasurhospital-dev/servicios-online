@@ -43,7 +43,7 @@
             @csrf
             <div>
                 <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Correo Electrónico</label>
-                <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="w-full rounded-xl border-slate-200 text-sm p-3.5 focus:border-brand-500 focus:ring-brand-500 font-medium bg-white shadow-xs" placeholder="admin@surhospital.com">
+                <input id="email" name="email" type="email" autocomplete="email" required value="{{ old('email') }}" class="w-full rounded-xl border-slate-200 text-sm p-3.5 focus:border-brand-500 focus:ring-brand-500 font-medium bg-white shadow-xs" placeholder="usuario@surhospital.net">
             </div>
 
             <div>
@@ -69,42 +69,19 @@
                     <input type="checkbox" name="remember" class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
                     <span class="text-slate-600 font-medium">Recordarme</span>
                 </label>
-                <a href="{{ route('password.request') }}" class="font-semibold text-[#0700FF] hover:underline" style="color: #0700FF;">
+                <a href="{{ route('password.request') }}" class="font-semibold text-brand-primary hover:underline" style="color: #024185;">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>
 
-            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0700FF] hover:bg-[#0500C9] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer block text-center" style="background-color: #0700FF; color: #FFFFFF;">
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#024185] hover:bg-[#02336A] text-white font-bold text-sm shadow-lg shadow-blue-900/20 transition-all cursor-pointer block text-center" style="background-color: #024185; color: #FFFFFF;">
                 Ingresar a la Plataforma
             </button>
         </form>
 
-        <!-- Quick Access Demo Credentials -->
-        <div class="mt-6 pt-5 border-t border-slate-100">
-            <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">Acceso Rápido de Prueba (1 Clic)</span>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <button type="button" onclick="document.getElementById('email').value='admin@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
-                    <span class="font-bold block text-slate-800 text-[11px]">👑 Administrador</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">admin@surhospital.com</span>
-                </button>
-                <button type="button" onclick="document.getElementById('email').value='recepcion@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
-                    <span class="font-bold block text-slate-800 text-[11px]">📋 Recepción</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">recepcion@surhospital.com</span>
-                </button>
-                <button type="button" onclick="document.getElementById('email').value='dr.carlos.soledispa@surhospital.net'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
-                    <span class="font-bold block text-slate-800 text-[11px]">🩺 Médico</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">dr.carlos.soledispa@...</span>
-                </button>
-                <button type="button" onclick="document.getElementById('email').value='paciente@surhospital.com'; document.getElementById('password').value='password';" class="p-2.5 rounded-xl bg-slate-50 hover:bg-brand-soft hover:text-brand-primary border border-slate-200 text-left transition-all cursor-pointer">
-                    <span class="font-bold block text-slate-800 text-[11px]">👤 Paciente</span>
-                    <span class="text-[10px] text-slate-500 font-mono truncate block">paciente@surhospital.com</span>
-                </button>
-            </div>
-        </div>
-
         <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
             ¿Aún no tienes cuenta?
-            <a href="{{ route('register') }}" class="font-bold text-[#0700FF] hover:underline" style="color: #0700FF;">Regístrate aquí</a>
+            <a href="{{ route('register') }}" class="font-bold text-brand-primary hover:underline" style="color: #024185;">Regístrate aquí</a>
         </div>
     </div>
 </div>

@@ -29,7 +29,7 @@ class DoctorAndPatientPanelTest extends TestCase
     {
         $user = User::create([
             'name' => 'Ana Sofía Mendoza',
-            'email' => 'paciente@surhospital.com',
+            'email' => 'paciente@surhospital.net',
             'phone' => '+593 99 123 4567',
             'password' => Hash::make('password123'),
             'email_verified_at' => now(),
@@ -38,7 +38,7 @@ class DoctorAndPatientPanelTest extends TestCase
         $user->assignRole('PATIENT');
 
         $response = $this->post(route('login'), [
-            'email' => 'paciente@surhospital.com',
+            'email' => 'paciente@surhospital.net',
             'password' => 'password123',
         ]);
 
@@ -50,7 +50,7 @@ class DoctorAndPatientPanelTest extends TestCase
     {
         $user = User::create([
             'name' => 'Ana Sofía Mendoza',
-            'email' => 'paciente@surhospital.com',
+            'email' => 'paciente@surhospital.net',
             'phone' => '+593 99 123 4567',
             'password' => Hash::make('password123'),
             'email_verified_at' => now(),
@@ -78,7 +78,7 @@ class DoctorAndPatientPanelTest extends TestCase
     {
         $dUser = User::create([
             'name' => 'Dr. Carlos Soledispa',
-            'email' => 'carlos.soledispa@surhospital.com',
+            'email' => 'carlos.soledispa@surhospital.net',
             'password' => Hash::make('password123'),
             'is_active' => true,
         ]);

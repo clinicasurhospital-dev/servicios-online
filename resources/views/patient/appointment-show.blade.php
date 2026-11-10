@@ -547,7 +547,7 @@
                         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
                             <span class="font-bold text-slate-900 block">Datos Bancarios para Depósito / Transferencia:</span>
                             <p><strong>Banco:</strong> Banco Pichincha &bull; <strong>Cuenta Corriente:</strong> #2100849201</p>
-                            <p><strong>Titular:</strong> SurHospital S.A. &bull; <strong>RUC:</strong> 0992384756001 &bull; <strong>Correo:</strong> pagos@surhospital.com</p>
+                            <p><strong>Titular:</strong> {{ config('branding.banking.account_holder', 'SurHospital S.A.') }} &bull; <strong>RUC:</strong> 0992384756001 &bull; <strong>Correo:</strong> {{ config('branding.banking.email_receipts', 'pagos@surhospital.net') }}</p>
                         </div>
 
                         <form action="{{ route('patient.transfer.submit', $appointment) }}" method="POST" enctype="multipart/form-data" class="space-y-3.5">

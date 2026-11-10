@@ -455,7 +455,7 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Correo Electrónico <span class="text-rose-500">*</span></label>
-                        <input type="email" name="email" required placeholder="usuario@surhospital.com" class="w-full rounded-xl border-slate-200 text-xs p-3 focus:border-brand-primary" />
+                        <input type="email" name="email" required placeholder="usuario@surhospital.net" class="w-full rounded-xl border-slate-200 text-xs p-3 focus:border-brand-primary" />
                     </div>
 
                     <div>

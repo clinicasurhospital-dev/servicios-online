@@ -22,7 +22,7 @@ class PatientAndAppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminUser = User::where('email', 'admin@surhospital.com')->first();
+        $adminUser = User::where('email', 'admin@surhospital.net')->first() ?? User::role('SUPER_ADMIN')->first();
         $doctors = Doctor::with('specialties')->get();
         if ($doctors->isEmpty()) {
             return;
@@ -39,7 +39,7 @@ class PatientAndAppointmentSeeder extends Seeder
                 'name' => 'Ana Sofía Mendoza',
                 'first_name' => 'Ana Sofía',
                 'last_name' => 'Mendoza',
-                'email' => 'paciente@surhospital.com',
+                'email' => 'paciente@surhospital.net',
                 'password' => 'password',
                 'phone' => '+593 99 123 4567',
                 'identification_number' => '0958473621',

@@ -22,9 +22,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'colors' => [
-        'primary' => env('BRAND_PRIMARY_COLOR', '#0700FF'),
-        'primary_dark' => '#0500C9',
-        'primary_soft' => '#EEF0FF',
+        'primary' => env('BRAND_PRIMARY_COLOR', '#024185'),
+        'primary_dark' => '#02336A',
+        'primary_soft' => '#EFF5FC',
         'background' => '#F7F8FC',
         'surface' => '#FFFFFF',
         'text_primary' => '#172033',

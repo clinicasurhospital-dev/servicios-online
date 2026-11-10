@@ -33,7 +33,7 @@ class PatientAppointmentDetailAndActionsTest extends TestCase
 
         $this->user = User::create([
             'name' => 'Ana Sofía Mendoza',
-            'email' => 'paciente@surhospital.com',
+            'email' => 'paciente@surhospital.net',
             'password' => Hash::make('password123'),
             'is_active' => true,
         ]);
@@ -51,7 +51,7 @@ class PatientAppointmentDetailAndActionsTest extends TestCase
 
         $dUser = User::create([
             'name' => 'Dr. Carlos Soledispa',
-            'email' => 'doc@surhospital.com',
+            'email' => 'doc@surhospital.net',
             'password' => Hash::make('123'),
             'is_active' => true,
         ]);

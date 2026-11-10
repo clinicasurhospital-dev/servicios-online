@@ -10,8 +10,8 @@
 
 | Token | Hex / Valor | Uso Principal |
 | :--- | :--- | :--- |
-| `primary` | `#0700FF` | Acciones principales (CTA), links destacados, branding de acento, estados seleccionados. |
-| `primary-dark` | `#0500C9` | Estados hover y active en botones principales. |
+| `primary` | `#024185` | Acciones principales (CTA), links destacados, branding de acento, estados seleccionados. |
+| `primary-dark` | `#02336A` | Estados hover y active en botones principales. |
 | `primary-soft` | `#EEF0FF` | Fondos de selección, chips activos, badges suaves primarios. |
 | `background` | `#F7F8FC` | Fondo general de la aplicación (evita fatiga visual). |
 | `surface` | `#FFFFFF` | Tarjetas, contenedores modales, tablas y drawers. |
@@ -39,19 +39,19 @@
 ## 3. Catálogo de Componentes UI
 
 1. **Botones (`x-button`):**
-   - *Primary:* Fondo `#0700FF`, texto blanco, sombra sutil, hover `#0500C9`, focus ring accesible.
+   - *Primary:* Fondo `#024185`, texto blanco, sombra sutil, hover `#02336A`, focus ring accesible.
    - *Secondary / Outline:* Borde `#E5E7EB`, fondo blanco, texto `#172033`, hover fondo slate-50.
    - *Danger:* Fondo `#D92D20`, texto blanco, hover `#B42318`.
    - *Ghost:* Sin borde, hover suave `bg-slate-100`.
 2. **Formularios & Inputs:**
    - Label siempre visible con indicador de obligatorio.
    - Input con altura mínima de 44px (touch target óptimo).
-   - Borde de focus con color primario `#0700FF` y ring suave de 2px.
+   - Borde de focus con color primario `#024185` y ring suave de 2px.
    - Mensajes de error en color rojo debajo del input con ícono de advertencia.
 3. **Time Slot Selector (`x-time-slot`):**
    - Botón tipo chip táctil (min-h: 44px).
    - Estado disponible: Fondo blanco, borde `#E5E7EB`, texto `#172033`, hover borde primario.
-   - Estado seleccionado: Fondo `#0700FF`, texto blanco, shadow primario.
+   - Estado seleccionado: Fondo `#024185`, texto blanco, shadow primario.
    - Estado deshabilitado / ocupado: Fondo slate-100, texto slate-400, no clicable con indicador visual.
 4. **Badges de Estado (`x-status-badge`):**
    - *Confirmada:* `bg-emerald-50 text-emerald-700 border border-emerald-200`

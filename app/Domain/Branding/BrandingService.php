@@ -35,7 +35,7 @@ class BrandingService
     /**
      * Get brand color by key.
      */
-    public function color(string $key, string $default = '#0700FF'): string
+    public function color(string $key, string $default = '#024185'): string
     {
         return config("branding.colors.{$key}", $default);
     }
@@ -45,7 +45,7 @@ class BrandingService
      */
     public function primaryColor(): string
     {
-        return $this->color('primary', '#0700FF');
+        return $this->color('primary', '#024185');
     }
 
     /**

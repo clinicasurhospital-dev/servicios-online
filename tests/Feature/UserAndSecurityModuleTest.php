@@ -131,7 +131,7 @@ class UserAndSecurityModuleTest extends TestCase
             ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
             ->post(route('admin.doctors.store'), [
                 'name' => 'Dr. Fernando Castro',
-                'email' => 'dr.castro@surhospital.com',
+                'email' => 'dr.castro@surhospital.net',
                 'phone' => '0991122334',
                 'role' => 'SPECIALIST',
                 'license_number' => 'MSP-CARDIO-8821',
@@ -143,7 +143,7 @@ class UserAndSecurityModuleTest extends TestCase
 
         $response->assertSessionHas('success');
 
-        $user = User::where('email', 'dr.castro@surhospital.com')->first();
+        $user = User::where('email', 'dr.castro@surhospital.net')->first();
         $this->assertNotNull($user);
         $this->assertTrue(Hash::check('SurHospital2026!', $user->password));
         $this->assertTrue($user->hasRole('SPECIALIST'));
@@ -169,7 +169,7 @@ class UserAndSecurityModuleTest extends TestCase
             ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
             ->post(route('admin.users.store'), [
                 'name' => 'Lucía Recepción',
-                'email' => 'lucia@surhospital.com',
+                'email' => 'lucia@surhospital.net',
                 'phone' => '0993344556',
                 'role' => 'RECEPTION',
                 'password' => 'SurHospital2026!',
@@ -177,7 +177,7 @@ class UserAndSecurityModuleTest extends TestCase
 
         $response->assertSessionHas('success');
 
-        $reception = User::where('email', 'lucia@surhospital.com')->first();
+        $reception = User::where('email', 'lucia@surhospital.net')->first();
         $this->assertNotNull($reception);
         $this->assertTrue($reception->hasRole('RECEPTION'));
         $this->assertTrue($reception->isReception());

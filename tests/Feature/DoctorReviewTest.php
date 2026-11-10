@@ -30,7 +30,7 @@ class DoctorReviewTest extends TestCase
         // 1. Admin
         $this->adminUser = User::create([
             'name' => 'Admin Test',
-            'email' => 'admintest@surhospital.com',
+            'email' => 'admintest@surhospital.net',
             'password' => bcrypt('password'),
         ]);
         $this->adminUser->assignRole('ADMIN');
@@ -38,7 +38,7 @@ class DoctorReviewTest extends TestCase
         // 2. Doctor
         $this->doctorUser = User::create([
             'name' => 'Dr. Carlos Mendoza',
-            'email' => 'carlos.mendoza@surhospital.com',
+            'email' => 'carlos.mendoza@surhospital.net',
             'password' => bcrypt('password'),
         ]);
         $this->doctorUser->assignRole('DOCTOR');

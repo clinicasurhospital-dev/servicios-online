@@ -9,7 +9,7 @@
             <a href="{{ route('home') }}" class="inline-block mb-4">
                 <x-brand.logo />
             </a>
-            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0700FF] flex items-center justify-center mx-auto mb-3">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#024185] flex items-center justify-center mx-auto mb-3">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                 </svg>
@@ -59,14 +59,14 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0700FF] hover:bg-[#0500C9] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all cursor-pointer block text-center" style="background-color: #0700FF; color: #FFFFFF;">
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#024185] hover:bg-[#02336A] text-white font-bold text-sm shadow-lg shadow-blue-900/20 transition-all cursor-pointer block text-center" style="background-color: #024185; color: #FFFFFF;">
                 Enviar Enlace de Recuperación
             </button>
         </form>
 
         <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs space-y-2">
             <div>
-                <a href="{{ route('login') }}" class="font-bold text-[#0700FF] hover:underline inline-flex items-center gap-1.5" style="color: #0700FF;">
+                <a href="{{ route('login') }}" class="font-bold text-[#024185] hover:underline inline-flex items-center gap-1.5" style="color: #024185;">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>

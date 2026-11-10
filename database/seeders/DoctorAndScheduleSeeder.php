@@ -16,7 +16,7 @@ class DoctorAndScheduleSeeder extends Seeder
         $doctorsData = [
             [
                 'name' => 'Dr. Carlos Soledispa (Demo)',
-                'email' => 'doctor@surhospital.com',
+                'email' => 'doctor@surhospital.net',
                 'phone' => '042590670',
                 'license' => 'MSP-EC-091820',
                 'specialty_slug' => 'neurocirugia',
