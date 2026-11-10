@@ -647,9 +647,9 @@
                 </div>
 
                 <!-- Tabs / Opciones de Pago con Radio Indicator -->
-                <!-- Tabs / Opciones de Pago con Radio Indicator -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
-                    <!-- Opción 1: Tarjeta de Débito/Crédito -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+                    {{-- Opción 1: Tarjeta de Débito/Crédito (Oculta temporalmente a petición del usuario) --}}
+                    @if(false)
                     <button type="button" wire:click="$set('paymentMethod', 'CREDIT_CARD')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'CREDIT_CARD' ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/25 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
                         <div class="flex items-center justify-between mb-2.5">
                             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
@@ -672,6 +672,7 @@
                         <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mt-1">En Línea • Inmediato</span>
                         <p class="text-[11px] text-slate-500 mt-1.5 leading-snug">Pasarela segura con confirmación directa y automática de tu turno.</p>
                     </button>
+                    @endif
 
                     <!-- Opción 2: Enlace de Pago DataLink (Manual Asistido) -->
                     <button type="button" wire:click="$set('paymentMethod', 'PAYMENT_LINK')" class="p-4 rounded-2xl border-2 text-left transition-all cursor-pointer group relative {{ $paymentMethod === 'PAYMENT_LINK' ? 'border-brand-primary bg-brand-soft/60 ring-2 ring-brand-primary/25 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300' }}">
@@ -724,8 +725,8 @@
 
                 <!-- CONTENIDO SEGÚN MÉTODO DE PAGO SELECCIONADO -->
 
-                <!-- 1. PASARELA TARJETA CON DISEÑO PROFESIONAL Y VIRTUAL CARD PREVIEW -->
-                @if($paymentMethod === 'CREDIT_CARD')
+                <!-- 1. PASARELA TARJETA CON DISEÑO PROFESIONAL Y VIRTUAL CARD PREVIEW (Oculta temporalmente) -->
+                @if(false && $paymentMethod === 'CREDIT_CARD')
                     <div class="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm animate-fadeIn space-y-6">
                         <!-- Selector de Pasarela Integrada -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">

@@ -71,7 +71,7 @@ class BookingWizard extends Component
     public string $provinceName = '';
 
     // Step 4: Payment Selection & Gateway Demo Data
-    public string $paymentMethod = 'CREDIT_CARD'; // CREDIT_CARD, PAYMENT_LINK, BANK_TRANSFER, CASH, CARD_ONSITE
+    public string $paymentMethod = 'BANK_TRANSFER'; // CREDIT_CARD (temporarily hidden), PAYMENT_LINK, BANK_TRANSFER, CASH, CARD_ONSITE
     public string $cardHolder = '';
     public string $cardNumber = '';
     public string $cardExpiry = '';
@@ -229,7 +229,7 @@ class BookingWizard extends Component
 
         $this->isManual = $isManual;
         $this->selectedDate = now()->addDay()->format('Y-m-d');
-        $this->paymentMethod = $isManual ? 'PAYMENT_LINK' : 'CREDIT_CARD';
+        $this->paymentMethod = $isManual ? 'PAYMENT_LINK' : 'BANK_TRANSFER';
 
         if (!$this->isManual && Auth::check() && Auth::user()->patient) {
             $patient = Auth::user()->patient;
@@ -460,7 +460,7 @@ class BookingWizard extends Component
         $this->password = '';
         $this->reason = '';
         $this->patientExists = false;
-        $this->paymentMethod = $this->isManual ? 'PAYMENT_LINK' : 'CREDIT_CARD';
+        $this->paymentMethod = $this->isManual ? 'PAYMENT_LINK' : 'BANK_TRANSFER';
         $this->confirmedAppointmentId = null;
         $this->confirmedAppointmentCode = null;
         $this->errorMessage = null;
@@ -727,7 +727,7 @@ class BookingWizard extends Component
                 'BANK_TRANSFER' => 'BANK_TRANSFER',
                 'CASH' => 'CASH',
                 'CARD_ONSITE' => 'CARD_ONSITE',
-                default => 'CREDIT_CARD',
+                default => 'BANK_TRANSFER',
             };
 
             $notes = $this->reason ?: '';

@@ -8,7 +8,7 @@
     transferModal: false,
     rescheduleModal: false,
     reviewModal: false,
-    paymentTab: 'card',
+    paymentTab: 'transfer',
     paymentLinkRef: '',
     paymentProvider: 'Enlace Oficial SurHospital',
     cardHolder: '{{ strtoupper(auth()->user()->name) }}',
@@ -420,12 +420,14 @@
                         </div>
                     </div>
 
-                    <!-- 3 Pestañas de Pago -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Pestañas de Pago (Tarjeta oculta temporalmente) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        @if(false)
                         <button type="button" @click="paymentTab = 'card'" class="p-3 rounded-2xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center" :class="paymentTab === 'card' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
                             <span>💳</span>
                             <span>Tarjeta Débito / Crédito</span>
                         </button>
+                        @endif
                         <button type="button" @click="paymentTab = 'link'" class="p-3 rounded-2xl border-2 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center" :class="paymentTab === 'link' ? 'border-brand-primary bg-white text-brand-primary shadow-md ring-2 ring-brand-primary/20' : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-white'">
                             <span>🔗</span>
                             <span>Enlace de Pago</span>
@@ -436,7 +438,8 @@
                         </button>
                     </div>
 
-                    <!-- Opción 1: Tarjeta Instantánea (Validación Automática) -->
+                    <!-- Opción 1: Tarjeta Instantánea (Oculta temporalmente) -->
+                    @if(false)
                     <div x-show="paymentTab === 'card'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4">
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                             <div>
@@ -481,6 +484,7 @@
                             </div>
                         </form>
                     </div>
+                    @endif
 
                     <!-- Opción 2: Enlace de Pago Digital (Validación Automática) -->
                     <div x-show="paymentTab === 'link'" class="bg-white p-5 sm:p-6 rounded-2xl border border-amber-200/80 shadow-2xs space-y-4" style="display: none;">
